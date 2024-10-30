@@ -161,7 +161,6 @@ AS
 BEGIN
     DECLARE @sql NVARCHAR(MAX);
 
-    -- First, create the table with explicit column definitions
     SET @sql = N'
     CREATE TABLE ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N' (
         IdProducto INT NOT NULL,
@@ -204,7 +203,6 @@ AS
 BEGIN
     DECLARE @sql NVARCHAR(MAX);
 
-    -- First, create the table with explicit column definitions
     SET @sql = N'
     CREATE TABLE ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N' (
         Producto VARCHAR(100),
@@ -213,12 +211,134 @@ BEGIN
 
     EXEC sp_executesql @sql;
 
-    -- Then, insert the data from Excel
     SET @sql = N'
     INSERT INTO ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N'
     SELECT 
         CAST(Product AS VARCHAR(100)),
         CAST([Precio Unitario en dolares] AS DECIMAL(6,2))
+    FROM OPENROWSET(
+        ''Microsoft.ACE.OLEDB.12.0'',
+        ''Excel 12.0; Database=' + @direccion + '; HDR=YES;'', 
+        ''SELECT * FROM [' + @pagina + N'$]''
+    );';
+
+    EXEC sp_executesql @sql;
+END;
+GO
+
+
+CREATE OR ALTER PROCEDURE Procedimientos.CargarClasificacion
+    @direccion VARCHAR(100),
+    @tabla VARCHAR(100),
+    @pagina VARCHAR(100),
+    @esquema VARCHAR(20)
+AS
+BEGIN
+    DECLARE @sql NVARCHAR(MAX);
+
+    SET @sql = N'
+    CREATE TABLE ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N' (
+        [Línea de producto] VARCHAR(100),
+        Producto VARCHAR(100)
+    );';
+
+    EXEC sp_executesql @sql;
+
+    SET @sql = N'
+    INSERT INTO ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N'
+    SELECT 
+        CAST([Línea de producto] AS VARCHAR(100)),
+        CAST(Producto AS VARCHAR(100))
+    FROM OPENROWSET(
+        ''Microsoft.ACE.OLEDB.12.0'',
+        ''Excel 12.0; Database=' + @direccion + '; HDR=YES;'', 
+        ''SELECT * FROM [' + @pagina + N'$]''
+    );';
+
+    EXEC sp_executesql @sql;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.CargarEmpleados
+    @direccion VARCHAR(100),
+    @tabla VARCHAR(100),
+    @pagina VARCHAR(100),
+    @esquema VARCHAR(20)
+AS
+BEGIN
+    DECLARE @sql NVARCHAR(MAX);
+
+    SET @sql = N'
+    CREATE TABLE ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N' (
+        Legajo INT NOT NULL,
+        Nombre VARCHAR(50),
+        Apellido VARCHAR(50),
+        DNI INT,
+        Direccion VARCHAR(200),
+        [email personal] VARCHAR(100),
+        [email empresa] VARCHAR(100),
+        CUIL VARCHAR(11),
+        Cargo VARCHAR(50),
+        Sucursal VARCHAR(100),
+        Turno VARCHAR(25)
+    );';
+
+    EXEC sp_executesql @sql;
+
+    SET @sql = N'
+    INSERT INTO ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N'
+    SELECT 
+        CAST([Legajo/ID] AS INT),
+        CAST(Nombre AS VARCHAR(50)),
+        CAST(Apellido AS VARCHAR(50)),
+        CAST(DNI AS INT),
+        CAST(Direccion AS VARCHAR(200)),
+        CAST([email personal] AS VARCHAR(100)),
+        CAST([email empresa] AS VARCHAR(100)),
+        CAST(CUIL AS VARCHAR(11)),
+        CAST(Cargo AS VARCHAR(50)),
+        CAST(Sucursal AS VARCHAR(100)),
+        CAST(Turno AS VARCHAR(25))
+    FROM OPENROWSET(
+        ''Microsoft.ACE.OLEDB.12.0'',
+        ''Excel 12.0; Database=' + @direccion + '; HDR=YES;'', 
+        ''SELECT * FROM [' + @pagina + N'$] WHERE [Legajo/ID] IS NOT NULL''
+    );';
+
+    EXEC sp_executesql @sql;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.CargarSucursales
+    @direccion VARCHAR(100),
+    @tabla VARCHAR(100),
+    @pagina VARCHAR(100),
+    @esquema VARCHAR(20)
+AS
+BEGIN
+    DECLARE @sql NVARCHAR(MAX);
+
+    -- First, create the table with explicit column definitions
+    SET @sql = N'
+    CREATE TABLE ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N' (
+        Ciudad VARCHAR(100),
+        [Reemplazar por] VARCHAR(100),
+        direccion VARCHAR(200),
+        Horario VARCHAR(100),
+        Telefono VARCHAR(20)
+    );';
+
+    EXEC sp_executesql @sql;
+
+    -- Then, insert the data from Excel
+    SET @sql = N'
+    INSERT INTO ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N'
+    SELECT 
+        CAST(Ciudad AS VARCHAR(100)),
+        CAST([Reemplazar por] AS VARCHAR(100)),
+        CAST(direccion AS VARCHAR(200)),
+        CAST(Horario AS VARCHAR(100)),
+        CAST(Telefono AS VARCHAR(20))
     FROM OPENROWSET(
         ''Microsoft.ACE.OLEDB.12.0'',
         ''Excel 12.0; Database=' + @direccion + '; HDR=YES;'', 
@@ -242,6 +362,24 @@ WHERE
     SCHEMA_NAME(schema_id) = 'Procedimientos';
 GO
 
+
+TRUNCATE TABLE Productos.Catalogo
+GO
+TRUNCATE TABLE Ventas.Historial
+GO
+DROP TABLE IF EXISTS Complementario.ClasificacionDeProductos
+GO
+DROP TABLE IF EXISTS Complementario.Empleados
+GO
+DROP TABLE IF EXISTS Complementario.Sucursales
+GO
+DROP TABLE IF EXISTS Productos.ElectronicAccessories
+GO
+DROP TABLE IF EXISTS Productos.ProductosImportados
+GO
+
+
+
 DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
 DECLARE @FullPath VARCHAR(500) = @PATH + '\Productos\catalogo.csv'
 
@@ -255,62 +393,64 @@ SET @FULLPATH = @PATH + '\Ventas_registradas.csv'
 EXEC Procedimientos.CargarCSV	@direccion = @FullPath, 
 								@terminator = ';',
 								@tabla = 'Ventas.Historial'   
+
+SET @FULLPATH = @PATH + '\Informacion_complementaria.xlsx'
+EXEC Procedimientos.CargarClasificacion @direccion = @FullPath,
+										@tabla = 'ClasificacionDeProductos',
+										@pagina =  'Clasificacion productos',
+										@esquema = 'Complementario'
+
+EXEC Procedimientos.CargarEmpleados		@direccion = @FullPath,
+											@tabla = 'Empleados',
+											@pagina =  'Empleados',
+											@esquema = 'Complementario'
+
+EXEC Procedimientos.CargarSucursales		@direccion = @FullPath,
+											@tabla = 'Sucursales',
+											@pagina =  'Sucursal',
+											@esquema = 'Complementario'
+
+SET @FULLPATH = @PATH + '\Productos\Electronic accessories.xlsx'
+EXEC Procedimientos.CargarElectronic	@direccion = @FullPath,
+										@tabla = 'ElectronicAccessories',
+										@pagina =  'Sheet1',
+										@esquema = 'Productos'
+
+SET @FULLPATH = @PATH + '\Productos\Productos_importados.xlsx'
+EXEC Procedimientos.CargarImportados	@direccion = @FullPath,
+										@tabla = 'ProductosImportados',
+										@pagina = 'Listado de Productos',
+										@esquema = 'Productos'
 GO
 
 
-SELECT * FROM Ventas.Historial
-GO
 
 SELECT * FROM Productos.Catalogo
 GO
-
+SELECT * FROM Ventas.Historial
+GO
+SELECT * FROM Complementario.ClasificacionDeProductos
+GO
+SELECT * FROM Complementario.Empleados
+GO
+SELECT * FROM Complementario.Sucursales
+GO
 
 
 
 
 --cargamos la tabla ProductosImportados con el sp
-EXEC Procedimientos.CargarXLSX	@direccion = N'C:\Users\kerse\Desktop\TP_integrador_Archivos\Productos\Productos_importados.xlsx',
-								@tabla = 'ProductosImportados',
-								@pagina = 'Listado de Productos',
-								@esquema = 'Productos'
-GO
-
-											  
---cargamos la tabla ElectroinicAccessories						   
-EXEC Procedimientos.CargarElectronic	@direccion = 'C:\Users\kerse\Desktop\TP_integrador_Archivos\Productos\Electronic accessories.xlsx',
-										@tabla = 'ElectronicAccessories',
-										@pagina =  'Sheet1',
-										@esquema = 'Productos'
-GO
 
 
---cargamos la tabla
-EXEC Procedimientos.CargarXLSX	@direccion = 'C:\Users\kerse\Desktop\TP_integrador_Archivos\Informacion_complementaria.xlsx',
-								@tabla = 'Sucursales',
-								@pagina =  'sucursal',
-								@esquema = 'Complementario'
-GO
+
+											  				   
 
 
-EXEC Procedimientos.CargarXLSX	@direccion = 'C:\Users\kerse\Desktop\TP_integrador_Archivos\Informacion_complementaria.xlsx',
-								@tabla = 'Empleados',
-								@pagina =  'Empleados',
-								@esquema = 'Complementario'
-GO
 
 
-EXEC Procedimientos.CargarXLSX	@direccion = 'C:\Users\kerse\Desktop\TP_integrador_Archivos\Informacion_complementaria.xlsx',
-								@tabla = 'MediosDePago',
-								@pagina =  'medios de pago',
-								@esquema = 'Complementario'
-GO
 
 
-EXEC Procedimientos.CargarXLSX	@direccion = 'C:\Users\kerse\Desktop\TP_integrador_Archivos\Informacion_complementaria.xlsx',
-								@tabla = 'ClasificacionDeProductos',
-								@pagina =  'Clasificacion productos',
-								@esquema = 'Complementario'
-GO
+
 
 USE master
 GO
@@ -340,11 +480,6 @@ GO
 
 
 
-
-TRUNCATE TABLE Productos.Catalogo
-GO
-TRUNCATE TABLE Ventas.Historial
-GO
 
 
 
