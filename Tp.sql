@@ -36,6 +36,7 @@ CREATE TABLE Productos.Catalogo(
 SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
 FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_SCHEMA = 'Productos'
+GO
 
 CREATE SCHEMA Ventas
 GO
@@ -81,6 +82,7 @@ CREATE TABLE Ventas.VtasAReg(
 SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
 FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_SCHEMA = 'Ventas'
+GO
 
 --Se crea este esquema para la info complementaria.
 CREATE SCHEMA Complementario
@@ -93,7 +95,7 @@ CREATE TABLE Complementario.MonedaExtranjera(
 	Nombre char(3),
 	PrecioAR decimal(6,2)
 )
-
+GO
 
 --Para ver que las tablas pertenezcan al esquema 'Compementario'
 SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
@@ -102,7 +104,7 @@ WHERE TABLE_SCHEMA = 'Complementario'
 
 INSERT INTO Complementario.MonedaExtranjera(Nombre,PrecioAR)
 VALUES ('USD',1225)
-
+GO
 
 
 CREATE SCHEMA Procedimientos 
@@ -134,10 +136,6 @@ BEGIN
 END;
 GO
 
-
---Para Probar que funciona
-SELECT * FROM Catalogo.Producto
-TRUNCATE TABLE Catalogo.Producto
 
 
 --Para el .xlsx:
@@ -244,19 +242,17 @@ WHERE
     SCHEMA_NAME(schema_id) = 'Procedimientos';
 GO
 
-
-
+DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
+DECLARE @FullPath VARCHAR(500) = @PATH + '\Productos\catalogo.csv'
 
 --Cargamos la tabla catalogo con el sp
-EXEC Procedimientos.CargarCSV		@direccion = N'C:\Users\kerse\Desktop\TP_integrador_Archivos\Productos\catalogo.csv', --Cambiar Direccion
+EXEC Procedimientos.CargarCSV		@direccion = @FullPath,
 									@terminator = ',',
 									@tabla = 'Productos.Catalogo'
-GO
 
-
-
+SET @FULLPATH = @PATH + '\Ventas_registradas.csv'
 --Cargamos la tabla historial con el sp
-EXEC Procedimientos.CargarCSV	@direccion = N'C:\Users\kerse\Desktop\TP_integrador_Archivos\Ventas_registradas.csv', 
+EXEC Procedimientos.CargarCSV	@direccion = @FullPath, 
 								@terminator = ';',
 								@tabla = 'Ventas.Historial'   
 GO
@@ -316,9 +312,10 @@ EXEC Procedimientos.CargarXLSX	@direccion = 'C:\Users\kerse\Desktop\TP_integrado
 								@esquema = 'Complementario'
 GO
 
-
-
-
+USE master
+GO
+DROP DATABASE Com5600G01
+GO
 
 SELECT * FROM Productos.ProductosImportados
 GO
@@ -344,8 +341,10 @@ GO
 
 
 
-TRUNCATE TABLE Catalogo.ProductosImportados
-
+TRUNCATE TABLE Productos.Catalogo
+GO
+TRUNCATE TABLE Ventas.Historial
+GO
 
 
 
@@ -412,4 +411,3 @@ GO
 DROP SCHEMA IF EXISTS Complementario
 GO
 
---Para que quede en git
