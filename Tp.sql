@@ -424,24 +424,6 @@ FROM sys.procedures
 WHERE SCHEMA_NAME(schema_id) = 'Procedimientos';
 GO
 
----------------------------------
---Dsp borrar
---TRUNCATE TABLE Productos.CatalogoFinal
---GO
---TRUNCATE TABLE Ventas.Historial
---GO
-DROP TABLE IF EXISTS Complementario.ClasificacionDeProductos
-GO
-DROP TABLE IF EXISTS Complementario.Empleados
-GO
-DROP TABLE IF EXISTS Complementario.Sucursales
-GO
-DROP TABLE IF EXISTS Productos.ElectronicAccessories
-GO
-DROP TABLE IF EXISTS Productos.ProductosImportados
-GO
------------------------------------
-
 DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
 DECLARE @FullPath VARCHAR(500) = @PATH + '\Productos\catalogo.csv'
 
@@ -509,8 +491,23 @@ GO
 SELECT * FROM Ventas.VtasAReg
 GO
 ---------------------------------------------------
---Dsp Borrar:											  				   
+--Dsp borrar
+TRUNCATE TABLE Productos.CatalogoFinal
+GO
+TRUNCATE TABLE Ventas.Historial
+GO
+DROP TABLE IF EXISTS Complementario.ClasificacionDeProductos
+GO
+DROP TABLE IF EXISTS Complementario.Empleados
+GO
+DROP TABLE IF EXISTS Complementario.Sucursales
+GO
+DROP TABLE IF EXISTS Productos.ElectronicAccessories
+GO
+DROP TABLE IF EXISTS Productos.ProductosImportados
+GO
 
+--Dsp Borrar:											  				   
 USE master
 GO
 DROP DATABASE Com5600G01
@@ -518,88 +515,62 @@ GO
 
 SELECT * FROM ##ProductosImportados
 GO
-
 SELECT * FROM ##ElectronicAccessories
 GO
-
 SELECT * FROM Complementario.ClasificacionDeProductos
 GO
-
 SELECT * FROM Complementario.Empleados
 GO
-
 SELECT * FROM Complementario.MediosDePago
 GO
-
 SELECT * FROM Complementario.Sucursales
 GO
----------------------------------------------------------------AAAAAAAAAAAAAAA
+---------------------------------------------------------------
 DROP TABLE IF EXISTS ##Catalogo
 GO
-
 DROP TABLE IF EXISTS ##Historial
 GO
 DROP TABLE IF EXISTS ##ElectronicAccessories
 GO
 DROP TABLE IF EXISTS ##ProductosImportados
 GO
-
 DROP TABLE IF EXISTS Productos.ProductosImportados
 GO
-
 DROP TABLE IF EXISTS Productos.Catalogo
 GO
-
 DROP TABLE IF EXISTS Ventas.Historial
 GO
-
 DROP TABLE IF EXISTS Ventas.VtasAReg
 GO
-
 DROP TABLE IF EXISTS Productos.ElectronicAccessories
 GO
-
 DROP TABLE IF EXISTS Complementario.ClasificacionDeProductos
 GO
-
 DROP TABLE IF EXISTS Complementario.ClasificacionDeProductos
 GO
-
 DROP TABLE IF EXISTS Complementario.MediosDePago
 GO
-
 DROP TABLE IF EXISTS Complementario.Sucursales
 GO
-
 DROP TABLE IF EXISTS Complementario.Empleados
 GO
-
 DROP PROCEDURE IF EXISTS Procedimientos.CargarCSV
 GO
-
 DROP PROCEDURE IF EXISTS Procedimientos.CargarXLSX
 GO
-
 DROP PROCEDURE IF EXISTS Procedimientos.CargarCSVConTemp
 GO
-
 DROP PROCEDURE IF EXISTS Procedimientos.CargarXLSXConAlter
 GO
-
 DROP PROCEDURE IF EXISTS Procedimientos.ModificarColumnas
 GO
-
 DROP PROCEDURE IF EXISTS Procedimientos.ModificarProductosImportados
 GO
-
 DROP SCHEMA IF EXISTS Productos
 GO
-
 DROP SCHEMA IF EXISTS Ventas
 GO
-
 DROP SCHEMA IF EXISTS Procedimientos
 GO
-
 DROP SCHEMA IF EXISTS Complementario
 GO
