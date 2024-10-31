@@ -30,7 +30,15 @@ CREATE TABLE ##Catalogo(
 	Fecha datetime
 )
 
-
+DROP TABLE IF EXISTS Productos.CatalogoFinal
+GO
+CREATE TABLE Productos.CatalogoFinal(
+	Id int IDENTITY (1,1) primary key,
+	[Linea de Producto] varchar(100),
+	Nombre varchar(100),
+	Precio decimal(6,2),
+	Proveedor varchar(100)
+)
 
 --Para ver que las tablas pertenezcan al esquema 'Productos'
 SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
@@ -78,16 +86,6 @@ CREATE TABLE Ventas.VtasAReg(
 	Sucursal varchar(17)
 )
 
-DROP TABLE IF EXISTS Productos.CatalogoFinal
-GO
-CREATE TABLE Productos.CatalogoFinal(
-	Id int IDENTITY (1,1) primary key,
-	[Linea de Producto] varchar(100),
-	Nombre varchar(100),
-	Precio decimal(6,2),
-	Proveedor varchar(100)
-)
-
 --Para ver que las tablas pertenezcan al esquema 'Ventas'
 SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
 FROM INFORMATION_SCHEMA.TABLES
@@ -97,7 +95,6 @@ GO
 --Se crea este esquema para la info complementaria.
 CREATE SCHEMA Complementario
 GO
-
 
 DROP TABLE IF EXISTS Complementario.MonedaExtranjera
 CREATE TABLE Complementario.MonedaExtranjera(
@@ -117,10 +114,8 @@ INSERT INTO Complementario.MonedaExtranjera(Nombre,PrecioAR)
 VALUES ('USD',1225)
 GO
 
-
 CREATE SCHEMA Procedimientos 
 GO
-
 
 --Para insertar los datos de los archivos
 --Para el .csv:
@@ -209,6 +204,7 @@ AS
 BEGIN
     DECLARE @sql NVARCHAR(MAX);
 
+	--Crea la tabla
     SET @sql = N'
     CREATE TABLE ' + QUOTENAME(@tabla) + N' (
         Producto VARCHAR(100),
@@ -217,6 +213,7 @@ BEGIN
 
     EXEC sp_executesql @sql;
 
+	--Inserta los datos
     SET @sql = N'
     INSERT INTO ' + QUOTENAME(@tabla) + N'
     SELECT 
@@ -242,6 +239,7 @@ AS
 BEGIN
     DECLARE @sql NVARCHAR(MAX);
 
+	--Crea la tabla
     SET @sql = N'
     CREATE TABLE ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N' (
         [Línea de producto] VARCHAR(100),
@@ -250,6 +248,7 @@ BEGIN
 
     EXEC sp_executesql @sql;
 
+	--Inserta los datos
     SET @sql = N'
     INSERT INTO ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N'
     SELECT 
@@ -274,6 +273,7 @@ AS
 BEGIN
     DECLARE @sql NVARCHAR(MAX);
 
+	--Crea la tabla
     SET @sql = N'
     CREATE TABLE ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N' (
         Legajo INT NOT NULL,
@@ -291,6 +291,7 @@ BEGIN
 
     EXEC sp_executesql @sql;
 
+	--Inserta los datos
     SET @sql = N'
     INSERT INTO ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N'
     SELECT 
@@ -324,7 +325,7 @@ AS
 BEGIN
     DECLARE @sql NVARCHAR(MAX);
 
-    -- First, create the table with explicit column definitions
+    --Crea la tabla
     SET @sql = N'
     CREATE TABLE ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N' (
         Ciudad VARCHAR(100),
@@ -336,7 +337,7 @@ BEGIN
 
     EXEC sp_executesql @sql;
 
-    -- Then, insert the data from Excel
+    --Inserta los datos
     SET @sql = N'
     INSERT INTO ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N'
     SELECT 
@@ -358,13 +359,12 @@ GO
 CREATE OR ALTER PROCEDURE Procedimientos.LlenarCatalogoFinal 
 AS
 BEGIN 
-    -- Inserta en la tabla Productos.CatalogoFinal con la categoría basada en Línea de Producto de ClasificacionDeProducto
     INSERT INTO Productos.CatalogoFinal (Categoria, Nombre, Precio, Proveedor)
     SELECT 
-        cdp.[Línea de Producto], -- Asigna Línea de Producto de ClasificacionDeProducto
+        cdp.[Línea de Producto], 
         c.Nombre, 
         c.Precio, 
-        '-' AS Proveedor          -- Valor por defecto para Proveedor
+        '-' AS Proveedor          
     FROM 
         ##Catalogo AS c
     JOIN 
@@ -390,11 +390,6 @@ BEGIN
 END;
 GO
 
-
-EXEC Procedimientos.LlenarCatalogoFinal 
-
-SELECT * FROM Productos.CatalogoFinal
-
 --Ver procedimientos en esquema 'Procedimientos'
 SELECT SCHEMA_NAME(schema_id) AS Esquema, name AS Procedimiento
 FROM sys.procedures
@@ -418,7 +413,6 @@ GO
 DROP TABLE IF EXISTS Productos.ProductosImportados
 GO
 -----------------------------------
-
 
 DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
 DECLARE @FullPath VARCHAR(500) = @PATH + '\Productos\catalogo.csv'
@@ -466,6 +460,8 @@ EXEC Procedimientos.CargarImportados	@direccion = @FullPath,
 										
 GO
 
+EXEC Procedimientos.LlenarCatalogoFinal 
+GO
 
 --Para verificar la carga:
 SELECT * FROM ##Catalogo
@@ -478,14 +474,11 @@ SELECT * FROM Complementario.Empleados
 GO
 SELECT * FROM Complementario.Sucursales
 GO
-
-
-
-
+SELECT * FROM Productos.CatalogoFinal
+GO
 
 ---------------------------------------------------
 --Dsp Borrar:											  				   
-
 
 USE master
 GO
@@ -509,12 +502,6 @@ GO
 
 SELECT * FROM Complementario.Sucursales
 GO
-
-
-
-
-
-
 
 DROP TABLE IF EXISTS ##Catalogo
 GO
@@ -556,8 +543,6 @@ GO
 DROP TABLE IF EXISTS Complementario.Empleados
 GO
 
-
-
 DROP PROCEDURE IF EXISTS Procedimientos.CargarCSV
 GO
 
@@ -576,7 +561,6 @@ GO
 DROP PROCEDURE IF EXISTS Procedimientos.ModificarProductosImportados
 GO
 
-
 DROP SCHEMA IF EXISTS Productos
 GO
 
@@ -588,9 +572,3 @@ GO
 
 DROP SCHEMA IF EXISTS Complementario
 GO
-
-
-
-
-
-
