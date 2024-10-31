@@ -75,12 +75,12 @@ CREATE TABLE Ventas.VtasAReg(
 	Ciudad varchar(15),
 	Tipo_Cliente char(6),
 	Genero varchar(6),
-	Linea_Prod varchar(10),
+	Linea_Prod varchar(100),
 	Producto varchar(100),
 	PrecioUni decimal(6,2),
 	Cantidad int,
 	Fecha date,
-	Hora time,
+	Hora time(0),
 	MedioPago varchar(11),
 	Empleado int,
 	Sucursal varchar(17)
@@ -359,7 +359,7 @@ GO
 CREATE OR ALTER PROCEDURE Procedimientos.LlenarCatalogoFinal 
 AS
 BEGIN 
-    INSERT INTO Productos.CatalogoFinal (Categoria, Nombre, Precio, Proveedor)
+    INSERT INTO Productos.CatalogoFinal ([Linea de Producto], Nombre, Precio, Proveedor)
     SELECT 
         cdp.[Línea de Producto], 
         c.Nombre, 
@@ -370,7 +370,7 @@ BEGIN
     JOIN 
         Complementario.ClasificacionDeProductos AS cdp ON c.Categoria = cdp.Producto;
 
-    INSERT INTO Productos.CatalogoFinal(Categoria, Nombre, Precio, Proveedor)
+    INSERT INTO Productos.CatalogoFinal([Linea de Producto], Nombre, Precio, Proveedor)
     SELECT
         'Accesorios Electronicos' AS Categoria,
         e.Producto,
@@ -378,7 +378,7 @@ BEGIN
         '-' AS Proveedor
     FROM
         ##ElectronicAccessories AS e
-    INSERT INTO Productos.CatalogoFinal(Categoria,Nombre,Precio,Proveedor)
+    INSERT INTO Productos.CatalogoFinal([Linea de Producto], Nombre, Precio, Proveedor)
     SELECT
         p.Categoria,
         p.NombreProducto,
@@ -387,6 +387,36 @@ BEGIN
     FROM
         ##ProductosImportados AS p
 
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.CargarVentasAReg
+AS
+BEGIN 
+    INSERT INTO Ventas.VtasAReg (
+        Id, Tipo_Factura, Ciudad, Tipo_Cliente, Genero, Linea_Prod, Producto, PrecioUni, Cantidad, Fecha, Hora, MedioPago, Empleado, Sucursal
+    )
+    SELECT 
+        h.Id,
+        h.Tipo_Factura,
+        h.Ciudad,
+        h.Tipo_Cliente,
+        h.Genero,
+        h.Producto,         
+        '-' AS Producto,              
+        h.PrecioUni,
+        h.Cantidad,
+        h.Fecha,
+        h.Hora,
+        h.MedioPago,
+        h.Empleado,             
+        s.[Reemplazar por] 
+    FROM 
+        ##Historial AS h
+    JOIN 
+        Complementario.Sucursales AS s  
+    ON 
+        h.Ciudad = s.Ciudad;              
 END;
 GO
 
@@ -462,6 +492,8 @@ GO
 
 EXEC Procedimientos.LlenarCatalogoFinal 
 GO
+EXEC Procedimientos.CargarVentasAReg
+GO
 
 --Para verificar la carga:
 SELECT * FROM ##Catalogo
@@ -476,7 +508,8 @@ SELECT * FROM Complementario.Sucursales
 GO
 SELECT * FROM Productos.CatalogoFinal
 GO
-
+SELECT * FROM Ventas.VtasAReg
+GO
 ---------------------------------------------------
 --Dsp Borrar:											  				   
 
@@ -502,7 +535,7 @@ GO
 
 SELECT * FROM Complementario.Sucursales
 GO
-
+---------------------------------------------------------------AAAAAAAAAAAAAAA
 DROP TABLE IF EXISTS ##Catalogo
 GO
 
