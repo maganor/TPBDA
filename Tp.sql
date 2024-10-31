@@ -101,6 +101,7 @@ GO
 SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
 FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_SCHEMA = 'Complementario'
+GO
 
 INSERT INTO Complementario.MonedaExtranjera(Nombre,PrecioAR)
 VALUES ('USD',1225)
@@ -136,8 +137,6 @@ BEGIN
 END;
 GO
 
-
-
 --Para el .xlsx:
 
 --Antes, para que funcione este SP:
@@ -149,8 +148,6 @@ sp_configure 'Ad Hoc Distributed Queries', 1;
 GO
 RECONFIGURE;
 GO
-
-
 
 CREATE OR ALTER PROCEDURE Procedimientos.CargarImportados
     @direccion VARCHAR(100),
@@ -174,7 +171,6 @@ BEGIN
 
     EXEC sp_executesql @sql;
 
-    -- Then, insert the data from Excel
     SET @sql = N'
     INSERT INTO ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N'
     SELECT 
@@ -349,20 +345,15 @@ BEGIN
 END;
 GO
 
--------
-
 
 --Ver procedimientos en esquema 'Procedimientos'
-SELECT 
-    SCHEMA_NAME(schema_id) AS Esquema,
-    name AS Procedimiento
-FROM 
-    sys.procedures
-WHERE 
-    SCHEMA_NAME(schema_id) = 'Procedimientos';
+SELECT SCHEMA_NAME(schema_id) AS Esquema, name AS Procedimiento
+FROM sys.procedures
+WHERE SCHEMA_NAME(schema_id) = 'Procedimientos';
 GO
 
-
+---------------------------------
+--Dsp borrar
 TRUNCATE TABLE Productos.Catalogo
 GO
 TRUNCATE TABLE Ventas.Historial
@@ -377,46 +368,49 @@ DROP TABLE IF EXISTS Productos.ElectronicAccessories
 GO
 DROP TABLE IF EXISTS Productos.ProductosImportados
 GO
-
+-----------------------------------
 
 
 DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
 DECLARE @FullPath VARCHAR(500) = @PATH + '\Productos\catalogo.csv'
 
---Cargamos la tabla catalogo con el sp
+--Cargamos la tabla catalogo con el SP:
 EXEC Procedimientos.CargarCSV		@direccion = @FullPath,
 									@terminator = ',',
 									@tabla = 'Productos.Catalogo'
 
 SET @FULLPATH = @PATH + '\Ventas_registradas.csv'
---Cargamos la tabla historial con el sp
+--Cargamos la tabla historial con el SP:
 EXEC Procedimientos.CargarCSV	@direccion = @FullPath, 
 								@terminator = ';',
 								@tabla = 'Ventas.Historial'   
-
+--Cargamos las hojas del archivo de Info Complementaria con el SP:
 SET @FULLPATH = @PATH + '\Informacion_complementaria.xlsx'
+--Hoja: Clasificacion de productos
 EXEC Procedimientos.CargarClasificacion @direccion = @FullPath,
 										@tabla = 'ClasificacionDeProductos',
 										@pagina =  'Clasificacion productos',
 										@esquema = 'Complementario'
-
+--Hoja: Empleados
 EXEC Procedimientos.CargarEmpleados		@direccion = @FullPath,
-											@tabla = 'Empleados',
-											@pagina =  'Empleados',
-											@esquema = 'Complementario'
-
-EXEC Procedimientos.CargarSucursales		@direccion = @FullPath,
-											@tabla = 'Sucursales',
-											@pagina =  'Sucursal',
-											@esquema = 'Complementario'
+										@tabla = 'Empleados',
+										@pagina =  'Empleados',
+										@esquema = 'Complementario'
+--Hoja: Sucursales
+EXEC Procedimientos.CargarSucursales	@direccion = @FullPath,
+										@tabla = 'Sucursales',
+										@pagina =  'Sucursal',
+										@esquema = 'Complementario'
 
 SET @FULLPATH = @PATH + '\Productos\Electronic accessories.xlsx'
+--Cargamos el archivo de Accesorios Electronicos con el SP:
 EXEC Procedimientos.CargarElectronic	@direccion = @FullPath,
 										@tabla = 'ElectronicAccessories',
 										@pagina =  'Sheet1',
 										@esquema = 'Productos'
 
 SET @FULLPATH = @PATH + '\Productos\Productos_importados.xlsx'
+--Cargamos el archivo de Productos Importados con el SP:
 EXEC Procedimientos.CargarImportados	@direccion = @FullPath,
 										@tabla = 'ProductosImportados',
 										@pagina = 'Listado de Productos',
@@ -424,7 +418,7 @@ EXEC Procedimientos.CargarImportados	@direccion = @FullPath,
 GO
 
 
-
+--Para verificar la carga:
 SELECT * FROM Productos.Catalogo
 GO
 SELECT * FROM Ventas.Historial
@@ -439,17 +433,9 @@ GO
 
 
 
---cargamos la tabla ProductosImportados con el sp
 
-
-
-											  				   
-
-
-
-
-
-
+---------------------------------------------------
+--Dsp Borrar:											  				   
 
 
 USE master
