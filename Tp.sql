@@ -18,9 +18,9 @@ GO
 CREATE SCHEMA Productos
 GO
 
-DROP TABLE IF EXISTS Productos.Catalogo
+DROP TABLE IF EXISTS ##Catalogo
 GO
-CREATE TABLE Productos.Catalogo(
+CREATE TABLE ##Catalogo(
 	Id int primary key,
 	Categoria varchar(100),
 	Nombre varchar(100),
@@ -41,9 +41,9 @@ GO
 CREATE SCHEMA Ventas
 GO
 
-DROP TABLE IF EXISTS Ventas.Historial
+DROP TABLE IF EXISTS ##Historial
 GO
-CREATE TABLE Ventas.Historial(
+CREATE TABLE ##Historial(
 	Id char(11) primary key,
 	Tipo_Factura char(1),
 	Ciudad varchar(15),
@@ -152,18 +152,18 @@ GO
 CREATE OR ALTER PROCEDURE Procedimientos.CargarImportados
     @direccion VARCHAR(100),
     @tabla VARCHAR(100),
-    @pagina VARCHAR(100),
-    @esquema VARCHAR(20)
+    @pagina VARCHAR(100)
 AS
 BEGIN
     DECLARE @sql NVARCHAR(MAX);
 
+    -- Crear la tabla temporal global
     SET @sql = N'
-    CREATE TABLE ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N' (
+    CREATE TABLE ' + QUOTENAME(@tabla) + N' (
         IdProducto INT NOT NULL,
         NombreProducto VARCHAR(100),
         Proveedor VARCHAR(100),
-        [Categoría] VARCHAR(50),
+        Categoria VARCHAR(50),
         CantidadPorUnidad VARCHAR(50),
         PrecioUnidad DECIMAL(6,2),
         CONSTRAINT PK_' + @tabla + N' PRIMARY KEY (IdProducto)
@@ -171,8 +171,9 @@ BEGIN
 
     EXEC sp_executesql @sql;
 
+    -- Insertar datos en la tabla temporal global
     SET @sql = N'
-    INSERT INTO ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N'
+    INSERT INTO ' + QUOTENAME(@tabla) + N'
     SELECT 
         CAST(IdProducto AS INT),
         CAST(NombreProducto AS VARCHAR(100)),
@@ -183,7 +184,7 @@ BEGIN
     FROM OPENROWSET(
         ''Microsoft.ACE.OLEDB.12.0'',
         ''Excel 12.0; Database=' + @direccion + '; HDR=YES;'', 
-        ''SELECT * FROM [' + @pagina + N'$]''
+        ''SELECT * FROM [' + @pagina + N'$]'' 
     );';
 
     EXEC sp_executesql @sql;
@@ -193,14 +194,13 @@ GO
 CREATE OR ALTER PROCEDURE Procedimientos.CargarElectronic
     @direccion VARCHAR(100),
     @tabla VARCHAR(100),
-    @pagina VARCHAR(100),
-    @esquema VARCHAR(20)
+    @pagina VARCHAR(100)
 AS
 BEGIN
     DECLARE @sql NVARCHAR(MAX);
 
     SET @sql = N'
-    CREATE TABLE ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N' (
+    CREATE TABLE ' + QUOTENAME(@tabla) + N' (
         Producto VARCHAR(100),
         [Precio Unitario en dolares] DECIMAL(6,2)
     );';
@@ -208,7 +208,7 @@ BEGIN
     EXEC sp_executesql @sql;
 
     SET @sql = N'
-    INSERT INTO ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N'
+    INSERT INTO ' + QUOTENAME(@tabla) + N'
     SELECT 
         CAST(Product AS VARCHAR(100)),
         CAST([Precio Unitario en dolares] AS DECIMAL(6,2))
@@ -354,10 +354,10 @@ GO
 
 ---------------------------------
 --Dsp borrar
-TRUNCATE TABLE Productos.Catalogo
-GO
-TRUNCATE TABLE Ventas.Historial
-GO
+--TRUNCATE TABLE Productos.Catalogo
+--GO
+--TRUNCATE TABLE Ventas.Historial
+--GO
 DROP TABLE IF EXISTS Complementario.ClasificacionDeProductos
 GO
 DROP TABLE IF EXISTS Complementario.Empleados
@@ -377,13 +377,13 @@ DECLARE @FullPath VARCHAR(500) = @PATH + '\Productos\catalogo.csv'
 --Cargamos la tabla catalogo con el SP:
 EXEC Procedimientos.CargarCSV		@direccion = @FullPath,
 									@terminator = ',',
-									@tabla = 'Productos.Catalogo'
+									@tabla = '##Catalogo'
 
 SET @FULLPATH = @PATH + '\Ventas_registradas.csv'
 --Cargamos la tabla historial con el SP:
 EXEC Procedimientos.CargarCSV	@direccion = @FullPath, 
 								@terminator = ';',
-								@tabla = 'Ventas.Historial'   
+								@tabla = '##Historial'   
 --Cargamos las hojas del archivo de Info Complementaria con el SP:
 SET @FULLPATH = @PATH + '\Informacion_complementaria.xlsx'
 --Hoja: Clasificacion de productos
@@ -405,23 +405,23 @@ EXEC Procedimientos.CargarSucursales	@direccion = @FullPath,
 SET @FULLPATH = @PATH + '\Productos\Electronic accessories.xlsx'
 --Cargamos el archivo de Accesorios Electronicos con el SP:
 EXEC Procedimientos.CargarElectronic	@direccion = @FullPath,
-										@tabla = 'ElectronicAccessories',
-										@pagina =  'Sheet1',
-										@esquema = 'Productos'
+										@tabla = '##ElectronicAccessories',
+										@pagina =  'Sheet1'
+										
 
 SET @FULLPATH = @PATH + '\Productos\Productos_importados.xlsx'
 --Cargamos el archivo de Productos Importados con el SP:
 EXEC Procedimientos.CargarImportados	@direccion = @FullPath,
-										@tabla = 'ProductosImportados',
-										@pagina = 'Listado de Productos',
-										@esquema = 'Productos'
+										@tabla = '##ProductosImportados',
+										@pagina = 'Listado de Productos'
+										
 GO
 
 
 --Para verificar la carga:
-SELECT * FROM Productos.Catalogo
+SELECT * FROM ##Catalogo
 GO
-SELECT * FROM Ventas.Historial
+SELECT * FROM ##Historial
 GO
 SELECT * FROM Complementario.ClasificacionDeProductos
 GO
@@ -443,10 +443,10 @@ GO
 DROP DATABASE Com5600G01
 GO
 
-SELECT * FROM Productos.ProductosImportados
+SELECT * FROM ##ProductosImportados
 GO
 
-SELECT * FROM Productos.ElectronicAccessories
+SELECT * FROM ##ElectronicAccessories
 GO
 
 SELECT * FROM Complementario.ClasificacionDeProductos
@@ -467,7 +467,15 @@ GO
 
 
 
+DROP TABLE IF EXISTS ##Catalogo
+GO
 
+DROP TABLE IF EXISTS ##Historial
+GO
+DROP TABLE IF EXISTS ##ElectronicAccessories
+GO
+DROP TABLE IF EXISTS ##ProductosImportados
+GO
 
 DROP TABLE IF EXISTS Productos.ProductosImportados
 GO
