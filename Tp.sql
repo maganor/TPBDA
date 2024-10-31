@@ -57,7 +57,7 @@ CREATE TABLE ##Historial(
 	Ciudad varchar(15),
 	Tipo_Cliente char(6),
 	Genero varchar(6),
-	Producto varchar(100),
+	Producto nvarchar(100),
 	PrecioUni decimal(6,2),
 	Cantidad int,
 	Fecha date,
@@ -75,8 +75,8 @@ CREATE TABLE Ventas.VtasAReg(
 	Ciudad varchar(15),
 	Tipo_Cliente char(6),
 	Genero varchar(6),
-	Linea_Prod varchar(100),
-	Producto varchar(100),
+	[Linea de Producto] varchar(100),
+	Producto nvarchar(100),
 	PrecioUni decimal(6,2),
 	Cantidad int,
 	Fecha date,
@@ -394,16 +394,16 @@ CREATE OR ALTER PROCEDURE Procedimientos.CargarVentasAReg
 AS
 BEGIN 
     INSERT INTO Ventas.VtasAReg (
-        Id, Tipo_Factura, Ciudad, Tipo_Cliente, Genero, Linea_Prod, Producto, PrecioUni, Cantidad, Fecha, Hora, MedioPago, Empleado, Sucursal
+	Id, Tipo_Factura, Ciudad, Tipo_Cliente, Genero, [Linea de Producto], Producto, PrecioUni, Cantidad, Fecha, Hora, MedioPago, Empleado, Sucursal
     )
     SELECT 
         h.Id,
         h.Tipo_Factura,
         h.Ciudad,
         h.Tipo_Cliente,
-        h.Genero,
-        h.Producto,         
-        '-' AS Producto,              
+        h.Genero,        
+        '-' AS [Linea de Producto],
+		h.Producto, 
         h.PrecioUni,
         h.Cantidad,
         h.Fecha,
@@ -414,9 +414,7 @@ BEGIN
     FROM 
         ##Historial AS h
     JOIN 
-        Complementario.Sucursales AS s  
-    ON 
-        h.Ciudad = s.Ciudad;              
+        Complementario.Sucursales AS s ON h.Ciudad = s.Ciudad;              
 END;
 GO
 
