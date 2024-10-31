@@ -23,7 +23,7 @@ GO
 CREATE TABLE ##Catalogo(
 	Id int primary key,
 	Categoria varchar(100),
-	Nombre varchar(100),
+	Nombre nvarchar(100),
 	Precio decimal(6,2),
 	Precio_Ref decimal(6,2),
 	Unidad_Ref varchar(10),
@@ -35,7 +35,7 @@ GO
 CREATE TABLE Productos.CatalogoFinal(
 	Id int IDENTITY (1,1) primary key,
 	[Linea de Producto] varchar(100),
-	Nombre varchar(100),
+	Nombre nvarchar(100),
 	Precio decimal(6,2),
 	Proveedor varchar(100)
 )
@@ -166,7 +166,7 @@ BEGIN
     SET @sql = N'
     CREATE TABLE ' + QUOTENAME(@tabla) + N' (
         IdProducto INT NOT NULL,
-        NombreProducto VARCHAR(100),
+        NombreProducto NVARCHAR(100),
         Proveedor VARCHAR(100),
         Categoria VARCHAR(50),
         CantidadPorUnidad VARCHAR(50),
@@ -181,7 +181,7 @@ BEGIN
     INSERT INTO ' + QUOTENAME(@tabla) + N'
     SELECT 
         CAST(IdProducto AS INT),
-        CAST(NombreProducto AS VARCHAR(100)),
+        CAST(NombreProducto AS NVARCHAR(100)),
         CAST(Proveedor AS VARCHAR(100)),
         CAST([Categoría] AS VARCHAR(50)),
         CAST(CantidadPorUnidad AS VARCHAR(50)),
@@ -207,7 +207,7 @@ BEGIN
 	--Crea la tabla
     SET @sql = N'
     CREATE TABLE ' + QUOTENAME(@tabla) + N' (
-        Producto VARCHAR(100),
+        Producto NVARCHAR(100),
         PrecioUSD DECIMAL(6,2)
     );';
 
@@ -217,7 +217,7 @@ BEGIN
     SET @sql = N'
     INSERT INTO ' + QUOTENAME(@tabla) + N'
     SELECT 
-        CAST(Product AS VARCHAR(100)),
+        CAST(Product AS NVARCHAR(100)),
         CAST([Precio Unitario en dolares] AS DECIMAL(6,2))
     FROM OPENROWSET(
         ''Microsoft.ACE.OLEDB.12.0'',
