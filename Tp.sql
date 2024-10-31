@@ -78,6 +78,16 @@ CREATE TABLE Ventas.VtasAReg(
 	Sucursal varchar(17)
 )
 
+DROP TABLE IF EXISTS Productos.CatalogoFinal
+GO
+CREATE TABLE Productos.CatalogoFinal(
+	Id int IDENTITY (1,1) primary key,
+	[Linea de Producto] varchar(100),
+	Nombre varchar(100),
+	Precio decimal(6,2),
+	Proveedor varchar(100)
+)
+
 --Para ver que las tablas pertenezcan al esquema 'Ventas'
 SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
 FROM INFORMATION_SCHEMA.TABLES
@@ -202,7 +212,7 @@ BEGIN
     SET @sql = N'
     CREATE TABLE ' + QUOTENAME(@tabla) + N' (
         Producto VARCHAR(100),
-        [Precio Unitario en dolares] DECIMAL(6,2)
+        PrecioUSD DECIMAL(6,2)
     );';
 
     EXEC sp_executesql @sql;
@@ -345,6 +355,45 @@ BEGIN
 END;
 GO
 
+CREATE OR ALTER PROCEDURE Procedimientos.LlenarCatalogoFinal 
+AS
+BEGIN 
+    -- Inserta en la tabla Productos.CatalogoFinal con la categoría basada en Línea de Producto de ClasificacionDeProducto
+    INSERT INTO Productos.CatalogoFinal (Categoria, Nombre, Precio, Proveedor)
+    SELECT 
+        cdp.[Línea de Producto], -- Asigna Línea de Producto de ClasificacionDeProducto
+        c.Nombre, 
+        c.Precio, 
+        '-' AS Proveedor          -- Valor por defecto para Proveedor
+    FROM 
+        ##Catalogo AS c
+    JOIN 
+        Complementario.ClasificacionDeProductos AS cdp ON c.Categoria = cdp.Producto;
+
+    INSERT INTO Productos.CatalogoFinal(Categoria, Nombre, Precio, Proveedor)
+    SELECT
+        'Accesorios Electronicos' AS Categoria,
+        e.Producto,
+        e.PrecioUSD,
+        '-' AS Proveedor
+    FROM
+        ##ElectronicAccessories AS e
+    INSERT INTO Productos.CatalogoFinal(Categoria,Nombre,Precio,Proveedor)
+    SELECT
+        p.Categoria,
+        p.NombreProducto,
+        p.PrecioUnidad,
+        p.Proveedor
+    FROM
+        ##ProductosImportados AS p
+
+END;
+GO
+
+
+EXEC Procedimientos.LlenarCatalogoFinal 
+
+SELECT * FROM Productos.CatalogoFinal
 
 --Ver procedimientos en esquema 'Procedimientos'
 SELECT SCHEMA_NAME(schema_id) AS Esquema, name AS Procedimiento
@@ -354,7 +403,7 @@ GO
 
 ---------------------------------
 --Dsp borrar
---TRUNCATE TABLE Productos.Catalogo
+--TRUNCATE TABLE Productos.CatalogoFinal
 --GO
 --TRUNCATE TABLE Ventas.Historial
 --GO
@@ -539,4 +588,9 @@ GO
 
 DROP SCHEMA IF EXISTS Complementario
 GO
+
+
+
+
+
 
