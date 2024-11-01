@@ -122,6 +122,12 @@ CREATE TABLE Complementario.Sucursales (
 );
 GO
 
+DROP TABLE IF EXISTS Complementario.ClasificacionDeProductos
+CREATE TABLE Complementario.ClasificacionDeProductos (
+    [Línea de producto] VARCHAR(100),
+    Producto VARCHAR(100)
+);
+GO
 
 DROP TABLE IF EXISTS Complementario.MonedaExtranjera
 CREATE TABLE Complementario.MonedaExtranjera(
@@ -254,8 +260,7 @@ BEGIN
 
     EXEC sp_executesql @sql;
 END;
-GO
-
+GO	
 
 CREATE OR ALTER PROCEDURE Procedimientos.CargarClasificacion
     @direccion VARCHAR(100),
@@ -265,16 +270,6 @@ CREATE OR ALTER PROCEDURE Procedimientos.CargarClasificacion
 AS
 BEGIN
     DECLARE @sql NVARCHAR(MAX);
-
-	--Crea la tabla
-    SET @sql = N'
-    CREATE TABLE ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N' (
-        [Línea de producto] VARCHAR(100),
-        Producto VARCHAR(100)
-    );';
-
-    EXEC sp_executesql @sql;
-
 	--Inserta los datos
     SET @sql = N'
     INSERT INTO ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N'
