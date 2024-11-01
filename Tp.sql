@@ -436,8 +436,7 @@ BEGIN
 END;
 GO
 
-EXEC Procedimientos.LlenarCatalogoFinal 
-GO
+
 
 
 --Ver procedimientos en esquema 'Procedimientos'
@@ -446,7 +445,7 @@ FROM sys.procedures
 WHERE SCHEMA_NAME(schema_id) = 'Procedimientos';
 GO
 
-DECLARE @PATH VARCHAR(255) = 'C:\Users\wixde\Desktop\TP_integrador_Archivos'
+DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
 DECLARE @FullPath VARCHAR(500) = @PATH + '\Productos\catalogo.csv'
 
 --Cargamos la tabla catalogo con el SP:
@@ -496,6 +495,9 @@ EXEC Procedimientos.LlenarCatalogoFinal
 GO
 EXEC Procedimientos.CargarVentasAReg
 GO
+EXEC Procedimientos.LlenarCatalogoFinal 
+GO
+
 
 --Para verificar la carga:
 SELECT * FROM ##Catalogo
