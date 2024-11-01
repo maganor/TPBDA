@@ -5,8 +5,6 @@
 --Tempra, Francisco               -       44485891
 --Villegas Brandolini, Lucas      -       44459666
 --Zapata, Santiago                -       44525943
-
-
 --Creacion:
 
 CREATE DATABASE Com5600G01
@@ -109,6 +107,7 @@ FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_SCHEMA = 'Ventas'
 GO
 
+--if exists .... schema*
 --Se crea este esquema para la info complementaria.
 CREATE SCHEMA Complementario
 GO
@@ -193,7 +192,9 @@ END;
 GO
 
 --Para el .xlsx:
-
+--Para cargar los XLSX tuvimos que cambiar algo de los permisos de windows.
+--Se busca services.msc, dentro de ese programa se busca SQL SERVER(SQLEXPRESS), 
+--click derecho propiedades, pestania inicio sesion y seleccionar Cuenta del sistema local(o algo parecido)
 --Antes, para que funcione este SP:
 sp_configure 'show advanced options', 1;
 GO
@@ -434,7 +435,7 @@ FROM sys.procedures
 WHERE SCHEMA_NAME(schema_id) = 'Procedimientos';
 GO
 
-DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
+DECLARE @PATH VARCHAR(255) = 'C:\Users\wixde\Desktop\TP_integrador_Archivos'
 DECLARE @FullPath VARCHAR(500) = @PATH + '\Productos\catalogo.csv'
 
 --Cargamos la tabla catalogo con el SP:
@@ -485,7 +486,6 @@ GO
 EXEC Procedimientos.CargarVentasAReg
 GO
 
-
 --Para verificar la carga:
 SELECT * FROM ##Catalogo
 GO
@@ -501,87 +501,8 @@ SELECT * FROM Productos.CatalogoFinal
 GO
 SELECT * FROM Ventas.VtasAReg
 GO
----------------------------------------------------
---Dsp borrar
-TRUNCATE TABLE Productos.CatalogoFinal
-GO
-TRUNCATE TABLE Ventas.Historial
-GO
-DROP TABLE IF EXISTS Complementario.ClasificacionDeProductos
-GO
-DROP TABLE IF EXISTS Complementario.Empleados
-GO
-DROP TABLE IF EXISTS Complementario.Sucursales
-GO
-DROP TABLE IF EXISTS Productos.ElectronicAccessories
-GO
-DROP TABLE IF EXISTS Productos.ProductosImportados
-GO
 
---Dsp Borrar:											  				   
-USE master
-GO
-DROP DATABASE Com5600G01
-GO
-
-SELECT * FROM ##ProductosImportados
-GO
-SELECT * FROM ##ElectronicAccessories
-GO
-SELECT * FROM Complementario.ClasificacionDeProductos
-GO
-SELECT * FROM Complementario.Empleados
-GO
-SELECT * FROM Complementario.MediosDePago
-GO
-SELECT * FROM Complementario.Sucursales
-GO
----------------------------------------------------------------
-DROP TABLE IF EXISTS ##Catalogo
-GO
-DROP TABLE IF EXISTS ##Historial
-GO
-DROP TABLE IF EXISTS ##ElectronicAccessories
-GO
-DROP TABLE IF EXISTS ##ProductosImportados
-GO
-DROP TABLE IF EXISTS Productos.ProductosImportados
-GO
-DROP TABLE IF EXISTS Productos.Catalogo
-GO
-DROP TABLE IF EXISTS Ventas.Historial
-GO
-DROP TABLE IF EXISTS Ventas.VtasAReg
-GO
-DROP TABLE IF EXISTS Productos.ElectronicAccessories
-GO
-DROP TABLE IF EXISTS Complementario.ClasificacionDeProductos
-GO
-DROP TABLE IF EXISTS Complementario.ClasificacionDeProductos
-GO
-DROP TABLE IF EXISTS Complementario.MediosDePago
-GO
-DROP TABLE IF EXISTS Complementario.Sucursales
-GO
-DROP TABLE IF EXISTS Complementario.Empleados
-GO
-DROP PROCEDURE IF EXISTS Procedimientos.CargarCSV
-GO
-DROP PROCEDURE IF EXISTS Procedimientos.CargarXLSX
-GO
-DROP PROCEDURE IF EXISTS Procedimientos.CargarCSVConTemp
-GO
-DROP PROCEDURE IF EXISTS Procedimientos.CargarXLSXConAlter
-GO
-DROP PROCEDURE IF EXISTS Procedimientos.ModificarColumnas
-GO
-DROP PROCEDURE IF EXISTS Procedimientos.ModificarProductosImportados
-GO
-DROP SCHEMA IF EXISTS Productos
-GO
-DROP SCHEMA IF EXISTS Ventas
-GO
-DROP SCHEMA IF EXISTS Procedimientos
-GO
-DROP SCHEMA IF EXISTS Complementario
-GO
+--USE master
+--GO
+--DROP DATABASE Com5600G01
+--GO
