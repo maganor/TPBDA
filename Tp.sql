@@ -30,6 +30,23 @@ CREATE TABLE ##Catalogo(
 	Fecha datetime
 )
 
+DROP TABLE IF EXISTS ##ProductosImportados
+GO
+CREATE TABLE ##ProductosImportados(
+	IdProducto INT PRIMARY KEY,
+    NombreProducto NVARCHAR(100),
+    Proveedor VARCHAR(100),
+    Categoria VARCHAR(50),
+    CantidadPorUnidad VARCHAR(50),
+    PrecioUnidad DECIMAL(6,2),
+)
+
+DROP TABLE IF EXISTS ##ElectronicAccessories
+CREATE TABLE ##ElectronicAccessories(
+   Producto NVARCHAR(100) PRIMARY KEY,
+   PrecioUSD DECIMAL(6,2)
+)
+
 DROP TABLE IF EXISTS Productos.CatalogoFinal
 GO
 CREATE TABLE Productos.CatalogoFinal(
@@ -194,22 +211,7 @@ CREATE OR ALTER PROCEDURE Procedimientos.CargarImportados
 AS
 BEGIN
     DECLARE @sql NVARCHAR(MAX);
-
-    -- Crear la tabla temporal global
-    SET @sql = N'
-    CREATE TABLE ' + QUOTENAME(@tabla) + N' (
-        IdProducto INT NOT NULL,
-        NombreProducto NVARCHAR(100),
-        Proveedor VARCHAR(100),
-        Categoria VARCHAR(50),
-        CantidadPorUnidad VARCHAR(50),
-        PrecioUnidad DECIMAL(6,2),
-        CONSTRAINT PK_' + @tabla + N' PRIMARY KEY (IdProducto)
-    );';
-
-    EXEC sp_executesql @sql;
-
-    -- Insertar datos en la tabla temporal global
+    -- Inserta los datos en la tabla temporal global
     SET @sql = N'
     INSERT INTO ' + QUOTENAME(@tabla) + N'
     SELECT 
@@ -236,17 +238,7 @@ CREATE OR ALTER PROCEDURE Procedimientos.CargarElectronic
 AS
 BEGIN
     DECLARE @sql NVARCHAR(MAX);
-
-	--Crea la tabla
-    SET @sql = N'
-    CREATE TABLE ' + QUOTENAME(@tabla) + N' (
-        Producto NVARCHAR(100),
-        PrecioUSD DECIMAL(6,2)
-    );';
-
-    EXEC sp_executesql @sql;
-
-	--Inserta los datos
+	--Inserta los datos en la tabla temporal global
     SET @sql = N'
     INSERT INTO ' + QUOTENAME(@tabla) + N'
     SELECT 
@@ -436,9 +428,6 @@ BEGIN
 END;
 GO
 
-
-
-
 --Ver procedimientos en esquema 'Procedimientos'
 SELECT SCHEMA_NAME(schema_id) AS Esquema, name AS Procedimiento
 FROM sys.procedures
@@ -497,7 +486,6 @@ EXEC Procedimientos.CargarVentasAReg
 GO
 EXEC Procedimientos.LlenarCatalogoFinal 
 GO
-
 
 --Para verificar la carga:
 SELECT * FROM ##Catalogo
