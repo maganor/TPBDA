@@ -418,13 +418,45 @@ BEGIN
 END;
 GO
 
+CREATE OR ALTER PROCEDURE Procedimientos.Agregar_Factura
+	@cantidad INT,
+	@tipoCliente CHAR(6),
+	@genero CHAR,
+	@empleado INT,
+	@tipoFactura CHAR,
+	@medioDePago CHAR(11),
+	@producto VARCHAR(100),
+	@ciudad VARCHAR(15),
+	@id CHAR(11)
+AS
+BEGIN
+	DECLARE @Linea_prod VARCHAR(11)
+	DECLARE @sucursal VARCHAR(17)
+	DECLARE @precio DECIMAL(6,2)
+
+	-- VERIFICAR EXISTENCIA EMPLEADO
+	-- VERIFICAR EXISTENCIA CIUDAD/PRODUCTO
+
+	SELECT @Linea_prod = [Linea de Producto] from Productos.CatalogoFinal c WHERE c.Nombre = @producto 
+	SELECT @sucursal = [Reemplazar por] from Complementario.Sucursales s WHERE s.ciudad = @ciudad 
+	SELECT @precio = Precio from Productos.CatalogoFinal c WHERE c.Nombre = @producto
+
+	INSERT INTO Ventas.VtasAReg (Tipo_Factura, Tipo_Cliente, Genero, Cantidad, MedioPago, ciudad, sucursal, [Linea de Producto], Fecha, Hora, Producto, PrecioUni, Id, Empleado)
+	VALUES (@tipoFactura, @tipoCliente, @genero, @cantidad, @medioDePago, @ciudad, @sucursal, @Linea_prod, GETDATE(), CAST(SYSDATETIME() AS TIME (0)), @producto, @precio, @id, @empleado)
+END;
+GO
+
+EXEC Procedimientos.LlenarCatalogoFinal 
+GO
+
+
 --Ver procedimientos en esquema 'Procedimientos'
 SELECT SCHEMA_NAME(schema_id) AS Esquema, name AS Procedimiento
 FROM sys.procedures
 WHERE SCHEMA_NAME(schema_id) = 'Procedimientos';
 GO
 
-DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
+DECLARE @PATH VARCHAR(255) = 'C:\Users\wixde\Desktop\TP_integrador_Archivos'
 DECLARE @FullPath VARCHAR(500) = @PATH + '\Productos\catalogo.csv'
 
 --Cargamos la tabla catalogo con el SP:
