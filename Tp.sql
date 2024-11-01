@@ -96,7 +96,23 @@ GO
 CREATE SCHEMA Complementario
 GO
 
-DROP TABLE IF EXISTS Complementario.Sucusales
+DROP TABLE IF EXISTS Complementario.Empleados
+CREATE TABLE Complementario.Empleados (
+    Legajo INT NOT NULL,
+    Nombre VARCHAR(50),
+    Apellido VARCHAR(50),
+    DNI INT,
+    Direccion VARCHAR(200),
+    [email personal] VARCHAR(100),
+    [email empresa] VARCHAR(100),
+    CUIL VARCHAR(11),
+    Cargo VARCHAR(50),
+    Sucursal VARCHAR(100),
+    Turno VARCHAR(25)
+);
+GO
+
+DROP TABLE IF EXISTS Complementario.Sucursales
 CREATE TABLE Complementario.Sucursales (
         Ciudad VARCHAR(100),
         [Reemplazar por] VARCHAR(100),
@@ -283,25 +299,6 @@ CREATE OR ALTER PROCEDURE Procedimientos.CargarEmpleados
 AS
 BEGIN
     DECLARE @sql NVARCHAR(MAX);
-
-	--Crea la tabla
-    SET @sql = N'
-    CREATE TABLE ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N' (
-        Legajo INT NOT NULL,
-        Nombre VARCHAR(50),
-        Apellido VARCHAR(50),
-        DNI INT,
-        Direccion VARCHAR(200),
-        [email personal] VARCHAR(100),
-        [email empresa] VARCHAR(100),
-        CUIL VARCHAR(11),
-        Cargo VARCHAR(50),
-        Sucursal VARCHAR(100),
-        Turno VARCHAR(25)
-    );';
-
-    EXEC sp_executesql @sql;
-
 	--Inserta los datos
     SET @sql = N'
     INSERT INTO ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N'
