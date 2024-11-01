@@ -96,6 +96,17 @@ GO
 CREATE SCHEMA Complementario
 GO
 
+DROP TABLE IF EXISTS Complementario.Sucusales
+CREATE TABLE Complementario.Sucursales (
+        Ciudad VARCHAR(100),
+        [Reemplazar por] VARCHAR(100),
+        direccion VARCHAR(200),
+        Horario VARCHAR(100),
+        Telefono VARCHAR(20)
+);
+GO
+
+
 DROP TABLE IF EXISTS Complementario.MonedaExtranjera
 CREATE TABLE Complementario.MonedaExtranjera(
 	Id int identity(1,1) primary key,
@@ -324,19 +335,6 @@ CREATE OR ALTER PROCEDURE Procedimientos.CargarSucursales
 AS
 BEGIN
     DECLARE @sql NVARCHAR(MAX);
-
-    --Crea la tabla
-    SET @sql = N'
-    CREATE TABLE ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N' (
-        Ciudad VARCHAR(100),
-        [Reemplazar por] VARCHAR(100),
-        direccion VARCHAR(200),
-        Horario VARCHAR(100),
-        Telefono VARCHAR(20)
-    );';
-
-    EXEC sp_executesql @sql;
-
     --Inserta los datos
     SET @sql = N'
     INSERT INTO ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N'
