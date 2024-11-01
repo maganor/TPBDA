@@ -43,7 +43,7 @@ CREATE TABLE ##ProductosImportados(
 
 DROP TABLE IF EXISTS ##ElectronicAccessories
 CREATE TABLE ##ElectronicAccessories(
-   Producto NVARCHAR(100) PRIMARY KEY,
+   Producto NVARCHAR(100),
    PrecioUSD DECIMAL(6,2)
 )
 
@@ -484,8 +484,7 @@ EXEC Procedimientos.LlenarCatalogoFinal
 GO
 EXEC Procedimientos.CargarVentasAReg
 GO
-EXEC Procedimientos.LlenarCatalogoFinal 
-GO
+
 
 --Para verificar la carga:
 SELECT * FROM ##Catalogo
