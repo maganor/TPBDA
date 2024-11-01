@@ -1,3 +1,10 @@
+USE master
+
+USE Com5600G01
+GO
+
+DROP SCHEMA IF EXISTS Procedimientos
+GO
 CREATE SCHEMA Procedimientos 
 GO
 
@@ -177,9 +184,9 @@ GO
 CREATE OR ALTER PROCEDURE Procedimientos.LlenarCatalogoFinal 
 AS
 BEGIN 
-    INSERT INTO Productos.CatalogoFinal ([Linea de Producto], Nombre, Precio, Proveedor)
+    INSERT INTO Productos.CatalogoFinal (LineaDeProducto, Nombre, Precio, Proveedor)
     SELECT 
-        cdp.[Línea de Producto], 
+        cdp.LineaDeProducto, 
         c.Nombre, 
         c.Precio, 
         '-' AS Proveedor          
@@ -188,7 +195,7 @@ BEGIN
     JOIN 
         Complementario.ClasificacionDeProductos AS cdp ON c.Categoria = cdp.Producto;
 
-    INSERT INTO Productos.CatalogoFinal([Linea de Producto], Nombre, Precio, Proveedor)
+    INSERT INTO Productos.CatalogoFinal(LineaDeProducto, Nombre, Precio, Proveedor)
     SELECT
         'Accesorios Electronicos' AS Categoria,
         e.Producto,
@@ -196,7 +203,7 @@ BEGIN
         '-' AS Proveedor
     FROM
         ##ElectronicAccessories AS e
-    INSERT INTO Productos.CatalogoFinal([Linea de Producto], Nombre, Precio, Proveedor)
+    INSERT INTO Productos.CatalogoFinal(LineaDeProducto, Nombre, Precio, Proveedor)
     SELECT
         p.Categoria,
         p.NombreProducto,
@@ -212,7 +219,7 @@ CREATE OR ALTER PROCEDURE Procedimientos.CargarVentasAReg
 AS
 BEGIN 
     INSERT INTO Ventas.VtasAReg (
-	Id, Tipo_Factura, Ciudad, Tipo_Cliente, Genero, [Linea de Producto], Producto, PrecioUni, Cantidad, Fecha, Hora, MedioPago, Empleado, Sucursal
+	Id, Tipo_Factura, Ciudad, Tipo_Cliente, Genero, LineaDeProducto, Producto, PrecioUni, Cantidad, Fecha, Hora, MedioPago, Empleado, Sucursal
     )
     SELECT 
         h.Id,
@@ -220,7 +227,7 @@ BEGIN
         h.Ciudad,
         h.Tipo_Cliente,
         h.Genero,        
-        '-' AS [Linea de Producto],
+        '-' AS LineaDeProducto,
 		h.Producto, 
         h.PrecioUni,
         h.Cantidad,
@@ -228,7 +235,7 @@ BEGIN
         h.Hora,
         h.MedioPago,
         h.Empleado,             
-        s.[Reemplazar por] 
+        s.ReemplazarPor 
     FROM 
         ##Historial AS h
     JOIN 
@@ -255,11 +262,11 @@ BEGIN
 	-- VERIFICAR EXISTENCIA EMPLEADO
 	-- VERIFICAR EXISTENCIA CIUDAD/PRODUCTO
 
-	SELECT @Linea_prod = [Linea de Producto] from Productos.CatalogoFinal c WHERE c.Nombre = @producto 
-	SELECT @sucursal = [Reemplazar por] from Complementario.Sucursales s WHERE s.ciudad = @ciudad 
+	SELECT @Linea_prod = LineaDeProducto from Productos.CatalogoFinal c WHERE c.Nombre = @producto 
+	SELECT @sucursal = ReemplazarPor from Complementario.Sucursales s WHERE s.ciudad = @ciudad 
 	SELECT @precio = Precio from Productos.CatalogoFinal c WHERE c.Nombre = @producto
 
-	INSERT INTO Ventas.VtasAReg (Tipo_Factura, Tipo_Cliente, Genero, Cantidad, MedioPago, ciudad, sucursal, [Linea de Producto], Fecha, Hora, Producto, PrecioUni, Id, Empleado)
+	INSERT INTO Ventas.VtasAReg (Tipo_Factura, Tipo_Cliente, Genero, Cantidad, MedioPago, ciudad, sucursal, LineaDeProducto, Fecha, Hora, Producto, PrecioUni, Id, Empleado)
 	VALUES (@tipoFactura, @tipoCliente, @genero, @cantidad, @medioDePago, @ciudad, @sucursal, @Linea_prod, GETDATE(), CAST(SYSDATETIME() AS TIME (0)), @producto, @precio, @id, @empleado)
 END;
 GO

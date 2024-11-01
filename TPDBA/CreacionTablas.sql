@@ -1,9 +1,15 @@
+USE master
+GO
+DROP DATABASE Com5600G01
+GO
 CREATE DATABASE Com5600G01
 GO
 
 USE Com5600G01
 GO
 
+DROP SCHEMA IF EXISTS Productos
+GO
 CREATE SCHEMA Productos
 GO
 
@@ -40,7 +46,7 @@ DROP TABLE IF EXISTS Productos.CatalogoFinal
 GO
 CREATE TABLE Productos.CatalogoFinal(
 	Id int IDENTITY (1,1) primary key,
-	[Linea de Producto] varchar(100),
+	LineaDeProducto varchar(100),
 	Nombre nvarchar(100),
 	Precio decimal(6,2),
 	Proveedor varchar(100)
@@ -52,6 +58,8 @@ FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_SCHEMA = 'Productos'
 GO
 
+DROP SCHEMA IF EXISTS Ventas
+GO
 CREATE SCHEMA Ventas
 GO
 
@@ -81,7 +89,7 @@ CREATE TABLE Ventas.VtasAReg(
 	Ciudad varchar(15),
 	Tipo_Cliente char(6),
 	Genero varchar(6),
-	[Linea de Producto] varchar(100),
+	LineaDeProducto varchar(100),
 	Producto nvarchar(100),
 	PrecioUni decimal(6,2),
 	Cantidad int,
@@ -100,6 +108,8 @@ GO
 
 --if exists .... schema*
 --Se crea este esquema para la info complementaria.
+DROP SCHEMA IF EXISTS Complementario
+GO
 CREATE SCHEMA Complementario
 GO
 
@@ -110,8 +120,8 @@ CREATE TABLE Complementario.Empleados (
     Apellido VARCHAR(50),
     DNI INT,
     Direccion VARCHAR(200),
-    [email personal] VARCHAR(100),
-    [email empresa] VARCHAR(100),
+    emailPersonal VARCHAR(100),
+    emailEmpresa VARCHAR(100),
     CUIL VARCHAR(11),
     Cargo VARCHAR(50),
     Sucursal VARCHAR(100),
@@ -122,7 +132,7 @@ GO
 DROP TABLE IF EXISTS Complementario.Sucursales
 CREATE TABLE Complementario.Sucursales (
         Ciudad VARCHAR(100),
-        [Reemplazar por] VARCHAR(100),
+        ReemplazarPor VARCHAR(100),
         direccion VARCHAR(200),
         Horario VARCHAR(100),
         Telefono VARCHAR(20)
@@ -131,7 +141,7 @@ GO
 
 DROP TABLE IF EXISTS Complementario.ClasificacionDeProductos
 CREATE TABLE Complementario.ClasificacionDeProductos (
-    [Línea de producto] VARCHAR(100),
+    LineaDeProducto VARCHAR(100),
     Producto VARCHAR(100)
 );
 GO
