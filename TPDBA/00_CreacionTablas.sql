@@ -1,3 +1,11 @@
+
+--Trabajo Practico Integrador - Bases de Datos Aplicada:
+--Integrantes:
+--Antola Ortiz, Mauricio Gabriel  -       44613237 
+--Tempra, Francisco               -       44485891
+--Villegas Brandolini, Lucas      -       44459666
+--Zapata, Santiago                -       44525943
+
 USE master
 GO
 DROP DATABASE Com5600G01

@@ -276,7 +276,3 @@ SELECT SCHEMA_NAME(schema_id) AS Esquema, name AS Procedimiento
 FROM sys.procedures
 WHERE SCHEMA_NAME(schema_id) = 'Procedimientos';
 GO
---USE master
---GO
---DROP DATABASE Com5600G01
---GO
