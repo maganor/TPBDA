@@ -181,20 +181,44 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.LlenarCatalogoFinal 
+CREATE OR ALTER PROCEDURE Procedimientos.LlenarCatalogoFinal
 AS
 BEGIN 
+    -- Actualizar precios de productos existentes desde ##Catalogo
+	UPDATE cf
+	SET cf.Precio = (SELECT c.Precio FROM ##Catalogo AS c WHERE c.Nombre = cf.Nombre)
+	FROM Productos.CatalogoFinal AS cf
+	WHERE cf.Nombre IN (SELECT Nombre FROM ##Catalogo) 
+    AND cf.Precio <> (SELECT c.Precio FROM ##Catalogo AS c WHERE c.Nombre = cf.Nombre);
+
+	-- Actualizar precios de productos existentes desde ##ElectronicAccessories
+	UPDATE cf
+	SET cf.Precio = (SELECT e.PrecioUSD FROM ##ElectronicAccessories AS e WHERE e.Producto = cf.Nombre)
+	FROM Productos.CatalogoFinal AS cf
+	WHERE cf.LineaDeProducto = 'Accesorios Electronicos' 
+    AND cf.Nombre IN (SELECT Producto FROM ##ElectronicAccessories) 
+    AND cf.Precio <> (SELECT e.PrecioUSD FROM ##ElectronicAccessories AS e WHERE e.Producto = cf.Nombre);
+
+	-- Actualizar precios de productos existentes desde ##ProductosImportados
+	UPDATE cf
+	SET cf.Precio = (SELECT p.PrecioUnidad FROM ##ProductosImportados AS p WHERE p.NombreProducto = cf.Nombre)
+	FROM Productos.CatalogoFinal AS cf
+	WHERE cf.LineaDeProducto = (SELECT p.Categoria FROM ##ProductosImportados AS p WHERE p.NombreProducto = cf.Nombre)
+    AND cf.Nombre IN (SELECT NombreProducto FROM ##ProductosImportados) 
+    AND cf.Precio <> (SELECT p.PrecioUnidad FROM ##ProductosImportados AS p WHERE p.NombreProducto = cf.Nombre);
+
+    -- Insertar solo productos nuevos
     INSERT INTO Productos.CatalogoFinal (LineaDeProducto, Nombre, Precio, Proveedor)
     SELECT 
         cdp.LineaDeProducto, 
         c.Nombre, 
         c.Precio, 
-        '-' AS Proveedor          
+        '-' AS Proveedor
     FROM 
         ##Catalogo AS c
     JOIN 
         Complementario.ClasificacionDeProductos AS cdp ON c.Categoria = cdp.Producto
-	WHERE c.Nombre NOT IN (SELECT Nombre FROM Productos.CatalogoFinal)
+    WHERE c.Nombre NOT IN (SELECT Nombre FROM Productos.CatalogoFinal);
 
     INSERT INTO Productos.CatalogoFinal(LineaDeProducto, Nombre, Precio, Proveedor)
     SELECT
@@ -204,7 +228,7 @@ BEGIN
         '-' AS Proveedor
     FROM
         ##ElectronicAccessories AS e
-	WHERE e.Producto NOT IN (SELECT Nombre FROM Productos.CatalogoFinal)
+    WHERE e.Producto NOT IN (SELECT Nombre FROM Productos.CatalogoFinal);
 
     INSERT INTO Productos.CatalogoFinal(LineaDeProducto, Nombre, Precio, Proveedor)
     SELECT
@@ -214,7 +238,7 @@ BEGIN
         p.Proveedor
     FROM
         ##ProductosImportados AS p
-	WHERE p.NombreProducto NOT IN (SELECT Nombre FROM Productos.CatalogoFinal)
+    WHERE p.NombreProducto NOT IN (SELECT Nombre FROM Productos.CatalogoFinal);
 
 END;
 GO
@@ -275,7 +299,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE Complementario.InsertarEmpleado
+CREATE OR ALTER PROCEDURE Complementario.InsertarEmpleado
     @Legajo INT,
     @Nombre VARCHAR(50),
     @Apellido VARCHAR(50),
@@ -289,21 +313,9 @@ CREATE PROCEDURE Complementario.InsertarEmpleado
     @Turno VARCHAR(25)
 AS
 BEGIN
-    INSERT INTO Complementario.Empleados (
-        Legajo,
-        Nombre,
-        Apellido,
-        DNI,
-        Direccion,
-        emailPersonal,
-        emailEmpresa,
-        CUIL,
-        Cargo,
-        Sucursal,
-        Turno
-    )
+    INSERT INTO Complementario.Empleados(Legajo,Nombre,Apellido,DNI,Direccion,emailPersonal,emailEmpresa,CUIL,Cargo,Sucursal,Turno)
     VALUES (
-        @Legajo,
+		@Legajo,
         @Nombre,
         @Apellido,
         @DNI,
@@ -315,7 +327,17 @@ BEGIN
         @Sucursal,
         @Turno
     );
-END
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.EliminarProductoCatalogo
+    @nombreProd varchar(100)
+AS
+BEGIN
+    DELETE FROM Productos.CatalogoFinal
+    WHERE Nombre = @nombreProd
+END;
+GO
 	
 --Ver procedimientos en esquema 'Procedimientos'
 SELECT SCHEMA_NAME(schema_id) AS Esquema, name AS Procedimiento
