@@ -1,5 +1,3 @@
-USE master
-
 USE Com5600G01
 GO
 
@@ -184,29 +182,6 @@ GO
 CREATE OR ALTER PROCEDURE Procedimientos.LlenarCatalogoFinal
 AS
 BEGIN 
-    -- Actualizar precios de productos existentes desde ##Catalogo
-	UPDATE cf
-	SET cf.Precio = (SELECT c.Precio FROM ##Catalogo AS c WHERE c.Nombre = cf.Nombre)
-	FROM Productos.CatalogoFinal AS cf
-	WHERE cf.Nombre IN (SELECT Nombre FROM ##Catalogo) 
-    AND cf.Precio <> (SELECT c.Precio FROM ##Catalogo AS c WHERE c.Nombre = cf.Nombre);
-
-	-- Actualizar precios de productos existentes desde ##ElectronicAccessories
-	UPDATE cf
-	SET cf.Precio = (SELECT e.PrecioUSD FROM ##ElectronicAccessories AS e WHERE e.Producto = cf.Nombre)
-	FROM Productos.CatalogoFinal AS cf
-	WHERE cf.LineaDeProducto = 'Accesorios Electronicos' 
-    AND cf.Nombre IN (SELECT Producto FROM ##ElectronicAccessories) 
-    AND cf.Precio <> (SELECT e.PrecioUSD FROM ##ElectronicAccessories AS e WHERE e.Producto = cf.Nombre);
-
-	-- Actualizar precios de productos existentes desde ##ProductosImportados
-	UPDATE cf
-	SET cf.Precio = (SELECT p.PrecioUnidad FROM ##ProductosImportados AS p WHERE p.NombreProducto = cf.Nombre)
-	FROM Productos.CatalogoFinal AS cf
-	WHERE cf.LineaDeProducto = (SELECT p.Categoria FROM ##ProductosImportados AS p WHERE p.NombreProducto = cf.Nombre)
-    AND cf.Nombre IN (SELECT NombreProducto FROM ##ProductosImportados) 
-    AND cf.Precio <> (SELECT p.PrecioUnidad FROM ##ProductosImportados AS p WHERE p.NombreProducto = cf.Nombre);
-
     -- Insertar solo productos nuevos
     INSERT INTO Productos.CatalogoFinal (LineaDeProducto, Nombre, Precio, Proveedor)
     SELECT 
@@ -327,6 +302,31 @@ BEGIN
         @Sucursal,
         @Turno
     );
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.ActualizarPrecioCatalogo  --Probar dsp cuando inventemos datos
+AS
+BEGIN
+	--Para los productos de ##Catalogo
+	UPDATE cf
+	SET cf.Precio = (SELECT c.Precio from ##Catalogo c where c.Nombre = cf.Nombre)
+	FROM Productos.CatalogoFinal cf
+	WHERE cf.Nombre IN(SELECT Nombre from ##Catalogo) AND cf.Precio <> (SELECT c.Precio FROM ##Catalogo AS c WHERE c.Nombre = cf.Nombre)
+	--Para los productos de ##ElectronicAccessories
+	UPDATE cf
+	SET cf.Precio = (SELECT e.PrecioUSD FROM ##ElectronicAccessories AS e WHERE e.Producto = cf.Nombre)
+	FROM Productos.CatalogoFinal AS cf
+	WHERE cf.LineaDeProducto = 'Accesorios Electronicos' 
+    AND cf.Nombre IN (SELECT Producto FROM ##ElectronicAccessories) 
+    AND cf.Precio <> (SELECT e.PrecioUSD FROM ##ElectronicAccessories AS e WHERE e.Producto = cf.Nombre)
+	--Para los productos de ##ProductosImportados
+	UPDATE cf
+	SET cf.Precio = (SELECT p.PrecioUnidad FROM ##ProductosImportados AS p WHERE p.NombreProducto = cf.Nombre)
+	FROM Productos.CatalogoFinal AS cf
+	WHERE cf.LineaDeProducto = (SELECT p.Categoria FROM ##ProductosImportados AS p WHERE p.NombreProducto = cf.Nombre)
+    AND cf.Nombre IN (SELECT NombreProducto FROM ##ProductosImportados) 
+    AND cf.Precio <> (SELECT p.PrecioUnidad FROM ##ProductosImportados AS p WHERE p.NombreProducto = cf.Nombre)
 END;
 GO
 
