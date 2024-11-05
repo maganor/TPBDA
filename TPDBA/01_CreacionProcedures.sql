@@ -206,7 +206,6 @@ BEGIN
         ##ElectronicAccessories AS e
 	WHERE e.Producto NOT IN (SELECT Nombre FROM Productos.CatalogoFinal)
 
-
     INSERT INTO Productos.CatalogoFinal(LineaDeProducto, Nombre, Precio, Proveedor)
     SELECT
         p.Categoria,
@@ -215,7 +214,7 @@ BEGIN
         p.Proveedor
     FROM
         ##ProductosImportados AS p
-	WHERE e.NombreProducto NOT IN (SELECT Nombre FROM Productos.CatalogoFinal)
+	WHERE p.NombreProducto NOT IN (SELECT Nombre FROM Productos.CatalogoFinal)
 
 END;
 GO
@@ -276,6 +275,48 @@ BEGIN
 END;
 GO
 
+CREATE PROCEDURE Complementario.InsertarEmpleado
+    @Legajo INT,
+    @Nombre VARCHAR(50),
+    @Apellido VARCHAR(50),
+    @DNI INT,
+    @Direccion VARCHAR(200),
+    @emailPersonal VARCHAR(100),
+    @emailEmpresa VARCHAR(100),
+    @CUIL VARCHAR(11),
+    @Cargo VARCHAR(50),
+    @Sucursal VARCHAR(100),
+    @Turno VARCHAR(25)
+AS
+BEGIN
+    INSERT INTO Complementario.Empleados (
+        Legajo,
+        Nombre,
+        Apellido,
+        DNI,
+        Direccion,
+        emailPersonal,
+        emailEmpresa,
+        CUIL,
+        Cargo,
+        Sucursal,
+        Turno
+    )
+    VALUES (
+        @Legajo,
+        @Nombre,
+        @Apellido,
+        @DNI,
+        @Direccion,
+        @emailPersonal,
+        @emailEmpresa,
+        @CUIL,
+        @Cargo,
+        @Sucursal,
+        @Turno
+    );
+END
+	
 --Ver procedimientos en esquema 'Procedimientos'
 SELECT SCHEMA_NAME(schema_id) AS Esquema, name AS Procedimiento
 FROM sys.procedures
