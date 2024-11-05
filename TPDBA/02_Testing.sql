@@ -1,7 +1,7 @@
 USE Com5600G01
 GO 
 
-DECLARE @PATH VARCHAR(255) = 'E:\UNLAM\Carrera\Bases de Datos Aplicada\TP\TP_integrador_Archivos'
+DECLARE @PATH VARCHAR(255) = 'C:\Users\wixde\Desktop\TP_integrador_Archivos'
 DECLARE @FullPath VARCHAR(500) = @PATH + '\Productos\catalogo.csv'
 
 --Cargamos la tabla catalogo con el SP:
@@ -71,3 +71,5 @@ SELECT * FROM Productos.CatalogoFinal
 GO
 SELECT * FROM Ventas.VtasAReg
 GO
+
+TRUNCATE TABLE Productos.CatalogoFinal

@@ -193,7 +193,8 @@ BEGIN
     FROM 
         ##Catalogo AS c
     JOIN 
-        Complementario.ClasificacionDeProductos AS cdp ON c.Categoria = cdp.Producto;
+        Complementario.ClasificacionDeProductos AS cdp ON c.Categoria = cdp.Producto
+	WHERE c.Nombre NOT IN (SELECT Nombre FROM Productos.CatalogoFinal)
 
     INSERT INTO Productos.CatalogoFinal(LineaDeProducto, Nombre, Precio, Proveedor)
     SELECT
@@ -203,6 +204,9 @@ BEGIN
         '-' AS Proveedor
     FROM
         ##ElectronicAccessories AS e
+	WHERE e.Producto NOT IN (SELECT Nombre FROM Productos.CatalogoFinal)
+
+
     INSERT INTO Productos.CatalogoFinal(LineaDeProducto, Nombre, Precio, Proveedor)
     SELECT
         p.Categoria,
@@ -211,6 +215,7 @@ BEGIN
         p.Proveedor
     FROM
         ##ProductosImportados AS p
+	WHERE e.NombreProducto NOT IN (SELECT Nombre FROM Productos.CatalogoFinal)
 
 END;
 GO
