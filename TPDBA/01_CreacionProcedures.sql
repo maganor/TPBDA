@@ -338,7 +338,32 @@ BEGIN
     WHERE Nombre = @nombreProd
 END;
 GO
-	
+
+CREATE OR ALTER PROCEDURE Procedimientos.GenerarReporteTrimestral
+AS
+BEGIN
+    SELECT 
+        FORMAT(V.Fecha, 'MM-yyyy') AS Mes,
+        CASE 
+            WHEN DATEPART(HOUR, V.Hora) >= 8 AND DATEPART(HOUR, V.Hora) < 14 THEN 'Mañana'
+            WHEN DATEPART(HOUR, V.Hora) >= 14 AND DATEPART(HOUR, V.Hora) < 20 THEN 'Tarde'
+        END AS Turno,
+        SUM(V.PrecioUni * V.Cantidad) AS TotalFacturado
+    FROM 
+        Ventas.VtasAReg V
+    WHERE 
+        V.Fecha >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()) - 3, 0) -- Calcula el inicio de los Últimos 3 meses
+        AND V.Fecha < DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0) -- Calucula el fin de los Últimos 3 meses
+    GROUP BY 
+        FORMAT(V.Fecha, 'MM-yyyy'), 
+        CASE 
+            WHEN DATEPART(HOUR, V.Hora) >= 8 AND DATEPART(HOUR, V.Hora) < 14 THEN 'Mañana'
+            WHEN DATEPART(HOUR, V.Hora) >= 14 AND DATEPART(HOUR, V.Hora) < 20 THEN 'Tarde'
+        END
+    FOR XML PATH('Venta'), ROOT('ReporteTrimestralxTurno');
+END;
+GO
+
 --Ver procedimientos en esquema 'Procedimientos'
 SELECT SCHEMA_NAME(schema_id) AS Esquema, name AS Procedimiento
 FROM sys.procedures
