@@ -21,16 +21,16 @@ GO
 CREATE SCHEMA Productos
 GO
 
-DROP TABLE IF EXISTS ##Catalogo
+DROP TABLE IF EXISTS ##CatalogoTemp
 GO
-CREATE TABLE ##Catalogo(
-	Id int primary key,
-	Categoria varchar(100),
-	Nombre nvarchar(100),
-	Precio decimal(6,2),
-	Precio_Ref decimal(6,2),
-	Unidad_Ref varchar(10),
-	Fecha datetime
+CREATE TABLE ##CatalogoTemp(
+	Id INT PRIMARY KEY,
+	Categoria VARCHAR(100),
+	Nombre NVARCHAR(100),
+	Precio DECIMAL(6,2),
+	Precio_Ref DECIMAL(6,2),
+	Unidad_Ref VARCHAR(10),
+	Fecha DATETIME
 )
 
 DROP TABLE IF EXISTS ##ProductosImportados
@@ -50,14 +50,14 @@ CREATE TABLE ##ElectronicAccessories(
    PrecioUSD DECIMAL(6,2)
 )
 
-DROP TABLE IF EXISTS Productos.CatalogoFinal
+DROP TABLE IF EXISTS Productos.Catalogo
 GO
-CREATE TABLE Productos.CatalogoFinal(
-	Id int IDENTITY (1,1) primary key,
-	LineaDeProducto varchar(100),
-	Nombre nvarchar(100),
-	Precio decimal(6,2),
-	Proveedor varchar(100)
+CREATE TABLE Productos.Catalogo(
+	Id INT IDENTITY (1,1) PRIMARY KEY,
+	LineaDeProducto VARCHAR(100),
+	Nombre NVARCHAR(100),
+	Precio DECIMAL(6,2),
+	Proveedor VARCHAR(100)
 )
 
 --Para ver que las tablas pertenezcan al esquema 'Productos'
@@ -74,38 +74,38 @@ GO
 DROP TABLE IF EXISTS ##Historial
 GO
 CREATE TABLE ##Historial(
-	Id char(11) primary key,
-	TipoFactura char(1),
-	Ciudad varchar(15),
-	TipoCliente char(6),
-	Genero varchar(6),
-	Producto nvarchar(100),
-	PrecioUni decimal(6,2),
-	Cantidad int,
-	Fecha date,
-	Hora time,
-	MedioPago varchar(11),
-	Empleado int,
-	IdMedPago varchar(30)
+	Id CHAR(11) PRIMARY KEY,
+	TipoFactura CHAR(1),
+	Ciudad VARCHAR(15),
+	TipoCliente CHAR(6),
+	Genero VARCHAR(6),
+	Producto NVARCHAR(100),
+	PrecioUni DECIMAL(6,2),
+	Cantidad INT,
+	Fecha DATE,
+	Hora TIME,
+	MedioPago VARCHAR(11),
+	Empleado INT,
+	IdMedPago VARCHAR(30)
 )
 
-DROP TABLE IF EXISTS Ventas.VtasAReg
+DROP TABLE IF EXISTS Ventas.Facturas
 GO
-CREATE TABLE Ventas.VtasAReg(
-	Id char(11) primary key,
-	TipoFactura char(1),
-	Ciudad varchar(15),
-	TipoCliente char(6), --Member o Normal
-	Genero varchar(6), --Male/Female/Other
-	LineaDeProducto varchar(100), --Puedo sacarlos desde el producto
-	Producto nvarchar(100),
-	PrecioUni decimal(6,2),
-	Cantidad int,
-	Fecha date,
-	Hora time(0),
-	MedioPago varchar(11),
-	Empleado int,
-	Sucursal varchar(17)
+CREATE TABLE Ventas.Facturas(
+	Id CHAR(11) PRIMARY KEY,
+	TipoFactura CHAR(1),
+	Ciudad VARCHAR(15),
+	TipoCliente CHAR(6), --Member o Normal
+	Genero VARCHAR(6), --Male/Female/Other
+	LineaDeProducto VARCHAR(100), --Puedo sacarlos desde el producto
+	Producto NVARCHAR(100),
+	PrecioUni DECIMAL(6,2),
+	Cantidad INT,
+	Fecha DATE,
+	Hora TIME(0),
+	MedioPago VARCHAR(11),
+	Empleado INT,
+	Sucursal VARCHAR(17)
 )
 
 --Para ver que las tablas pertenezcan al esquema 'Ventas'
@@ -123,7 +123,7 @@ GO
 
 DROP TABLE IF EXISTS Complementario.Empleados
 CREATE TABLE Complementario.Empleados (
-    Legajo INT NOT NULL,
+    Legajo INT PRIMARY KEY,
     Nombre VARCHAR(50),
     Apellido VARCHAR(50),
     DNI INT,
@@ -157,9 +157,9 @@ GO
 
 DROP TABLE IF EXISTS Complementario.MonedaExtranjera
 CREATE TABLE Complementario.MonedaExtranjera(
-	Id int identity(1,1) primary key,
-	Nombre char(3),
-	PrecioAR decimal(6,2)
+	Id INT IDENTITY(1,1) PRIMARY KEY,
+	Nombre CHAR(3),
+	PrecioAR DECIMAL(6,2)
 )
 GO
 

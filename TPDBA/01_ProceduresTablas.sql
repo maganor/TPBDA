@@ -1,6 +1,11 @@
 USE Com5600G01
 GO 
 
+DROP SCHEMA IF EXISTS Procedimientos
+GO
+CREATE SCHEMA Procedimientos 
+GO
+
 CREATE OR ALTER PROCEDURE Procedimientos.Agregar_Factura
 	@cantidad INT,
 	@tipoCliente CHAR(6),
@@ -20,16 +25,16 @@ BEGIN
 	-- VERIFICAR EXISTENCIA EMPLEADO
 	-- VERIFICAR EXISTENCIA CIUDAD/PRODUCTO
 
-	SELECT @LineaProd = LineaDeProducto from Productos.CatalogoFinal c WHERE c.Nombre = @producto 
+	SELECT @LineaProd = LineaDeProducto from Productos.Catalogo c WHERE c.Nombre = @producto 
 	SELECT @sucursal = ReemplazarPor from Complementario.Sucursales s WHERE s.ciudad = @ciudad 
-	SELECT @precio = Precio from Productos.CatalogoFinal c WHERE c.Nombre = @producto
+	SELECT @precio = Precio from Productos.Catalogo c WHERE c.Nombre = @producto
 
-	INSERT INTO Ventas.VtasAReg (TipoFactura, TipoCliente, Genero, Cantidad, MedioPago, ciudad, sucursal, LineaDeProducto, Fecha, Hora, Producto, PrecioUni, Id, Empleado)
+	INSERT INTO Ventas.Facturas (TipoFactura, TipoCliente, Genero, Cantidad, MedioPago, ciudad, sucursal, LineaDeProducto, Fecha, Hora, Producto, PrecioUni, Id, Empleado)
 	VALUES (@tipoFactura, @tipoCliente, @genero, @cantidad, @medioDePago, @ciudad, @sucursal, @LineaProd, GETDATE(), CAST(SYSDATETIME() AS TIME (0)), @producto, @precio, @id, @empleado)
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Complementario.InsertarEmpleado
+CREATE OR ALTER PROCEDURE Procedimientos.InsertarEmpleado
     @Nombre VARCHAR(50),
     @Apellido VARCHAR(50),
     @DNI INT,
@@ -62,7 +67,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE Complementario.BorrarEmpleado
+CREATE PROCEDURE Procedimientos.BorrarEmpleado
 	@Legajo INT
 AS 
 BEGIN
@@ -72,7 +77,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE Complementario.ActualizarEmpleado
+CREATE PROCEDURE Procedimientos.ActualizarEmpleado
     @Legajo INT,
     @Direccion VARCHAR(200) = NULL,
     @EmailPersonal VARCHAR(100) = NULL,
@@ -97,7 +102,7 @@ CREATE OR ALTER PROCEDURE Procedimientos.EliminarProductoCatalogo
     @nombreProd varchar(100)
 AS
 BEGIN
-    DELETE FROM Productos.CatalogoFinal
+    DELETE FROM Productos.Catalogo
     WHERE Nombre = @nombreProd
 END;
 GO

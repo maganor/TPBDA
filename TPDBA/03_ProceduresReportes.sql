@@ -24,7 +24,7 @@ BEGIN
                     DATENAME(WEEKDAY, Fecha) AS Nombre,
                     SUM(PrecioUni * Cantidad) AS Total
                 FROM 
-                    Ventas.VtasAReg
+                    Ventas.Facturas
                 WHERE 
                     YEAR(Fecha) = @Anio AND 
                     MONTH(Fecha) = @Mes
@@ -58,7 +58,7 @@ SELECT @xml AS XMLResultado;
 --        END AS Turno,
 --        SUM(V.PrecioUni * V.Cantidad) AS TotalFacturado
 --    FROM 
---        Ventas.VtasAReg V
+--        Ventas.Facturas V
 --    WHERE 
 --        V.Fecha >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()) - 3, 0) -- Calcula el inicio de los Últimos 3 meses
 --        AND V.Fecha < DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0) -- Calcula el fin de los Últimos 3 meses
@@ -84,15 +84,15 @@ BEGIN
 
     -- Generar el XML con la cantidad de productos vendidos en el rango de fechas
     SELECT 
-        V.Producto,
-        SUM(V.Cantidad) AS CantidadVendida
+        F.Producto,
+        SUM(F.Cantidad) AS CantidadVendida
     FROM 
-        Ventas.VtasAReg V
+        Ventas.Facturas F
     WHERE 
-        V.Fecha >= @FechaInicio  -- Filtrar por la fecha de inicio
-        AND V.Fecha <= @FechaFin  -- Filtrar por la fecha de fin
+        F.Fecha >= @FechaInicio  -- Filtrar por la fecha de inicio
+        AND F.Fecha <= @FechaFin  -- Filtrar por la fecha de fin
     GROUP BY 
-        V.Producto  -- Agrupar por producto
+        F.Producto  -- Agrupar por producto
     ORDER BY 
         CantidadVendida DESC  -- Ordenar de mayor a menor por cantidad vendida
     FOR XML PATH('Producto'), ROOT('ReporteVentasxRangoFechas');  -- Formato XML
@@ -108,11 +108,11 @@ BEGIN
     SET NOCOUNT ON;
 
     -- Generar el XML con la cantidad de productos vendidos en el rango de fechas
-    SELECT V.Producto,SUM(V.Cantidad) AS CantidadVendida
-    FROM Ventas.VtasAReg V
-    WHERE V.Fecha >= @FechaInicio  -- Filtrar por la fecha de inicio
-          AND V.Fecha <= @FechaFin  -- Filtrar por la fecha de fin
-    GROUP BY V.Producto  -- Agrupar por producto
+    SELECT F.Producto,SUM(F.Cantidad) AS CantidadVendida
+    FROM Ventas.Facturas F
+    WHERE F.Fecha >= @FechaInicio  -- Filtrar por la fecha de inicio
+          AND F.Fecha <= @FechaFin  -- Filtrar por la fecha de fin
+    GROUP BY F.Producto  -- Agrupar por producto
     ORDER BY CantidadVendida DESC  -- Ordenar de mayor a menor por cantidad vendida
     FOR XML PATH('Producto'), ROOT('ReporteVentasxRangoFechas');  -- Formato XML
 END;
@@ -126,10 +126,10 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    SELECT V.Sucursal,V.Producto,SUM(V.Cantidad) AS CantidadVendida
-    FROM Ventas.VtasAReg V
-    WHERE V.Fecha >= @FechaInicio AND V.Fecha <= @FechaFin
-    GROUP BY V.Sucursal,V.Producto
+    SELECT F.Sucursal,F.Producto,SUM(F.Cantidad) AS CantidadVendida
+    FROM Ventas.Facturas F
+    WHERE F.Fecha >= @FechaInicio AND F.Fecha <= @FechaFin
+    GROUP BY F.Sucursal,F.Producto
     ORDER BY CantidadVendida DESC
     FOR XML PATH('Producto'), ROOT('ReportePorRangoFechasSucursal');
 END;
@@ -143,14 +143,14 @@ BEGIN
     SET NOCOUNT ON;
 
     WITH VentasPorSemana AS (
-        SELECT V.Producto,DATEPART(WEEK, V.Fecha) AS Semana,SUM(V.Cantidad) AS CantidadVendida
-        FROM Ventas.VtasAReg V
-        WHERE MONTH(V.Fecha) = @Mes AND YEAR(V.Fecha) = @Anio
-        GROUP BY V.Producto, DATEPART(WEEK, V.Fecha)
+        SELECT F.Producto,DATEPART(WEEK, F.Fecha) AS Semana,SUM(F.Cantidad) AS CantidadVendida
+        FROM Ventas.Facturas F
+        WHERE MONTH(F.Fecha) = @Mes AND YEAR(F.Fecha) = @Anio
+        GROUP BY F.Producto, DATEPART(WEEK, F.Fecha)
     )
-    SELECT TOP 5 V.Producto,SUM(V.CantidadVendida) AS TotalCantidadVendida
-    FROM VentasPorSemana V
-    GROUP BY V.Producto
+    SELECT TOP 5 F.Producto,SUM(F.CantidadVendida) AS TotalCantidadVendida
+    FROM VentasPorSemana F
+    GROUP BY F.Producto
     ORDER BY TotalCantidadVendida DESC
     FOR XML PATH('Producto'), ROOT('Top5ProductosPorSemana');
 END;
@@ -164,10 +164,10 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    SELECT TOP 5 V.Producto, SUM(V.Cantidad) AS CantidadVendida
-    FROM Ventas.VtasAReg V
-    WHERE MONTH(V.Fecha) = @Mes AND YEAR(V.Fecha) = @Anio
-    GROUP BY V.Producto
+    SELECT TOP 5 F.Producto, SUM(F.Cantidad) AS CantidadVendida
+    FROM Ventas.Facturas F
+    WHERE MONTH(F.Fecha) = @Mes AND YEAR(F.Fecha) = @Anio
+    GROUP BY F.Producto
     ORDER BY CantidadVendida ASC
     FOR XML PATH('Producto'), ROOT('Menor5ProductosPorMes');
 END;
@@ -181,10 +181,10 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    SELECT V.Producto, SUM(V.PrecioUni * V.Cantidad) AS TotalVentas
-    FROM Ventas.VtasAReg V
-    WHERE V.Fecha = @Fecha AND V.Sucursal = @Sucursal
-    GROUP BY V.Producto
+    SELECT F.Producto, SUM(F.PrecioUni * F.Cantidad) AS TotalVentas
+    FROM Ventas.Facturas F
+    WHERE F.Fecha = @Fecha AND F.Sucursal = @Sucursal
+    GROUP BY F.Producto
     FOR XML PATH('Producto'), ROOT('TotalAcumuladoVentas');
 END;
 GO

@@ -1,11 +1,6 @@
 USE Com5600G01
 GO
 
-DROP SCHEMA IF EXISTS Procedimientos
-GO
-CREATE SCHEMA Procedimientos 
-GO
-
 --Para insertar los datos de los archivos
 --Para el .csv:
 CREATE OR ALTER PROCEDURE Procedimientos.CargarCSV
@@ -180,23 +175,23 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.LlenarCatalogoFinal
+CREATE OR ALTER PROCEDURE Procedimientos.LlenarCatalogo
 AS
 BEGIN 
     -- Insertar solo productos nuevos
-    INSERT INTO Productos.CatalogoFinal (LineaDeProducto, Nombre, Precio, Proveedor)
+    INSERT INTO Productos.Catalogo (LineaDeProducto, Nombre, Precio, Proveedor)
     SELECT 
         cdp.LineaDeProducto, 
         c.Nombre, 
         c.Precio, 
         '-' AS Proveedor
     FROM 
-        ##Catalogo AS c
+        ##CatalogoTemp AS c
     JOIN 
         Complementario.ClasificacionDeProductos AS cdp ON c.Categoria = cdp.Producto
-    WHERE c.Nombre NOT IN (SELECT Nombre FROM Productos.CatalogoFinal);
+    WHERE c.Nombre NOT IN (SELECT Nombre FROM Productos.Catalogo);
 
-    INSERT INTO Productos.CatalogoFinal(LineaDeProducto, Nombre, Precio, Proveedor)
+    INSERT INTO Productos.Catalogo(LineaDeProducto, Nombre, Precio, Proveedor)
     SELECT
         'Accesorios Electronicos' AS Categoria,
         e.Nombre,
@@ -204,9 +199,9 @@ BEGIN
         '-' AS Proveedor
     FROM
         ##ElectronicAccessories AS e
-    WHERE e.Nombre NOT IN (SELECT Nombre FROM Productos.CatalogoFinal);
+    WHERE e.Nombre NOT IN (SELECT Nombre FROM Productos.Catalogo);
 
-    INSERT INTO Productos.CatalogoFinal(LineaDeProducto, Nombre, Precio, Proveedor)
+    INSERT INTO Productos.Catalogo(LineaDeProducto, Nombre, Precio, Proveedor)
     SELECT
         p.Categoria,
         p.Nombre,
@@ -214,7 +209,7 @@ BEGIN
         p.Proveedor
     FROM
         ##ProductosImportados AS p
-    WHERE p.Nombre NOT IN (SELECT Nombre FROM Productos.CatalogoFinal);
+    WHERE p.Nombre NOT IN (SELECT Nombre FROM Productos.Catalogo);
 
 END;
 GO
@@ -222,7 +217,7 @@ GO
 CREATE OR ALTER PROCEDURE Procedimientos.CargarVentasAReg
 AS
 BEGIN 
-    INSERT INTO Ventas.VtasAReg (
+    INSERT INTO Ventas.Facturas (
 	Id, TipoFactura, Ciudad, TipoCliente, Genero, LineaDeProducto, Producto, PrecioUni, Cantidad, Fecha, Hora, MedioPago, Empleado, Sucursal
     )
     SELECT 
@@ -250,22 +245,22 @@ GO
 CREATE OR ALTER PROCEDURE Procedimientos.ActualizarPrecioCatalogo  --Probar dsp cuando inventemos datos
 AS
 BEGIN
-	--Para los productos de ##Catalogo
+	--Para los productos de ##CatalogoTemp
 	UPDATE cf
-	SET cf.Precio = (SELECT c.Precio from ##Catalogo c where c.Nombre = cf.Nombre)
-	FROM Productos.CatalogoFinal cf
-	WHERE cf.Nombre IN (SELECT Nombre from ##Catalogo) AND cf.Precio <> (SELECT c.Precio FROM ##Catalogo AS c WHERE c.Nombre = cf.Nombre)
+	SET cf.Precio = (SELECT c.Precio from ##CatalogoTemp c where c.Nombre = cf.Nombre)
+	FROM Productos.Catalogo cf
+	WHERE cf.Nombre IN (SELECT Nombre from ##CatalogoTemp) AND cf.Precio <> (SELECT c.Precio FROM ##CatalogoTemp AS c WHERE c.Nombre = cf.Nombre)
 	--Para los productos de ##ElectronicAccessories
 	UPDATE cf
 	SET cf.Precio = (SELECT e.PrecioUSD FROM ##ElectronicAccessories AS e WHERE e.Nombre = cf.Nombre)
-	FROM Productos.CatalogoFinal AS cf
+	FROM Productos.Catalogo AS cf
 	WHERE cf.LineaDeProducto = 'Accesorios Electronicos' 
     AND cf.Nombre IN (SELECT Nombre FROM ##ElectronicAccessories) 
     AND cf.Precio <> (SELECT e.PrecioUSD FROM ##ElectronicAccessories AS e WHERE e.Nombre = cf.Nombre)
 	--Para los productos de ##ProductosImportados
 	UPDATE cf
 	SET cf.Precio = (SELECT p.PrecioUnidad FROM ##ProductosImportados AS p WHERE p.Nombre = cf.Nombre)
-	FROM Productos.CatalogoFinal AS cf
+	FROM Productos.Catalogo AS cf
 	WHERE cf.LineaDeProducto = (SELECT p.Categoria FROM ##ProductosImportados AS p WHERE p.Nombre = cf.Nombre)
     AND cf.Nombre IN (SELECT Nombre FROM ##ProductosImportados) 
     AND cf.Precio <> (SELECT p.PrecioUnidad FROM ##ProductosImportados AS p WHERE p.Nombre = cf.Nombre)

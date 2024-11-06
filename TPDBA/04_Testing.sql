@@ -7,7 +7,7 @@ DECLARE @FullPath VARCHAR(500) = @PATH + '\Productos\catalogo.csv'
 --Cargamos la tabla catalogo con el SP:
 EXEC Procedimientos.CargarCSV		@direccion = @FullPath,
 									@terminator = ',',
-									@tabla = '##Catalogo'
+									@tabla = '##CatalogoTemp'
 
 SET @FULLPATH = @PATH + '\Ventas_registradas.csv'
 --Cargamos la tabla historial con el SP:
@@ -47,7 +47,7 @@ EXEC Procedimientos.CargarImportados	@direccion = @FullPath,
 										
 GO
 
-EXEC Procedimientos.LlenarCatalogoFinal 
+EXEC Procedimientos.LlenarCatalogo 
 GO
 EXEC Procedimientos.CargarVentasAReg
 GO
@@ -99,7 +99,7 @@ EXEC Procedimientos.TotalAcumuladoVentas
 SELECT @xml AS TotalAcumuladoVentas;
 
 --Para verificar la carga:
-SELECT * FROM ##Catalogo
+SELECT * FROM ##CatalogoTemp
 GO
 SELECT * FROM ##ProductosImportados
 GO
@@ -113,9 +113,9 @@ SELECT * FROM Complementario.Empleados
 GO
 SELECT * FROM Complementario.Sucursales
 GO
-SELECT * FROM Productos.CatalogoFinal
+SELECT * FROM Productos.Catalogo
 GO
-SELECT * FROM Ventas.VtasAReg
+SELECT * FROM Ventas.Facturas
 GO
 
-TRUNCATE TABLE Productos.CatalogoFinal
+TRUNCATE TABLE Productos.Catalogo
