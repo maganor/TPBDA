@@ -522,8 +522,6 @@ BEGIN
 END;
 GO
 
-
-
 --Ver procedimientos en esquema 'Procedimientos'
 SELECT SCHEMA_NAME(schema_id) AS Esquema, name AS Procedimiento
 FROM sys.procedures
