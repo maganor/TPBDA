@@ -156,15 +156,15 @@ CREATE OR ALTER PROCEDURE Procedimientos.CargarSucursales
 AS
 BEGIN
     DECLARE @sql NVARCHAR(MAX);
-    --Inserta los datos
+    -- Inserta los datos
     SET @sql = N'
-    INSERT INTO ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N'
+    INSERT INTO ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N' (Ciudad, ReemplazarPor, Direccion, Horario, Telefono)
     SELECT 
-        CAST(Ciudad AS VARCHAR(100)),
-        CAST([Reemplazar por] AS VARCHAR(100)),
-        CAST(direccion AS VARCHAR(200)),
-        CAST(Horario AS VARCHAR(100)),
-        CAST(Telefono AS VARCHAR(20))
+        Ciudad,
+        [Reemplazar por] AS ReemplazarPor,
+        direccion AS Direccion,
+        Horario,
+        Telefono
     FROM OPENROWSET(
         ''Microsoft.ACE.OLEDB.12.0'',
         ''Excel 12.0; Database=' + @direccion + '; HDR=YES;'', 
@@ -214,7 +214,7 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.CargarVentasAReg
+CREATE OR ALTER PROCEDURE Procedimientos.CargarVentas
 AS
 BEGIN 
     INSERT INTO Ventas.Facturas (

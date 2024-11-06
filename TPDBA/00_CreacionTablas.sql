@@ -114,7 +114,6 @@ FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_SCHEMA = 'Ventas'
 GO
 
---if exists .... schema*
 --Se crea este esquema para la info complementaria.
 DROP SCHEMA IF EXISTS Complementario
 GO
@@ -122,7 +121,7 @@ CREATE SCHEMA Complementario
 GO
 
 DROP TABLE IF EXISTS Complementario.Empleados
-CREATE TABLE Complementario.Empleados (
+CREATE TABLE Complementario.Empleados(
     Legajo INT PRIMARY KEY,
     Nombre VARCHAR(50),
     Apellido VARCHAR(50),
@@ -139,7 +138,8 @@ CREATE TABLE Complementario.Empleados (
 GO
 
 DROP TABLE IF EXISTS Complementario.Sucursales
-CREATE TABLE Complementario.Sucursales (
+CREATE TABLE Complementario.Sucursales(
+		IdSucursal INT IDENTITY(1,1) PRIMARY KEY,
         Ciudad VARCHAR(100),
         ReemplazarPor VARCHAR(100),
         Direccion VARCHAR(200),
@@ -165,7 +165,7 @@ GO
 
 DROP TABLE IF EXISTS Complementario.MediosDePago
 CREATE TABLE Complementario.MediosDePago(
-	Id INT IDENTITY(1,1) PRIMARY KEY,
+	IdMDP INT IDENTITY(1,1) PRIMARY KEY,
 	NombreING VARCHAR(15),
 	NombreESP VARCHAR(25)
 )

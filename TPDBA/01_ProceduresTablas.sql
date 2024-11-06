@@ -6,7 +6,7 @@ GO
 CREATE SCHEMA Procedimientos 
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.Agregar_Factura
+CREATE OR ALTER PROCEDURE Procedimientos.AgregarFactura
 	@cantidad INT,
 	@tipoCliente CHAR(6),
 	@genero CHAR,
@@ -34,7 +34,7 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.InsertarEmpleado
+CREATE OR ALTER PROCEDURE Procedimientos.AgregarEmpleado
     @Nombre VARCHAR(50),
     @Apellido VARCHAR(50),
     @DNI INT,
@@ -67,7 +67,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE Procedimientos.BorrarEmpleado
+CREATE PROCEDURE Procedimientos.EliminarEmpleado
 	@Legajo INT
 AS 
 BEGIN
@@ -117,11 +117,33 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.BorrarMedioDePago
+CREATE OR ALTER PROCEDURE Procedimientos.EliminarMedioDePago
 	@id INT
 AS
 BEGIN
 	DELETE FROM Complementario.MediosDePago
-	WHERE Id = @id
+	WHERE IdMDP = @id
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.AgregarSucursal
+	@Ciudad VARCHAR(100),
+    @ReemplazarPor VARCHAR(100),
+    @Direccion VARCHAR(200),
+    @Horario VARCHAR(100),
+    @Telefono VARCHAR(20)
+AS
+BEGIN
+	INSERT INTO Complementario.Sucursales(Ciudad,ReemplazarPor,Direccion,Horario,Telefono)
+	VALUES(@Ciudad,@ReemplazarPor,@Direccion,@Horario,@Telefono)
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.EliminarSucursal
+	@id int
+AS
+BEGIN
+	DELETE FROM Complementario.Sucursales
+	WHERE IdSucursal = @id
 END;
 GO

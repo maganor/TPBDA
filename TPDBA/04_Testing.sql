@@ -49,7 +49,7 @@ GO
 
 EXEC Procedimientos.LlenarCatalogo 
 GO
-EXEC Procedimientos.CargarVentasAReg
+EXEC Procedimientos.CargarVentas
 GO
 
 

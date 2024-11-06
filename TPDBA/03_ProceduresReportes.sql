@@ -51,22 +51,22 @@ SELECT @xml AS XMLResultado;
 --    DECLARE @TempXML XML; -- Variable intermedia para almacenar el resultado XML
 
 --    SELECT 
---        FORMAT(V.Fecha, 'MM-yyyy') AS Mes,
+--        FORMAT(F.Fecha, 'MM-yyyy') AS Mes,
 --        CASE 
---            WHEN DATEPART(HOUR, V.Hora) >= 8 AND DATEPART(HOUR, V.Hora) < 14 THEN 'Mañana'
---            WHEN DATEPART(HOUR, V.Hora) >= 14 AND DATEPART(HOUR, V.Hora) < 21 THEN 'Tarde'
+--            WHEN DATEPART(HOUR, F.Hora) >= 8 AND DATEPART(HOUR, F.Hora) < 14 THEN 'Mañana'
+--            WHEN DATEPART(HOUR, F.Hora) >= 14 AND DATEPART(HOUR, F.Hora) < 21 THEN 'Tarde'
 --        END AS Turno,
---        SUM(V.PrecioUni * V.Cantidad) AS TotalFacturado
+--        SUM(F.PrecioUni * F.Cantidad) AS TotalFacturado
 --    FROM 
---        Ventas.Facturas V
+--        Ventas.Facturas F
 --    WHERE 
---        V.Fecha >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()) - 3, 0) -- Calcula el inicio de los Últimos 3 meses
---        AND V.Fecha < DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0) -- Calcula el fin de los Últimos 3 meses
+--        F.Fecha >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()) - 3, 0) -- Calcula el inicio de los Últimos 3 meses
+--        AND F.Fecha < DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0) -- Calcula el fin de los Últimos 3 meses
 --    GROUP BY 
 --        FORMAT(V.Fecha, 'MM-yyyy'), 
 --        CASE 
---            WHEN DATEPART(HOUR, V.Hora) >= 8 AND DATEPART(HOUR, V.Hora) < 14 THEN 'Mañana'
---            WHEN DATEPART(HOUR, V.Hora) >= 14 AND DATEPART(HOUR, V.Hora) < 21 THEN 'Tarde'
+--            WHEN DATEPART(HOUR, F.Hora) >= 8 AND DATEPART(HOUR, F.Hora) < 14 THEN 'Mañana'
+--            WHEN DATEPART(HOUR, F.Hora) >= 14 AND DATEPART(HOUR, F.Hora) < 21 THEN 'Tarde'
 --        END
 --    FOR XML PATH('Venta'), ROOT('ReporteTrimestralxTurno');
 
