@@ -163,6 +163,14 @@ CREATE TABLE Complementario.MonedaExtranjera(
 )
 GO
 
+DROP TABLE IF EXISTS Complementario.MediosDePago
+CREATE TABLE Complementario.MediosDePago(
+	Id INT IDENTITY(1,1) PRIMARY KEY,
+	NombreING VARCHAR(15),
+	NombreESP VARCHAR(25)
+)
+GO
+
 --Para ver que las tablas pertenezcan al esquema 'Compementario'
 SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
 FROM INFORMATION_SCHEMA.TABLES
@@ -171,4 +179,8 @@ GO
 
 INSERT INTO Complementario.MonedaExtranjera(Nombre,PrecioAR)
 VALUES ('USD',1225)
+GO
+
+INSERT INTO Complementario.MediosDePago(NombreING,NombreESP)
+VALUES ('Credit card','Tarjeta de credito'),('Cash','Efectivo'),('Ewallet','Billetera Electronica')
 GO

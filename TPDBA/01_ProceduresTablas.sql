@@ -101,3 +101,22 @@ BEGIN
     WHERE Nombre = @nombreProd
 END;
 GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.AgregarMedioDePago
+	@nombreING varchar(15),
+	@nombreESP varchar(25)
+AS
+BEGIN
+	INSERT INTO Complementario.MediosDePago(NombreING,NombreESP)
+	VALUES(@nombreING,@nombreESP)
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.BorrarMedioDePago
+	@id INT
+AS
+BEGIN
+	DELETE FROM Complementario.MediosDePago
+	WHERE Id = @id
+END;
+GO
