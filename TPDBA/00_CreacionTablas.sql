@@ -133,7 +133,8 @@ CREATE TABLE Complementario.Empleados (
     CUIL VARCHAR(11),
     Cargo VARCHAR(50),
     Sucursal VARCHAR(100),
-    Turno VARCHAR(25)
+    Turno VARCHAR(25),
+	EstaActivo BIT NOT NULL DEFAULT 1
 );
 GO
 
