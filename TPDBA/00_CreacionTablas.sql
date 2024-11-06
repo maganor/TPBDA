@@ -37,7 +37,7 @@ DROP TABLE IF EXISTS ##ProductosImportados
 GO
 CREATE TABLE ##ProductosImportados(
 	IdProducto INT PRIMARY KEY,
-    NombreProducto NVARCHAR(100),
+    Nombre NVARCHAR(100),
     Proveedor VARCHAR(100),
     Categoria VARCHAR(50),
     CantidadPorUnidad VARCHAR(50),
@@ -46,7 +46,7 @@ CREATE TABLE ##ProductosImportados(
 
 DROP TABLE IF EXISTS ##ElectronicAccessories
 CREATE TABLE ##ElectronicAccessories(
-   Producto NVARCHAR(100),
+   Nombre NVARCHAR(100),
    PrecioUSD DECIMAL(6,2)
 )
 
@@ -75,9 +75,9 @@ DROP TABLE IF EXISTS ##Historial
 GO
 CREATE TABLE ##Historial(
 	Id char(11) primary key,
-	Tipo_Factura char(1),
+	TipoFactura char(1),
 	Ciudad varchar(15),
-	Tipo_Cliente char(6),
+	TipoCliente char(6),
 	Genero varchar(6),
 	Producto nvarchar(100),
 	PrecioUni decimal(6,2),
@@ -93,11 +93,11 @@ DROP TABLE IF EXISTS Ventas.VtasAReg
 GO
 CREATE TABLE Ventas.VtasAReg(
 	Id char(11) primary key,
-	Tipo_Factura char(1),
+	TipoFactura char(1),
 	Ciudad varchar(15),
-	Tipo_Cliente char(6),
-	Genero varchar(6),
-	LineaDeProducto varchar(100),
+	TipoCliente char(6), --Member o Normal
+	Genero varchar(6), --Male/Female/Other
+	LineaDeProducto varchar(100), --Puedo sacarlos desde el producto
 	Producto nvarchar(100),
 	PrecioUni decimal(6,2),
 	Cantidad int,
@@ -128,8 +128,8 @@ CREATE TABLE Complementario.Empleados (
     Apellido VARCHAR(50),
     DNI INT,
     Direccion VARCHAR(200),
-    emailPersonal VARCHAR(100),
-    emailEmpresa VARCHAR(100),
+    EmailPersonal VARCHAR(100),
+    EmailEmpresa VARCHAR(100),
     CUIL VARCHAR(11),
     Cargo VARCHAR(50),
     Sucursal VARCHAR(100),
@@ -141,7 +141,7 @@ DROP TABLE IF EXISTS Complementario.Sucursales
 CREATE TABLE Complementario.Sucursales (
         Ciudad VARCHAR(100),
         ReemplazarPor VARCHAR(100),
-        direccion VARCHAR(200),
+        Direccion VARCHAR(200),
         Horario VARCHAR(100),
         Telefono VARCHAR(20)
 );

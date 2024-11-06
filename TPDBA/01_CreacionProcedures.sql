@@ -198,22 +198,22 @@ BEGIN
     INSERT INTO Productos.CatalogoFinal(LineaDeProducto, Nombre, Precio, Proveedor)
     SELECT
         'Accesorios Electronicos' AS Categoria,
-        e.Producto,
+        e.Nombre,
         e.PrecioUSD,
         '-' AS Proveedor
     FROM
         ##ElectronicAccessories AS e
-    WHERE e.Producto NOT IN (SELECT Nombre FROM Productos.CatalogoFinal);
+    WHERE e.Nombre NOT IN (SELECT Nombre FROM Productos.CatalogoFinal);
 
     INSERT INTO Productos.CatalogoFinal(LineaDeProducto, Nombre, Precio, Proveedor)
     SELECT
         p.Categoria,
-        p.NombreProducto,
+        p.Nombre,
         p.PrecioUnidad,
         p.Proveedor
     FROM
         ##ProductosImportados AS p
-    WHERE p.NombreProducto NOT IN (SELECT Nombre FROM Productos.CatalogoFinal);
+    WHERE p.Nombre NOT IN (SELECT Nombre FROM Productos.CatalogoFinal);
 
 END;
 GO
@@ -222,13 +222,13 @@ CREATE OR ALTER PROCEDURE Procedimientos.CargarVentasAReg
 AS
 BEGIN 
     INSERT INTO Ventas.VtasAReg (
-	Id, Tipo_Factura, Ciudad, Tipo_Cliente, Genero, LineaDeProducto, Producto, PrecioUni, Cantidad, Fecha, Hora, MedioPago, Empleado, Sucursal
+	Id, TipoFactura, Ciudad, TipoCliente, Genero, LineaDeProducto, Producto, PrecioUni, Cantidad, Fecha, Hora, MedioPago, Empleado, Sucursal
     )
     SELECT 
         h.Id,
-        h.Tipo_Factura,
+        h.TipoFactura,
         h.Ciudad,
-        h.Tipo_Cliente,
+        h.TipoCliente,
         h.Genero,        
         '-' AS LineaDeProducto,
 		h.Producto, 
@@ -258,19 +258,19 @@ CREATE OR ALTER PROCEDURE Procedimientos.Agregar_Factura
 	@id CHAR(11)
 AS
 BEGIN
-	DECLARE @Linea_prod VARCHAR(11)
+	DECLARE @LineaProd VARCHAR(11)
 	DECLARE @sucursal VARCHAR(17)
 	DECLARE @precio DECIMAL(6,2)
 
 	-- VERIFICAR EXISTENCIA EMPLEADO
 	-- VERIFICAR EXISTENCIA CIUDAD/PRODUCTO
 
-	SELECT @Linea_prod = LineaDeProducto from Productos.CatalogoFinal c WHERE c.Nombre = @producto 
+	SELECT @LineaProd = LineaDeProducto from Productos.CatalogoFinal c WHERE c.Nombre = @producto 
 	SELECT @sucursal = ReemplazarPor from Complementario.Sucursales s WHERE s.ciudad = @ciudad 
 	SELECT @precio = Precio from Productos.CatalogoFinal c WHERE c.Nombre = @producto
 
 	INSERT INTO Ventas.VtasAReg (Tipo_Factura, Tipo_Cliente, Genero, Cantidad, MedioPago, ciudad, sucursal, LineaDeProducto, Fecha, Hora, Producto, PrecioUni, Id, Empleado)
-	VALUES (@tipoFactura, @tipoCliente, @genero, @cantidad, @medioDePago, @ciudad, @sucursal, @Linea_prod, GETDATE(), CAST(SYSDATETIME() AS TIME (0)), @producto, @precio, @id, @empleado)
+	VALUES (@tipoFactura, @tipoCliente, @genero, @cantidad, @medioDePago, @ciudad, @sucursal, @LineaProd, GETDATE(), CAST(SYSDATETIME() AS TIME (0)), @producto, @precio, @id, @empleado)
 END;
 GO
 
@@ -280,23 +280,23 @@ CREATE OR ALTER PROCEDURE Complementario.InsertarEmpleado
     @Apellido VARCHAR(50),
     @DNI INT,
     @Direccion VARCHAR(200),
-    @emailPersonal VARCHAR(100),
-    @emailEmpresa VARCHAR(100),
+    @EmailPersonal VARCHAR(100),
+    @EmailEmpresa VARCHAR(100),
     @CUIL VARCHAR(11),
     @Cargo VARCHAR(50),
     @Sucursal VARCHAR(100),
     @Turno VARCHAR(25)
 AS
 BEGIN
-    INSERT INTO Complementario.Empleados(Legajo,Nombre,Apellido,DNI,Direccion,emailPersonal,emailEmpresa,CUIL,Cargo,Sucursal,Turno)
+    INSERT INTO Complementario.Empleados(Legajo,Nombre,Apellido,DNI,Direccion,EmailPersonal,EmailEmpresa,CUIL,Cargo,Sucursal,Turno)
     VALUES (
 		@Legajo,
         @Nombre,
         @Apellido,
         @DNI,
         @Direccion,
-        @emailPersonal,
-        @emailEmpresa,
+        @EmailPersonal,
+        @EmailEmpresa,
         @CUIL,
         @Cargo,
         @Sucursal,
@@ -312,21 +312,21 @@ BEGIN
 	UPDATE cf
 	SET cf.Precio = (SELECT c.Precio from ##Catalogo c where c.Nombre = cf.Nombre)
 	FROM Productos.CatalogoFinal cf
-	WHERE cf.Nombre IN(SELECT Nombre from ##Catalogo) AND cf.Precio <> (SELECT c.Precio FROM ##Catalogo AS c WHERE c.Nombre = cf.Nombre)
+	WHERE cf.Nombre IN (SELECT Nombre from ##Catalogo) AND cf.Precio <> (SELECT c.Precio FROM ##Catalogo AS c WHERE c.Nombre = cf.Nombre)
 	--Para los productos de ##ElectronicAccessories
 	UPDATE cf
-	SET cf.Precio = (SELECT e.PrecioUSD FROM ##ElectronicAccessories AS e WHERE e.Producto = cf.Nombre)
+	SET cf.Precio = (SELECT e.PrecioUSD FROM ##ElectronicAccessories AS e WHERE e.Nombre = cf.Nombre)
 	FROM Productos.CatalogoFinal AS cf
 	WHERE cf.LineaDeProducto = 'Accesorios Electronicos' 
-    AND cf.Nombre IN (SELECT Producto FROM ##ElectronicAccessories) 
-    AND cf.Precio <> (SELECT e.PrecioUSD FROM ##ElectronicAccessories AS e WHERE e.Producto = cf.Nombre)
+    AND cf.Nombre IN (SELECT Nombre FROM ##ElectronicAccessories) 
+    AND cf.Precio <> (SELECT e.PrecioUSD FROM ##ElectronicAccessories AS e WHERE e.Nombre = cf.Nombre)
 	--Para los productos de ##ProductosImportados
 	UPDATE cf
-	SET cf.Precio = (SELECT p.PrecioUnidad FROM ##ProductosImportados AS p WHERE p.NombreProducto = cf.Nombre)
+	SET cf.Precio = (SELECT p.PrecioUnidad FROM ##ProductosImportados AS p WHERE p.Nombre = cf.Nombre)
 	FROM Productos.CatalogoFinal AS cf
-	WHERE cf.LineaDeProducto = (SELECT p.Categoria FROM ##ProductosImportados AS p WHERE p.NombreProducto = cf.Nombre)
-    AND cf.Nombre IN (SELECT NombreProducto FROM ##ProductosImportados) 
-    AND cf.Precio <> (SELECT p.PrecioUnidad FROM ##ProductosImportados AS p WHERE p.NombreProducto = cf.Nombre)
+	WHERE cf.LineaDeProducto = (SELECT p.Categoria FROM ##ProductosImportados AS p WHERE p.Nombre = cf.Nombre)
+    AND cf.Nombre IN (SELECT Nombre FROM ##ProductosImportados) 
+    AND cf.Precio <> (SELECT p.PrecioUnidad FROM ##ProductosImportados AS p WHERE p.Nombre = cf.Nombre)
 END;
 GO
 
@@ -336,189 +336,6 @@ AS
 BEGIN
     DELETE FROM Productos.CatalogoFinal
     WHERE Nombre = @nombreProd
-END;
-GO
-
-CREATE OR ALTER PROCEDURE Procedimientos.GenerarReporteMensual
-    @Mes INT,
-    @Anio INT,
-    @XMLResultado XML OUTPUT
-AS
-BEGIN
-    -- Aseguramos que la semana comienza en lunes
-    SET DATEFIRST 1;
-
-    SET @XMLResultado = (
-        SELECT 
-            @Mes AS Mes,
-            @Anio AS Año,
-            (
-                SELECT 
-                    DATENAME(WEEKDAY, Fecha) AS Nombre,
-                    SUM(PrecioUni * Cantidad) AS Total
-                FROM 
-                    Ventas.VtasAReg
-                WHERE 
-                    YEAR(Fecha) = @Anio AND 
-                    MONTH(Fecha) = @Mes
-                GROUP BY 
-                    DATENAME(WEEKDAY, Fecha), 
-                    DATEPART(WEEKDAY, Fecha)
-                ORDER BY 
-                    DATEPART(WEEKDAY, Fecha)
-                FOR XML PATH('Dia'), TYPE
-            ) AS TotalesPorDia
-        FOR XML PATH('ReporteMensual'), ROOT('DatosReporte')
-    );
-END;
-GO
-
-DECLARE @xml XML;
-EXEC Procedimientos.GenerarReporteMensual @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
-SELECT @xml AS XMLResultado;
-
---CREATE OR ALTER PROCEDURE Procedimientos.GenerarReporteTrimestral
---    @XMLResultado XML OUTPUT
---AS
---BEGIN
---    DECLARE @TempXML XML; -- Variable intermedia para almacenar el resultado XML
-
---    SELECT 
---        FORMAT(V.Fecha, 'MM-yyyy') AS Mes,
---        CASE 
---            WHEN DATEPART(HOUR, V.Hora) >= 8 AND DATEPART(HOUR, V.Hora) < 14 THEN 'Mañana'
---            WHEN DATEPART(HOUR, V.Hora) >= 14 AND DATEPART(HOUR, V.Hora) < 21 THEN 'Tarde'
---        END AS Turno,
---        SUM(V.PrecioUni * V.Cantidad) AS TotalFacturado
---    FROM 
---        Ventas.VtasAReg V
---    WHERE 
---        V.Fecha >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()) - 3, 0) -- Calcula el inicio de los Últimos 3 meses
---        AND V.Fecha < DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0) -- Calcula el fin de los Últimos 3 meses
---    GROUP BY 
---        FORMAT(V.Fecha, 'MM-yyyy'), 
---        CASE 
---            WHEN DATEPART(HOUR, V.Hora) >= 8 AND DATEPART(HOUR, V.Hora) < 14 THEN 'Mañana'
---            WHEN DATEPART(HOUR, V.Hora) >= 14 AND DATEPART(HOUR, V.Hora) < 21 THEN 'Tarde'
---        END
---    FOR XML PATH('Venta'), ROOT('ReporteTrimestralxTurno');
-
---    SET @XMLResultado = @TempXML; -- Asigna el resultado a la variable de salida
---END;
---GO
-
-CREATE OR ALTER PROCEDURE Procedimientos.GenerarReportePorRangoFechas
-    @FechaInicio DATE,  -- Parámetro de fecha de inicio
-    @FechaFin DATE,     -- Parámetro de fecha de fin
-    @XMLResultado XML OUTPUT  -- Parámetro de salida para el XML generado
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    -- Generar el XML con la cantidad de productos vendidos en el rango de fechas
-    SELECT 
-        V.Producto,
-        SUM(V.Cantidad) AS CantidadVendida
-    FROM 
-        Ventas.VtasAReg V
-    WHERE 
-        V.Fecha >= @FechaInicio  -- Filtrar por la fecha de inicio
-        AND V.Fecha <= @FechaFin  -- Filtrar por la fecha de fin
-    GROUP BY 
-        V.Producto  -- Agrupar por producto
-    ORDER BY 
-        CantidadVendida DESC  -- Ordenar de mayor a menor por cantidad vendida
-    FOR XML PATH('Producto'), ROOT('ReporteVentasxRangoFechas');  -- Formato XML
-END;
-GO
-
-CREATE OR ALTER PROCEDURE Procedimientos.GenerarReportePorRangoFechas
-    @FechaInicio DATE,  -- Parámetro de fecha de inicio
-    @FechaFin DATE,     -- Parámetro de fecha de fin
-    @XMLResultado XML OUTPUT  -- Parámetro de salida para el XML generado
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    -- Generar el XML con la cantidad de productos vendidos en el rango de fechas
-    SELECT V.Producto,SUM(V.Cantidad) AS CantidadVendida
-    FROM Ventas.VtasAReg V
-    WHERE V.Fecha >= @FechaInicio  -- Filtrar por la fecha de inicio
-          AND V.Fecha <= @FechaFin  -- Filtrar por la fecha de fin
-    GROUP BY V.Producto  -- Agrupar por producto
-    ORDER BY CantidadVendida DESC  -- Ordenar de mayor a menor por cantidad vendida
-    FOR XML PATH('Producto'), ROOT('ReporteVentasxRangoFechas');  -- Formato XML
-END;
-GO
-
-CREATE OR ALTER PROCEDURE Procedimientos.GenerarReportePorRangoFechasSucursal
-    @FechaInicio DATE,
-    @FechaFin DATE,
-    @XMLResultado XML OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    SELECT V.Sucursal,V.Producto,SUM(V.Cantidad) AS CantidadVendida
-    FROM Ventas.VtasAReg V
-    WHERE V.Fecha >= @FechaInicio AND V.Fecha <= @FechaFin
-    GROUP BY V.Sucursal,V.Producto
-    ORDER BY CantidadVendida DESC
-    FOR XML PATH('Producto'), ROOT('ReportePorRangoFechasSucursal');
-END;
-GO
-CREATE OR ALTER PROCEDURE Procedimientos.Top5ProductosPorSemana
-    @Mes INT,
-    @Anio INT,
-    @XMLResultado XML OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    WITH VentasPorSemana AS (
-        SELECT V.Producto,DATEPART(WEEK, V.Fecha) AS Semana,SUM(V.Cantidad) AS CantidadVendida
-        FROM Ventas.VtasAReg V
-        WHERE MONTH(V.Fecha) = @Mes AND YEAR(V.Fecha) = @Anio
-        GROUP BY V.Producto, DATEPART(WEEK, V.Fecha)
-    )
-    SELECT TOP 5 V.Producto,SUM(V.CantidadVendida) AS TotalCantidadVendida
-    FROM VentasPorSemana V
-    GROUP BY V.Producto
-    ORDER BY TotalCantidadVendida DESC
-    FOR XML PATH('Producto'), ROOT('Top5ProductosPorSemana');
-END;
-GO
-
-CREATE OR ALTER PROCEDURE Procedimientos.Menor5ProductosPorMes
-    @Mes INT,
-    @Anio INT,
-    @XMLResultado XML OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    SELECT TOP 5 V.Producto, SUM(V.Cantidad) AS CantidadVendida
-    FROM Ventas.VtasAReg V
-    WHERE MONTH(V.Fecha) = @Mes AND YEAR(V.Fecha) = @Anio
-    GROUP BY V.Producto
-    ORDER BY CantidadVendida ASC
-    FOR XML PATH('Producto'), ROOT('Menor5ProductosPorMes');
-END;
-GO
-
-CREATE OR ALTER PROCEDURE Procedimientos.TotalAcumuladoVentas
-    @Fecha DATE,
-    @Sucursal VARCHAR(17),
-    @XMLResultado XML OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    SELECT V.Producto, SUM(V.PrecioUni * V.Cantidad) AS TotalVentas
-    FROM Ventas.VtasAReg V
-    WHERE V.Fecha = @Fecha AND V.Sucursal = @Sucursal
-    GROUP BY V.Producto
-    FOR XML PATH('Producto'), ROOT('TotalAcumuladoVentas');
 END;
 GO
 
