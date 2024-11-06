@@ -269,7 +269,7 @@ BEGIN
 	SELECT @sucursal = ReemplazarPor from Complementario.Sucursales s WHERE s.ciudad = @ciudad 
 	SELECT @precio = Precio from Productos.CatalogoFinal c WHERE c.Nombre = @producto
 
-	INSERT INTO Ventas.VtasAReg (Tipo_Factura, Tipo_Cliente, Genero, Cantidad, MedioPago, ciudad, sucursal, LineaDeProducto, Fecha, Hora, Producto, PrecioUni, Id, Empleado)
+	INSERT INTO Ventas.VtasAReg (TipoFactura, TipoCliente, Genero, Cantidad, MedioPago, ciudad, sucursal, LineaDeProducto, Fecha, Hora, Producto, PrecioUni, Id, Empleado)
 	VALUES (@tipoFactura, @tipoCliente, @genero, @cantidad, @medioDePago, @ciudad, @sucursal, @LineaProd, GETDATE(), CAST(SYSDATETIME() AS TIME (0)), @producto, @precio, @id, @empleado)
 END;
 GO

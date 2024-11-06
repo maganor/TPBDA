@@ -72,7 +72,7 @@ SELECT @xml AS XMLResultado;
 
 --    SET @XMLResultado = @TempXML; -- Asigna el resultado a la variable de salida
 --END;
---GO
+GO
 
 CREATE OR ALTER PROCEDURE Reportes.GenerarReportePorRangoFechas
     @FechaInicio DATE,  -- Parámetro de fecha de inicio
