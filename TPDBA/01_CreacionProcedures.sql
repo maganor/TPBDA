@@ -364,6 +364,97 @@ BEGIN
 END;
 GO
 
+CREATE OR ALTER PROCEDURE Procedimientos.GenerarReportePorRangoFechas
+    @FechaInicio DATE,  -- Parámetro de fecha de inicio
+    @FechaFin DATE,     -- Parámetro de fecha de fin
+    @XMLResultado XML OUTPUT  -- Parámetro de salida para el XML generado
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Generar el XML con la cantidad de productos vendidos en el rango de fechas
+    SELECT V.Producto,SUM(V.Cantidad) AS CantidadVendida
+    FROM Ventas.VtasAReg V
+    WHERE V.Fecha >= @FechaInicio  -- Filtrar por la fecha de inicio
+		  AND V.Fecha <= @FechaFin  -- Filtrar por la fecha de fin
+    GROUP BY V.Producto  -- Agrupar por producto
+    ORDER BY CantidadVendida DESC  -- Ordenar de mayor a menor por cantidad vendida
+    FOR XML PATH('Producto'), ROOT('ReporteVentasxRangoFechas');  -- Formato XML
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.GenerarReportePorRangoFechasSucursal
+    @FechaInicio DATE,
+    @FechaFin DATE,
+    @XMLResultado XML OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT V.Sucursal,V.Producto,SUM(V.Cantidad) AS CantidadVendida
+    FROM Ventas.VtasAReg V
+    WHERE V.Fecha >= @FechaInicio AND V.Fecha <= @FechaFin  
+    GROUP BY V.Sucursal,V.Producto  
+    ORDER BY CantidadVendida DESC  
+    FOR XML PATH('Producto'), ROOT('ReportePorRangoFechasSucursal');
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.Top5ProductosPorSemana
+    @Mes INT,
+    @Anio INT,
+	@XMLResultado XML OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    WITH VentasPorSemana AS (
+        SELECT V.Producto,DATEPART(WEEK, V.Fecha) AS Semana,SUM(V.Cantidad) AS CantidadVendida
+        FROM Ventas.VtasAReg V
+        WHERE MONTH(V.Fecha) = @Mes AND YEAR(V.Fecha) = @Anio
+        GROUP BY V.Producto, DATEPART(WEEK, V.Fecha)
+    )
+    SELECT TOP 5 V.Producto,SUM(V.CantidadVendida) AS TotalCantidadVendida
+    FROM VentasPorSemana V
+    GROUP BY V.Producto
+    ORDER BY TotalCantidadVendida DESC  
+    FOR XML PATH('Producto'), ROOT('Top5ProductosPorSemana');
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.Menor5ProductosPorMes
+    @Mes INT,
+    @Anio INT,
+	@XMLResultado XML OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT TOP 5 V.Producto, SUM(V.Cantidad) AS CantidadVendida
+    FROM Ventas.VtasAReg V
+    WHERE MONTH(V.Fecha) = @Mes AND YEAR(V.Fecha) = @Anio
+    GROUP BY V.Producto
+    ORDER BY CantidadVendida ASC  
+    FOR XML PATH('Producto'), ROOT('Menor5ProductosPorMes');
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.TotalAcumuladoVentas
+    @Fecha DATE,
+    @Sucursal VARCHAR(17),
+	@XMLResultado XML OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT V.Producto,SUM(V.PrecioUni * V.Cantidad) AS TotalVentas
+    FROM Ventas.VtasAReg V
+    WHERE V.Fecha = @Fecha AND V.Sucursal = @Sucursal
+    GROUP BY V.Producto
+    FOR XML PATH('Producto'), ROOT('TotalAcumuladoVentas');
+END;
+GO
+
 --Ver procedimientos en esquema 'Procedimientos'
 SELECT SCHEMA_NAME(schema_id) AS Esquema, name AS Procedimiento
 FROM sys.procedures
