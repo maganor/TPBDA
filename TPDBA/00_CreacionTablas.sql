@@ -66,54 +66,6 @@ FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_SCHEMA = 'Productos'
 GO
 
-DROP SCHEMA IF EXISTS Ventas
-GO
-CREATE SCHEMA Ventas
-GO
-
-DROP TABLE IF EXISTS ##Historial
-GO
-CREATE TABLE ##Historial(
-	Id CHAR(11) PRIMARY KEY,
-	TipoFactura CHAR(1),
-	Ciudad VARCHAR(15),
-	TipoCliente CHAR(6),
-	Genero VARCHAR(6),
-	Producto NVARCHAR(100),
-	PrecioUni DECIMAL(6,2),
-	Cantidad INT,
-	Fecha DATE,
-	Hora TIME,
-	MedioPago VARCHAR(11),
-	Empleado INT,
-	IdMedPago VARCHAR(30)
-)
-
-DROP TABLE IF EXISTS Ventas.Facturas
-GO
-CREATE TABLE Ventas.Facturas(
-	Id CHAR(11) PRIMARY KEY,
-	TipoFactura CHAR(1),
-	Ciudad VARCHAR(15),
-	TipoCliente CHAR(6), --Member o Normal
-	Genero VARCHAR(6), --Male/Female/Other
-	LineaDeProducto VARCHAR(100), --Puedo sacarlos desde el producto
-	Producto NVARCHAR(100),
-	PrecioUni DECIMAL(6,2),
-	Cantidad INT,
-	Fecha DATE,
-	Hora TIME(0),
-	MedioPago VARCHAR(11),
-	Empleado INT,
-	Sucursal VARCHAR(17)
-)
-
---Para ver que las tablas pertenezcan al esquema 'Ventas'
-SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
-FROM INFORMATION_SCHEMA.TABLES
-WHERE TABLE_SCHEMA = 'Ventas'
-GO
-
 --Se crea este esquema para la info complementaria.
 DROP SCHEMA IF EXISTS Complementario
 GO
@@ -178,9 +130,59 @@ WHERE TABLE_SCHEMA = 'Complementario'
 GO
 
 INSERT INTO Complementario.MonedaExtranjera(Nombre,PrecioAR)
-VALUES ('USD',1225)
+VALUES ('USD',1110)
 GO
 
 INSERT INTO Complementario.MediosDePago(NombreING,NombreESP)
 VALUES ('Credit card','Tarjeta de credito'),('Cash','Efectivo'),('Ewallet','Billetera Electronica')
+GO
+
+DROP SCHEMA IF EXISTS Ventas
+GO
+CREATE SCHEMA Ventas
+GO
+
+DROP TABLE IF EXISTS ##Historial
+GO
+CREATE TABLE ##Historial(
+	Id CHAR(11) PRIMARY KEY,
+	TipoFactura CHAR(1),
+	Ciudad VARCHAR(15),
+	TipoCliente CHAR(6),
+	Genero VARCHAR(6),
+	Producto NVARCHAR(100),
+	PrecioUni DECIMAL(6,2),
+	Cantidad INT,
+	Fecha DATE,
+	Hora TIME,
+	MedioPago VARCHAR(11),
+	Empleado INT,
+	IdMedPago VARCHAR(30)
+)
+
+DROP TABLE IF EXISTS Ventas.Facturas
+GO
+CREATE TABLE Ventas.Facturas(
+	Id CHAR(11) PRIMARY KEY,
+	TipoFactura CHAR(1),
+	Ciudad VARCHAR(15),
+	TipoCliente CHAR(6),									--Member o Normal
+	Genero VARCHAR(6),										--Male/Female/Other
+	IdProducto INT,
+	Cantidad INT,
+	Fecha DATE,
+	Hora TIME(0),
+	IdMedioPago INT,
+	Empleado INT,
+	IdSucursal INT,
+	CONSTRAINT FK_Producto FOREIGN KEY (IdProducto) REFERENCES Productos.Catalogo(Id),
+	CONSTRAINT FK_MedioDePago FOREIGN KEY (IdMedioPago) REFERENCES Complementario.MediosDePago(IdMDP),
+	CONSTRAINT FK_Legajo FOREIGN KEY (Empleado) REFERENCES Complementario.Empleados(Legajo),
+	CONSTRAINT FK_Sucursal FOREIGN KEY (IdSucursal) REFERENCES Complementario.Sucursales(IdSucursal)
+)
+
+--Para ver que las tablas pertenezcan al esquema 'Ventas'
+SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = 'Ventas'
 GO

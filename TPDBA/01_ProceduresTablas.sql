@@ -7,30 +7,93 @@ CREATE SCHEMA Procedimientos
 GO
 
 CREATE OR ALTER PROCEDURE Procedimientos.AgregarFactura
-	@cantidad INT,
-	@tipoCliente CHAR(6),
-	@genero CHAR,
-	@empleado INT,
-	@tipoFactura CHAR,
-	@medioDePago CHAR(11),
-	@producto VARCHAR(100),
-	@ciudad VARCHAR(15),
-	@id CHAR(11)
+    @cantidad INT,
+    @tipoCliente CHAR(6),
+    @genero CHAR,
+    @empleado INT,
+    @tipoFactura CHAR,
+    @medioDePago CHAR(11),
+    @producto VARCHAR(100),
+    @ciudad VARCHAR(15),
+    @id CHAR(11)
 AS
 BEGIN
-	DECLARE @LineaProd VARCHAR(11)
-	DECLARE @sucursal VARCHAR(17)
-	DECLARE @precio DECIMAL(6,2)
+    DECLARE @IdProducto INT
+    DECLARE @IdSucursal INT
+    DECLARE @IdMedioPago INT
+    DECLARE @precio DECIMAL(6,2)
 
-	-- VERIFICAR EXISTENCIA EMPLEADO
-	-- VERIFICAR EXISTENCIA CIUDAD/PRODUCTO
+    -- Obtener IdProducto y precio
+    SELECT @IdProducto = Id, @precio = Precio 
+    FROM Productos.Catalogo 
+    WHERE Nombre = @producto;
 
-	SELECT @LineaProd = LineaDeProducto from Productos.Catalogo c WHERE c.Nombre = @producto 
-	SELECT @sucursal = ReemplazarPor from Complementario.Sucursales s WHERE s.ciudad = @ciudad 
-	SELECT @precio = Precio from Productos.Catalogo c WHERE c.Nombre = @producto
+    -- Validar que se haya encontrado el producto
+    IF @IdProducto IS NULL
+    BEGIN
+        RAISERROR('Producto NO encontrado', 16, 1);
+        RETURN;
+    END
+    -- Obtener IdSucursal según la ciudad
+    SELECT @IdSucursal = IdSucursal 
+    FROM Complementario.Sucursales 
+    WHERE Ciudad = @ciudad;
 
-	INSERT INTO Ventas.Facturas (TipoFactura, TipoCliente, Genero, Cantidad, MedioPago, ciudad, sucursal, LineaDeProducto, Fecha, Hora, Producto, PrecioUni, Id, Empleado)
-	VALUES (@tipoFactura, @tipoCliente, @genero, @cantidad, @medioDePago, @ciudad, @sucursal, @LineaProd, GETDATE(), CAST(SYSDATETIME() AS TIME (0)), @producto, @precio, @id, @empleado)
+    -- Validar que se haya encontrado la sucursal
+    IF @IdSucursal IS NULL
+    BEGIN
+        RAISERROR('Sucursal NO encontrada', 16, 1);
+        RETURN;
+    END
+    -- Obtener IdMedioPago según el nombre en inglés del medio de pago
+    SELECT @IdMedioPago = IdMDP 
+    FROM Complementario.MediosDePago 
+    WHERE NombreING = @medioDePago OR NombreESP = @medioDePago;
+    -- Validar que se haya encontrado el medio de pago
+    IF @IdMedioPago IS NULL
+    BEGIN
+        RAISERROR('Medio de Pago NO encontrado', 16, 1);
+        RETURN;
+    END
+    -- Validar que el empleado exista
+    IF NOT EXISTS (SELECT 1 FROM Complementario.Empleados WHERE Legajo = @empleado)
+    BEGIN
+        RAISERROR('Empleado NO encontrado', 16, 1);
+        RETURN;
+    END
+    -- Insertar en la tabla Ventas.Facturas
+    INSERT INTO Ventas.Facturas (Id,TipoFactura,Ciudad,TipoCliente,Genero,IdProducto,Cantidad,Fecha,Hora,IdMedioPago,Empleado,IdSucursal)
+    VALUES (
+        @id, @tipoFactura, @ciudad, @tipoCliente, @genero, 
+        @IdProducto, @cantidad, GETDATE(), CAST(SYSDATETIME() AS TIME(0)), 
+        @IdMedioPago, @empleado, @IdSucursal
+    );
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.MostrarFacturas
+AS
+BEGIN
+    SELECT 
+        f.Id AS [ID Factura],
+        f.TipoFactura AS [Tipo de Factura],
+        f.Ciudad AS [Ciudad],
+        f.TipoCliente AS [Tipo de Cliente],
+        f.Genero AS [Género],
+        p.LineaDeProducto AS [Línea de Producto],
+        p.Nombre AS [Producto],
+        (c.Precio * me.PrecioAR) AS [Precio Unitario], -- Convertimos el precio a pesos, multiplicando el precio en USD por el precio AR de la moneda extranjera
+        f.Cantidad AS [Cantidad],
+        f.Fecha AS [Fecha],
+        f.Hora AS [Hora],
+        mdp.NombreESP AS [Medio de Pago],
+        f.Empleado AS [Empleado],
+        s.ReemplazarPor AS [Sucursal]
+    FROM Ventas.Facturas AS f
+    JOIN Productos.Catalogo AS c ON f.IdProducto = c.Id
+    JOIN Complementario.MonedaExtranjera AS me ON me.Nombre = 'USD' 
+    JOIN Complementario.MediosDePago AS mdp ON f.IdMedioPago = mdp.IdMDP
+    JOIN Complementario.Sucursales AS s ON f.IdSucursal = s.IdSucursal;
 END;
 GO
 
