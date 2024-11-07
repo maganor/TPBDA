@@ -217,30 +217,31 @@ GO
 CREATE OR ALTER PROCEDURE Procedimientos.CargarVentas
 AS
 BEGIN 
-    INSERT INTO Ventas.Facturas (
-	Id, TipoFactura, Ciudad, TipoCliente, Genero, LineaDeProducto, Producto, PrecioUni, Cantidad, Fecha, Hora, MedioPago, Empleado, Sucursal
-    )
+    INSERT INTO Ventas.Facturas (Id,TipoFactura,Ciudad,TipoCliente,Genero,IdProducto,Cantidad,Fecha,Hora,IdMedioPago,Empleado,IdSucursal)
     SELECT 
         h.Id,
         h.TipoFactura,
         h.Ciudad,
         h.TipoCliente,
-        h.Genero,        
-        '-' AS LineaDeProducto,
-		h.Producto, 
-        h.PrecioUni,
+        h.Genero,
+        p.Id AS IdProducto,            -- Obtener el IdProducto desde Catalogo
         h.Cantidad,
         h.Fecha,
         h.Hora,
-        h.MedioPago,
-        h.Empleado,             
-        s.ReemplazarPor 
+        m.IdMDP AS IdMedioPago,       -- Obtener el IdMedioPago de MediosDePago
+        h.Empleado,
+        s.IdSucursal                  -- Obtener el IdSucursal desde Sucursales
     FROM 
         ##Historial AS h
     JOIN 
-        Complementario.Sucursales AS s ON h.Ciudad = s.Ciudad;              
+        Productos.Catalogo AS p ON h.Producto = p.Nombre					-- Relacionar el producto por nombre
+    JOIN 
+        Complementario.MediosDePago AS m ON h.MedioPago = m.NombreESP		-- Relacionar el medio de pago por nombre
+    JOIN 
+        Complementario.Sucursales AS s ON h.Ciudad = s.Ciudad;				-- Relacionar la sucursal por ciudad
 END;
 GO
+
 
 CREATE OR ALTER PROCEDURE Procedimientos.ActualizarPrecioCatalogo  --Probar dsp cuando inventemos datos
 AS
