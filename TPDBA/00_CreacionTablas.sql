@@ -55,6 +55,7 @@ GO
 CREATE TABLE Productos.Catalogo(
 	Id INT IDENTITY (1,1) PRIMARY KEY,
 	LineaDeProducto VARCHAR(100),
+	Categoria VARCHAR(100),
 	Nombre NVARCHAR(100),
 	Precio DECIMAL(6,2),
 	Proveedor VARCHAR(100)

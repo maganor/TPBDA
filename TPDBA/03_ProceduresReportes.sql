@@ -110,7 +110,7 @@ END;
 GO
 
 DECLARE @xml XML;
-EXEC Reportes.GenerarReportePorRangoFechas @FechaInicio = '2024-01-01', @FechaFin = '2024-03-31', @XMLResultado = @xml OUTPUT;
+EXEC Reportes.GenerarReportePorRangoFechas @FechaInicio = '2019-01-01', @FechaFin = '2019-03-31', @XMLResultado = @xml OUTPUT;
 SELECT @xml AS XMLResultado;
 
 
@@ -146,7 +146,7 @@ END;
 GO
 
 DECLARE @xml XML;
-EXEC Reportes.GenerarReportePorRangoFechasSucursal @FechaInicio = '2024-01-01', @FechaFin = '2024-03-31', @XMLResultado = @xml OUTPUT;
+EXEC Reportes.GenerarReportePorRangoFechasSucursal @FechaInicio = '2019-01-01', @FechaFin = '2019-03-31', @XMLResultado = @xml OUTPUT;
 SELECT @xml AS XMLResultado;
 
 

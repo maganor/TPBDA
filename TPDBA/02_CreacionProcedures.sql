@@ -179,37 +179,46 @@ CREATE OR ALTER PROCEDURE Procedimientos.LlenarCatalogo
 AS
 BEGIN 
     -- Insertar solo productos nuevos
-    INSERT INTO Productos.Catalogo (LineaDeProducto, Nombre, Precio, Proveedor)
+    INSERT INTO Productos.Catalogo (Categoria, LineaDeProducto, Nombre, Precio, Proveedor)
     SELECT 
+		DISTINCT
+		c.Categoria,
         cdp.LineaDeProducto, 
-        c.Nombre, 
-        c.Precio, 
+        c.Nombre,
+        c.Precio,	
         '-' AS Proveedor
     FROM 
         ##CatalogoTemp AS c
     JOIN 
         Complementario.ClasificacionDeProductos AS cdp ON c.Categoria = cdp.Producto
-    WHERE c.Nombre NOT IN (SELECT Nombre FROM Productos.Catalogo);
+    WHERE c.Nombre NOT IN (SELECT Nombre FROM Productos.Catalogo)
 
-    INSERT INTO Productos.Catalogo(LineaDeProducto, Nombre, Precio, Proveedor)
+    INSERT INTO Productos.Catalogo (LineaDeProducto, Categoria, Nombre, Precio, Proveedor)
     SELECT
+		DISTINCT
+		'Accesorios Electronicos' AS LineaDeProducto,
         'Accesorios Electronicos' AS Categoria,
         e.Nombre,
         e.PrecioUSD,
         '-' AS Proveedor
     FROM
         ##ElectronicAccessories AS e
-    WHERE e.Nombre NOT IN (SELECT Nombre FROM Productos.Catalogo);
+    WHERE NOT EXISTS (
+		SELECT 1 
+		FROM Productos.Catalogo c 
+		WHERE c.Nombre = e.Nombre
+	)
 
-    INSERT INTO Productos.Catalogo(LineaDeProducto, Nombre, Precio, Proveedor)
+    INSERT INTO Productos.Catalogo(LineaDeProducto, Categoria, Nombre, Precio, Proveedor)
     SELECT
+		'Importado' AS LineaDeProducto,
         p.Categoria,
         p.Nombre,
         p.PrecioUnidad,
         p.Proveedor
     FROM
         ##ProductosImportados AS p
-    WHERE p.Nombre NOT IN (SELECT Nombre FROM Productos.Catalogo);
+    WHERE p.Nombre NOT IN (SELECT Nombre FROM Productos.Catalogo)
 
 END;
 GO
@@ -218,7 +227,7 @@ CREATE OR ALTER PROCEDURE Procedimientos.CargarVentas
 AS
 BEGIN 
     INSERT INTO Ventas.Facturas (Id,TipoFactura,Ciudad,TipoCliente,Genero,IdProducto,Cantidad,Fecha,Hora,IdMedioPago,Empleado,IdSucursal)
-    SELECT 
+    SELECT
         h.Id,
         h.TipoFactura,
         h.Ciudad,
@@ -232,16 +241,19 @@ BEGIN
         h.Empleado,
         s.IdSucursal                  -- Obtener el IdSucursal desde Sucursales
     FROM 
-        ##Historial AS h
+    ##Historial AS h
+CROSS APPLY 
+    (SELECT TOP 1 Id, Nombre, Precio 
+     FROM Productos.Catalogo 
+     WHERE Nombre = h.Producto AND Precio = h.PrecioUni
+     ORDER BY Id) AS p
+		-- Relacionar el producto por nombre
     JOIN 
-        Productos.Catalogo AS p ON h.Producto = p.Nombre					-- Relacionar el producto por nombre
-    JOIN 
-        Complementario.MediosDePago AS m ON h.MedioPago = m.NombreESP		-- Relacionar el medio de pago por nombre
+        Complementario.MediosDePago AS m ON h.MedioPago = m.NombreING		-- Relacionar el medio de pago por nombre
     JOIN 
         Complementario.Sucursales AS s ON h.Ciudad = s.Ciudad;				-- Relacionar la sucursal por ciudad
 END;
 GO
-
 
 CREATE OR ALTER PROCEDURE Procedimientos.ActualizarPrecioCatalogo  --Probar dsp cuando inventemos datos
 AS

@@ -1,7 +1,7 @@
 USE Com5600G01
 GO 
 
-DECLARE @PATH VARCHAR(255) = 'C:\Users\wixde\Desktop\TP_integrador_Archivos'
+DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
 DECLARE @FullPath VARCHAR(500) = @PATH + '\Productos\catalogo.csv'
 
 --Cargamos la tabla catalogo con el SP:
@@ -51,8 +51,8 @@ EXEC Procedimientos.LlenarCatalogo
 GO
 EXEC Procedimientos.CargarVentas
 GO
-
-
+EXEC Procedimientos.MostrarFacturas
+GO
 
 
 --Para verificar la carga:
@@ -74,5 +74,8 @@ SELECT * FROM Productos.Catalogo
 GO
 SELECT * FROM Ventas.Facturas
 GO
+
+
+
 
 TRUNCATE TABLE Productos.Catalogo

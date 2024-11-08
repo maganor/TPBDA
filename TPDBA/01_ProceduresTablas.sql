@@ -80,9 +80,9 @@ BEGIN
         f.Ciudad AS [Ciudad],
         f.TipoCliente AS [Tipo de Cliente],
         f.Genero AS [Género],
-        p.LineaDeProducto AS [Línea de Producto],
-        p.Nombre AS [Producto],
-        (c.Precio * me.PrecioAR) AS [Precio Unitario], -- Convertimos el precio a pesos, multiplicando el precio en USD por el precio AR de la moneda extranjera
+        c.LineaDeProducto AS [Línea de Producto],
+        c.Nombre AS [Producto],
+        FORMAT(c.Precio * me.PrecioAR, 'N2') AS [Precio Unitario], -- Convertimos el precio a pesos, multiplicando el precio en USD por el precio AR de la moneda extranjera
         f.Cantidad AS [Cantidad],
         f.Fecha AS [Fecha],
         f.Hora AS [Hora],
