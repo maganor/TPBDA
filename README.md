@@ -43,6 +43,7 @@ Cada domingo al finalizar los turnos para generar un respaldo completo de los da
 **Backup diferencial diario**:
 Cada día al finalizar los turnos para optimizar y agilizar el tiempo de restauración de los respaldos y la asignación de los recursos para llevar adelante dicho respaldo.
 
-
+DER:
+![image](https://github.com/user-attachments/assets/59d07f85-5771-4b21-8743-2b0351eca705)
 
 
