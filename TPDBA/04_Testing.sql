@@ -53,6 +53,8 @@ EXEC Procedimientos.CargarVentas
 GO
 EXEC Procedimientos.MostrarFacturas
 GO
+EXEC Procedimientos.ConfigurarCifradoEmpleados @FraseClave = 'AvenidaSiempreViva742'
+GO
 
 --Para verificar la carga:
 SELECT * FROM ##CatalogoTemp
@@ -154,3 +156,37 @@ GO
 
 SELECT * FROM Ventas.NotasCredito
 GO
+
+----------Ejecución de los Reportes XML
+DECLARE @xml XML;
+EXEC Reportes.GenerarReporteMensual @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
+SELECT @xml AS XMLResultado;
+GO
+
+DECLARE @xml XML;
+EXEC Reportes.GenerarReporteTrimestral @XMLResultado = @xml OUTPUT
+GO
+
+DECLARE @xml XML;
+EXEC Reportes.GenerarReportePorRangoFechas @FechaInicio = '2019-01-01', @FechaFin = '2019-03-31', @XMLResultado = @xml OUTPUT;
+SELECT @xml AS XMLResultado;
+GO
+
+DECLARE @xml XML;
+EXEC Reportes.GenerarReportePorRangoFechasSucursal @FechaInicio = '2019-01-01', @FechaFin = '2019-03-31', @XMLResultado = @xml OUTPUT;
+SELECT @xml AS XMLResultado;
+GO
+
+DECLARE @xml XML;
+EXEC Reportes.Top5ProductosPorSemana @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
+SELECT @xml AS XMLResultado;
+GO
+
+DECLARE @xml XML;
+EXEC Reportes.Menor5ProductosPorMes @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
+SELECT @xml AS XMLResultado;
+GO
+
+DECLARE @xml XML;
+EXEC Reportes.TotalAcumuladoVentas @Fecha = '2019-03-15', @Sucursal = 'Ramos Mejia', @XMLResultado = @xml OUTPUT;
+SELECT @xml AS XMLResultado;

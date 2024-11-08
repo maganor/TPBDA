@@ -295,6 +295,25 @@ BEGIN
 END;
 GO
 
+CREATE OR ALTER PROCEDURE Procedimientos.EncriptarEmpleados
+	@FraseClave NVARCHAR(128)
+AS
+BEGIN
+	--Se agregan las columnas para el cifrado
+	ALTER TABLE Complementario.Empleados
+	ADD DNI_Cifrado VARBINARY(256),
+		Direccion_Cifrada VARBINARY(256),
+		EmailPersonal_Cifrado VARBINARY(256),
+		CUIL_Cifrado VARBINARY(256);
+	--Se cifran los campos mencionados
+	UPDATE Complementario.Empleados
+    SET DNI_Cifrado = EncryptByPassPhrase(@FraseClave, CONVERT(NVARCHAR(12), DNI)),
+        Direccion_Cifrada = EncryptByPassPhrase(@FraseClave, Direccion),
+        EmailPersonal_Cifrado = EncryptByPassPhrase(@FraseClave, EmailPersonal),
+        CUIL_Cifrado = EncryptByPassPhrase(@FraseClave, CUIL);
+END;
+GO
+
 --Ver procedimientos en esquema 'Procedimientos'
 SELECT SCHEMA_NAME(schema_id) AS Esquema, name AS Procedimiento
 FROM sys.procedures

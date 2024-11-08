@@ -108,7 +108,8 @@ CREATE OR ALTER PROCEDURE Procedimientos.AgregarEmpleado
     @CUIL VARCHAR(11),
     @Cargo VARCHAR(50),
     @Sucursal VARCHAR(100),
-    @Turno VARCHAR(25)
+    @Turno VARCHAR(25),
+	@FraseClave NVARCHAR(128)
 AS
 BEGIN
 	DECLARE @Legajo INT
@@ -126,7 +127,11 @@ BEGIN
         @Cargo,
         @Sucursal,
         @Turno,
-		1
+		1,
+		EncryptByPassPhrase(@FraseClave, CONVERT(NVARCHAR(12), @DNI)),				-- Cifrado del DNI
+        EncryptByPassPhrase(@FraseClave, @Direccion),								-- Cifrado de la dirección
+        EncryptByPassPhrase(@FraseClave, @EmailPersonal),							-- Cifrado del email personal
+        EncryptByPassPhrase(@FraseClave, @CUIL)										-- Cifrado del CUIL
     );
 END;
 GO
@@ -147,18 +152,27 @@ CREATE OR ALTER PROCEDURE Procedimientos.ActualizarEmpleado
     @EmailPersonal VARCHAR(100) = NULL,
     @Cargo VARCHAR(50) = NULL,
     @Sucursal VARCHAR(100) = NULL,
-    @Turno VARCHAR(25) = NULL
+    @Turno VARCHAR(25) = NULL,
+	@FraseClave NVARCHAR(128)
 AS
 BEGIN
     SET NOCOUNT ON;
 
     UPDATE Complementario.Empleados
-    SET Direccion = COALESCE(@Direccion, Direccion),
-        EmailPersonal = COALESCE(@EmailPersonal, EmailPersonal),
+    SET 
         Cargo = COALESCE(@Cargo, Cargo),
         Sucursal = COALESCE(@Sucursal, Sucursal),
-        Turno = COALESCE(@Turno, Turno)
-    WHERE Legajo = @Legajo;
+        Turno = COALESCE(@Turno, Turno),
+        -- Cifrado de los campos sensibles solo si el nuevo valor es proporcionado
+        Direccion_Cifrada = CASE 
+                              WHEN @Direccion IS NOT NULL THEN EncryptByPassPhrase(@FraseClave, @Direccion) 
+                              ELSE Direccion_Cifrada 
+							END,
+        EmailPersonal_Cifrado = CASE 
+                                  WHEN @EmailPersonal IS NOT NULL THEN EncryptByPassPhrase(@FraseClave, @EmailPersonal) 
+                                  ELSE EmailPersonal_Cifrado 
+								END,
+   WHERE Legajo = @Legajo;
 END
 GO
 

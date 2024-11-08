@@ -41,12 +41,6 @@ BEGIN
 END;
 GO
 
-
-DECLARE @xml XML;
-EXEC Reportes.GenerarReporteMensual @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
-SELECT @xml AS XMLResultado;
-GO
-
 CREATE OR ALTER PROCEDURE Reportes.GenerarReporteTrimestral
     @XMLResultado XML OUTPUT
 AS
@@ -81,10 +75,6 @@ BEGIN
 END;
 GO
 
-DECLARE @xml XML;
-EXEC Reportes.GenerarReporteTrimestral @XMLResultado = @xml OUTPUT
-GO
-
 CREATE OR ALTER PROCEDURE Reportes.GenerarReportePorRangoFechas
     @FechaInicio DATE,  -- Parámetro de fecha de inicio
     @FechaFin DATE,     -- Parámetro de fecha de fin
@@ -109,11 +99,6 @@ BEGIN
             CantidadVendida DESC  -- Ordenar de mayor a menor por cantidad vendida
         FOR XML PATH('Producto'), ROOT('ReporteVentasxRangoFechas')  -- Formato XML
 END;
-GO
-
-DECLARE @xml XML;
-EXEC Reportes.GenerarReportePorRangoFechas @FechaInicio = '2019-01-01', @FechaFin = '2019-03-31', @XMLResultado = @xml OUTPUT;
-SELECT @xml AS XMLResultado;
 GO
 
 CREATE OR ALTER PROCEDURE Reportes.GenerarReportePorRangoFechasSucursal
@@ -142,11 +127,6 @@ BEGIN
 END;
 GO
 
-DECLARE @xml XML;
-EXEC Reportes.GenerarReportePorRangoFechasSucursal @FechaInicio = '2019-01-01', @FechaFin = '2019-03-31', @XMLResultado = @xml OUTPUT;
-SELECT @xml AS XMLResultado;
-
-GO
 CREATE OR ALTER PROCEDURE Reportes.Top5ProductosPorSemana
     @Mes INT,
     @Anio INT,
@@ -193,10 +173,6 @@ BEGIN
 END;
 GO
 
-DECLARE @xml XML;
-EXEC Reportes.Top5ProductosPorSemana @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
-SELECT @xml AS XMLResultado;
-GO
 CREATE OR ALTER PROCEDURE Reportes.Menor5ProductosPorMes
     @Mes INT,
     @Anio INT,
@@ -226,11 +202,6 @@ BEGIN
 END;
 GO
 
-
-DECLARE @xml XML;
-EXEC Reportes.Menor5ProductosPorMes @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
-SELECT @xml AS XMLResultado;
-GO
 CREATE OR ALTER PROCEDURE Reportes.TotalAcumuladoVentas
     @Fecha DATE,               -- Parámetro para la fecha específica
     @Sucursal VARCHAR(100),    -- Parámetro para la sucursal
@@ -259,10 +230,3 @@ BEGIN
     FOR XML PATH('Producto'), ROOT('TotalAcumuladoVentas')  -- Formato XML
 END;
 GO
-
-DECLARE @xml XML;
-EXEC Reportes.TotalAcumuladoVentas @Fecha = '2019-03-15', @Sucursal = 'Ramos Mejia', @XMLResultado = @xml OUTPUT;
-SELECT @xml AS XMLResultado;
-
-
-
