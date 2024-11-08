@@ -25,7 +25,8 @@ EXEC Procedimientos.CargarClasificacion @direccion = @FullPath,
 EXEC Procedimientos.CargarEmpleados		@direccion = @FullPath,
 										@tabla = 'Empleados',
 										@pagina =  'Empleados',
-										@esquema = 'Complementario'
+										@esquema = 'Complementario',
+										@FraseClave = 'AvenidaSiempreViva742'
 --Hoja: Sucursales
 EXEC Procedimientos.CargarSucursales	@direccion = @FullPath,
 										@tabla = 'Sucursales',
@@ -53,8 +54,7 @@ EXEC Procedimientos.CargarVentas
 GO
 EXEC Procedimientos.MostrarFacturas
 GO
-EXEC Procedimientos.ConfigurarCifradoEmpleados @FraseClave = 'AvenidaSiempreViva742'
-GO
+
 
 --Para verificar la carga:
 SELECT * FROM ##CatalogoTemp
@@ -75,6 +75,8 @@ SELECT * FROM Productos.Catalogo
 GO
 SELECT * FROM Ventas.Facturas
 GO
+SELECT * FROM Ventas.Facturas
+GO
 
 --------PRUEBAS
  EXEC Procedimientos.AgregarFactura		@cantidad = 4,
@@ -91,8 +93,8 @@ GO
 SELECT * FROM Ventas.Facturas as f
 WHERE f.Id = '898-04-2719'
 
-DELETE FROM Ventas.Facturas 
-WHERE Id = '898-04-2719'
+--DELETE FROM Ventas.Facturas 
+--WHERE Id = '898-04-2719'
 
 -------------
 EXEC Procedimientos.AgregarEmpleado		@Nombre = 'Coscu',
@@ -104,7 +106,8 @@ EXEC Procedimientos.AgregarEmpleado		@Nombre = 'Coscu',
 										@CUIL = '11111111112',
 										@Cargo = 'papu',
 										@Sucursal = 'San Justo',
-										@Turno = 'TM'
+										@Turno = 'TM',
+										@FraseClave = 'AvenidaSiempreViva742'
 GO
 
 EXEC Procedimientos.EliminarEmpleado @Legajo = '257035'
@@ -115,7 +118,8 @@ EXEC Procedimientos.ActualizarEmpleado	@Legajo = '257035',
 										@EmailPersonal = 'Bombaloca@gmail.com',
 										@Cargo = 'Jefe',
 										@Sucursal = 'Ramos Mejia',
-										@Turno = 'Jornada completa'
+										@Turno = 'Jornada completa',
+										@FraseClave = 'AvenidaSiempreViva742'
 GO		
 
 SELECT * FROM Complementario.Empleados
@@ -190,3 +194,4 @@ GO
 DECLARE @xml XML;
 EXEC Reportes.TotalAcumuladoVentas @Fecha = '2019-03-15', @Sucursal = 'Ramos Mejia', @XMLResultado = @xml OUTPUT;
 SELECT @xml AS XMLResultado;
+GO

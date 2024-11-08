@@ -133,33 +133,61 @@ CREATE OR ALTER PROCEDURE Procedimientos.CargarEmpleados
     @direccion VARCHAR(100),
     @tabla VARCHAR(100),
     @pagina VARCHAR(100),
-    @esquema VARCHAR(20)
+    @esquema VARCHAR(20),
+	@FraseClave NVARCHAR(128)
 AS
 BEGIN
     DECLARE @sql NVARCHAR(MAX);
 	--Inserta los datos
     SET @sql = N'
-    INSERT INTO ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N'
-    SELECT 
-        CAST([Legajo/ID] AS INT),
-        CAST(Nombre AS VARCHAR(50)),
-        CAST(Apellido AS VARCHAR(50)),
-        CAST(DNI AS INT),
-        CAST(Direccion AS VARCHAR(200)),
-        CAST([email personal] AS VARCHAR(100)),
-        CAST([email empresa] AS VARCHAR(100)),
-        CAST(CUIL AS VARCHAR(11)),
-        CAST(Cargo AS VARCHAR(50)),
-        CAST(Sucursal AS VARCHAR(100)),
-        CAST(Turno AS VARCHAR(25)),
-		1
-    FROM OPENROWSET(
-        ''Microsoft.ACE.OLEDB.12.0'',
-        ''Excel 12.0; Database=' + @direccion + '; HDR=YES;'', 
-        ''SELECT * FROM [' + @pagina + N'$] WHERE [Legajo/ID] IS NOT NULL''
-    );';
+	INSERT INTO ' + QUOTENAME(@esquema) + N'.' + QUOTENAME(@tabla) + N' (
+		Legajo,
+		Nombre,
+		Apellido,
+		DNI,
+		Direccion,
+		EmailPersonal,
+		EmailEmpresa,
+		CUIL,
+		Cargo,
+		Sucursal,
+		Turno,
+		EstaActivo,
+		DNI_Cifrado,
+		Direccion_Cifrada,
+		EmailPersonal_Cifrado,
+		CUIL_Cifrado
+	)
+	SELECT 
+		CAST([Legajo/ID] AS INT),
+		CAST(Nombre AS VARCHAR(50)),
+		CAST(Apellido AS VARCHAR(50)),
+		CAST(DNI AS INT),
+		CAST(Direccion AS VARCHAR(200)),
+		CAST([email personal] AS VARCHAR(100)),
+		CAST([email empresa] AS VARCHAR(100)),
+		CAST(CUIL AS VARCHAR(11)),
+		CAST(Cargo AS VARCHAR(50)),
+		CAST(Sucursal AS VARCHAR(100)),
+		CAST(Turno AS VARCHAR(25)),
+		1,                   -- EstaActivo (asignado como 1 por defecto)
+		NULL,                -- DNI_Cifrado
+		NULL,                -- Direccion_Cifrada
+		NULL,                -- EmailPersonal_Cifrado
+		NULL                 -- CUIL_Cifrado
+	FROM OPENROWSET(
+		''Microsoft.ACE.OLEDB.12.0'',
+		''Excel 12.0; Database=' + @direccion + '; HDR=YES;'', 
+		''SELECT * FROM [' + @pagina + N'$] WHERE [Legajo/ID] IS NOT NULL''
+	);';
 
-    EXEC sp_executesql @sql;
+	EXEC sp_executesql @sql;
+
+	UPDATE Complementario.Empleados
+    SET DNI_Cifrado = EncryptByPassPhrase(@FraseClave, CONVERT(NVARCHAR(12), DNI)),
+        Direccion_Cifrada = EncryptByPassPhrase(@FraseClave, Direccion),
+        EmailPersonal_Cifrado = EncryptByPassPhrase(@FraseClave, EmailPersonal),
+        CUIL_Cifrado = EncryptByPassPhrase(@FraseClave, CUIL);
 END;
 GO
 
@@ -193,14 +221,16 @@ GO
 CREATE OR ALTER PROCEDURE Procedimientos.LlenarCatalogo
 AS
 BEGIN 
+    UPDATE ##CatalogoTemp
+    SET Nombre = Procedimientos.ArreglarLetras(Nombre)
     -- Insertar solo productos nuevos
     INSERT INTO Productos.Catalogo (Categoria, LineaDeProducto, Nombre, Precio, Proveedor)
     SELECT 
-		DISTINCT
-		c.Categoria,
+        DISTINCT
+        c.Categoria,
         cdp.LineaDeProducto, 
         c.Nombre,
-        c.Precio,	
+        c.Precio,
         '-' AS Proveedor
     FROM 
         ##CatalogoTemp AS c
@@ -210,8 +240,8 @@ BEGIN
 
     INSERT INTO Productos.Catalogo (LineaDeProducto, Categoria, Nombre, Precio, Proveedor)
     SELECT
-		DISTINCT
-		'Accesorios Electronicos' AS LineaDeProducto,
+        DISTINCT
+        'Accesorios Electronicos' AS LineaDeProducto,
         'Accesorios Electronicos' AS Categoria,
         e.Nombre,
         e.PrecioUSD,
@@ -222,7 +252,7 @@ BEGIN
 
     INSERT INTO Productos.Catalogo(LineaDeProducto, Categoria, Nombre, Precio, Proveedor)
     SELECT
-		'Importado' AS LineaDeProducto,
+        'Importado' AS LineaDeProducto,
         p.Categoria,
         p.Nombre,
         p.PrecioUnidad,
@@ -230,9 +260,6 @@ BEGIN
     FROM
         ##ProductosImportados AS p
     WHERE p.Nombre NOT IN (SELECT Nombre FROM Productos.Catalogo)
-
-	UPDATE Productos.Catalogo
-	SET Nombre = Procedimientos.ArreglarLetras(Nombre)
 
 END;
 GO
@@ -292,25 +319,6 @@ BEGIN
 	WHERE cf.LineaDeProducto = (SELECT p.Categoria FROM ##ProductosImportados AS p WHERE p.Nombre = cf.Nombre)
     AND cf.Nombre IN (SELECT Nombre FROM ##ProductosImportados) 
     AND cf.Precio <> (SELECT p.PrecioUnidad FROM ##ProductosImportados AS p WHERE p.Nombre = cf.Nombre)
-END;
-GO
-
-CREATE OR ALTER PROCEDURE Procedimientos.EncriptarEmpleados
-	@FraseClave NVARCHAR(128)
-AS
-BEGIN
-	--Se agregan las columnas para el cifrado
-	ALTER TABLE Complementario.Empleados
-	ADD DNI_Cifrado VARBINARY(256),
-		Direccion_Cifrada VARBINARY(256),
-		EmailPersonal_Cifrado VARBINARY(256),
-		CUIL_Cifrado VARBINARY(256);
-	--Se cifran los campos mencionados
-	UPDATE Complementario.Empleados
-    SET DNI_Cifrado = EncryptByPassPhrase(@FraseClave, CONVERT(NVARCHAR(12), DNI)),
-        Direccion_Cifrada = EncryptByPassPhrase(@FraseClave, Direccion),
-        EmailPersonal_Cifrado = EncryptByPassPhrase(@FraseClave, EmailPersonal),
-        CUIL_Cifrado = EncryptByPassPhrase(@FraseClave, CUIL);
 END;
 GO
 

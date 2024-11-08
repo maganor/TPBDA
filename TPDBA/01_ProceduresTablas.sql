@@ -114,7 +114,7 @@ AS
 BEGIN
 	DECLARE @Legajo INT
 	SELECT @Legajo = MAX(E.Legajo) FROM Complementario.Empleados as E
-    INSERT INTO Complementario.Empleados(Legajo,Nombre,Apellido,DNI,Direccion,EmailPersonal,EmailEmpresa,CUIL,Cargo,Sucursal,Turno, EstaActivo)
+    INSERT INTO Complementario.Empleados
     VALUES (
 		@Legajo + 1,
         @Nombre,
@@ -153,11 +153,12 @@ CREATE OR ALTER PROCEDURE Procedimientos.ActualizarEmpleado
     @Cargo VARCHAR(50) = NULL,
     @Sucursal VARCHAR(100) = NULL,
     @Turno VARCHAR(25) = NULL,
-	@FraseClave NVARCHAR(128)
+    @FraseClave NVARCHAR(128)  -- Parámetro para la frase clave de cifrado
 AS
 BEGIN
     SET NOCOUNT ON;
 
+    -- Actualizar los datos del empleado
     UPDATE Complementario.Empleados
     SET 
         Cargo = COALESCE(@Cargo, Cargo),
@@ -167,13 +168,13 @@ BEGIN
         Direccion_Cifrada = CASE 
                               WHEN @Direccion IS NOT NULL THEN EncryptByPassPhrase(@FraseClave, @Direccion) 
                               ELSE Direccion_Cifrada 
-							END,
+                           END,  -- Cifrado de la dirección solo si se proporciona un valor
         EmailPersonal_Cifrado = CASE 
                                   WHEN @EmailPersonal IS NOT NULL THEN EncryptByPassPhrase(@FraseClave, @EmailPersonal) 
                                   ELSE EmailPersonal_Cifrado 
-								END,
-   WHERE Legajo = @Legajo;
-END
+                               END
+    WHERE Legajo = @Legajo;
+END;
 GO
 
 CREATE OR ALTER PROCEDURE Procedimientos.EliminarProductoCatalogo

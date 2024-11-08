@@ -86,7 +86,11 @@ CREATE TABLE Complementario.Empleados(
     Cargo VARCHAR(50),
     Sucursal VARCHAR(100),
     Turno VARCHAR(25),
-	EstaActivo BIT NOT NULL DEFAULT 1
+	EstaActivo BIT NOT NULL DEFAULT 1,
+	DNI_Cifrado VARBINARY(256),
+	Direccion_Cifrada VARBINARY(256),
+	EmailPersonal_Cifrado VARBINARY(256),
+	CUIL_Cifrado VARBINARY(256)
 );
 GO
 
