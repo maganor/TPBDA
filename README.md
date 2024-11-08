@@ -1,6 +1,6 @@
 # TPDBA
 TP Base de Datos Aplicada
 
-> [!CAUTION]
+> [!IMPORTANT]
 > LOS QUEREMOS JAIR Y JULIO ^^
 
