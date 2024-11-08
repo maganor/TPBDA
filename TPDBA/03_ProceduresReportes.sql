@@ -12,36 +12,35 @@ CREATE OR ALTER PROCEDURE Reportes.GenerarReporteMensual
     @XMLResultado XML OUTPUT
 AS
 BEGIN
-    -- Aseguramos que la semana comienza en lunes
     SET DATEFIRST 1;
 
-    -- Generamos el XML de salida con el total facturado por día de la semana
-    SET @XMLResultado = (
-        SELECT 
-            @Mes AS Mes,
-            @Anio AS Año,
-            (
-                SELECT 
-                    DATENAME(WEEKDAY, f.Fecha) AS Nombre,
-                    SUM(c.Precio * f.Cantidad) AS Total
-                FROM 
-                    Ventas.Facturas AS f
-                INNER JOIN 
-                    Productos.Catalogo AS c ON f.IdProducto = c.Id
-                WHERE 
-                    YEAR(f.Fecha) = @Anio AND 
-                    MONTH(f.Fecha) = @Mes
-                GROUP BY 
-                    DATENAME(WEEKDAY, f.Fecha), 
-                    DATEPART(WEEKDAY, f.Fecha)
-                ORDER BY 
-                    DATEPART(WEEKDAY, f.Fecha)
-                FOR XML PATH('Dia'), TYPE
-            ) AS TotalesPorDia
-        FOR XML PATH('ReporteMensual'), ROOT('DatosReporte')
-    );
+    SELECT 
+        @Mes AS Mes,
+        @Anio AS Año,
+        (
+            SELECT 
+                DATENAME(WEEKDAY, f.Fecha) AS Nombre,
+                SUM(c.Precio * f.Cantidad * me.PrecioAR) AS Total  -- Convertir precio a ARS usando el valor del dólar
+            FROM 
+                Ventas.Facturas AS f
+            INNER JOIN 
+                Productos.Catalogo AS c ON f.IdProducto = c.Id
+            INNER JOIN 
+                Complementario.MonedaExtranjera AS me ON me.Nombre = 'USD'  -- Obtener el valor de USD
+            WHERE 
+                YEAR(f.Fecha) = @Anio AND 
+                MONTH(f.Fecha) = @Mes
+            GROUP BY 
+                DATENAME(WEEKDAY, f.Fecha), 
+                DATEPART(WEEKDAY, f.Fecha)
+            ORDER BY 
+                DATEPART(WEEKDAY, f.Fecha)
+            FOR XML PATH('Dia'), TYPE
+        ) AS TotalesPorDia
+    FOR XML PATH('ReporteMensual'), ROOT('DatosReporte')
 END;
 GO
+
 
 DECLARE @xml XML;
 EXEC Reportes.GenerarReporteMensual @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
@@ -53,33 +52,33 @@ AS
 BEGIN
     DECLARE @TempXML XML;
 
-    -- Generación del reporte de ventas para los últimos tres meses, agrupado por mes y turno
     SELECT 
         FORMAT(F.Fecha, 'MM-yyyy') AS Mes,
         CASE 
-            WHEN DATEPART(HOUR, F.Hora) >= 8 AND DATEPART(HOUR, F.Hora) < 14 THEN 'Mañana'  -- Turno Mañana
-            WHEN DATEPART(HOUR, F.Hora) >= 14 AND DATEPART(HOUR, F.Hora) <= 21 THEN 'Tarde'   -- Turno Tarde
+            WHEN DATEPART(HOUR, F.Hora) >= 8 AND DATEPART(HOUR, F.Hora) < 14 THEN 'Mañana'
+            WHEN DATEPART(HOUR, F.Hora) >= 14 AND DATEPART(HOUR, F.Hora) <= 21 THEN 'Tarde'
         END AS Turno,
-        SUM(F.Cantidad * P.Precio) AS TotalFacturado  -- Total facturado (Precio * Cantidad)
+        SUM(F.Cantidad * P.Precio * ME.PrecioAR) AS TotalFacturado  -- Convertir precio a ARS usando el valor del dólar
     FROM 
         Ventas.Facturas F
     INNER JOIN 
         Productos.Catalogo P ON F.IdProducto = P.Id
+    INNER JOIN 
+        Complementario.MonedaExtranjera ME ON ME.Nombre = 'USD'  -- Obtener el valor de USD
     WHERE 
-        F.Fecha >= DATEADD(MONTH, -3, GETDATE())				--Calcula el inicio de los ultimos 3 meses
-        AND F.Fecha < GETDATE()									--Fin de los ultimos 3 meses					
+        F.Fecha >= DATEADD(MONTH, -3, GETDATE()) 
+        AND F.Fecha < GETDATE()  
     GROUP BY 
         FORMAT(F.Fecha, 'MM-yyyy'),
         CASE 
             WHEN DATEPART(HOUR, F.Hora) >= 8 AND DATEPART(HOUR, F.Hora) < 14 THEN 'Mañana'
-            WHEN DATEPART(HOUR, F.Hora) >= 14 AND DATEPART(HOUR, F.Hora) < 21 THEN 'Tarde'
+            WHEN DATEPART(HOUR, F.Hora) >= 14 AND DATEPART(HOUR, F.Hora) <= 21 THEN 'Tarde'
         END
     FOR XML PATH('Venta'), ROOT('ReporteTrimestralxTurno');
 
     SET @XMLResultado = @TempXML;
 END;
 GO
-
 
 CREATE OR ALTER PROCEDURE Reportes.GenerarReportePorRangoFechas
     @FechaInicio DATE,  -- Parámetro de fecha de inicio
@@ -89,7 +88,6 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    SET @XMLResultado = (
         SELECT 
             P.Nombre AS Producto,
             SUM(F.Cantidad) AS CantidadVendida
@@ -105,7 +103,6 @@ BEGIN
         ORDER BY 
             CantidadVendida DESC  -- Ordenar de mayor a menor por cantidad vendida
         FOR XML PATH('Producto'), ROOT('ReporteVentasxRangoFechas')  -- Formato XML
-    );
 END;
 GO
 
@@ -203,46 +200,56 @@ BEGIN
 
     SELECT TOP 5 
         P.Nombre AS Producto,
-        SUM(F.Cantidad) AS CantidadVendida
+        SUM(F.Cantidad) AS CantidadVendida,
+        SUM(F.Cantidad * P.Precio * ME.PrecioAR) AS TotalVentas  -- Convertir precio a ARS usando el valor del dólar
     FROM 
         Ventas.Facturas F
     INNER JOIN 
-        Productos.Catalogo P ON F.IdProducto = P.Id  -- Relaciona con la tabla de productos
+        Productos.Catalogo P ON F.IdProducto = P.Id
+    INNER JOIN 
+        Complementario.MonedaExtranjera ME ON ME.Nombre = 'USD'  -- Obtener el valor de USD
     WHERE 
         MONTH(F.Fecha) = @Mes 
         AND YEAR(F.Fecha) = @Anio
     GROUP BY 
         P.Nombre
     ORDER BY 
-        CantidadVendida ASC  -- Orden ascendente para obtener los menos vendidos
+        CantidadVendida ASC  
     FOR XML PATH('Producto'), ROOT('Menor5ProductosPorMes');
 END;
 GO
+
 
 DECLARE @xml XML;
 EXEC Reportes.Menor5ProductosPorMes @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
 SELECT @xml AS XMLResultado;
 
 CREATE OR ALTER PROCEDURE Reportes.TotalAcumuladoVentas
-    @Fecha DATE,
-    @Sucursal VARCHAR(100),
-    @XMLResultado XML OUTPUT
+    @Fecha DATE,               -- Parámetro para la fecha específica
+    @Sucursal VARCHAR(100),    -- Parámetro para la sucursal
+    @XMLResultado XML OUTPUT   -- Parámetro de salida para el XML generado
 AS
 BEGIN
     SET NOCOUNT ON;
 
-        SELECT 
-            P.Nombre AS Producto,
-            SUM(F.Cantidad * P.Precio) AS TotalVentas
-        FROM Ventas.Facturas F
-
-        INNER JOIN Productos.Catalogo P ON F.IdProducto = P.Id
-        INNER JOIN Complementario.Sucursales S ON F.IdSucursal = S.IdSucursal
-
-        WHERE F.Fecha = @Fecha AND S.ReemplazarPor = @Sucursal
-        GROUP BY P.Nombre
-
-        FOR XML PATH('Producto'), ROOT('TotalAcumuladoVentas')
+    -- Generación del reporte de ventas totales para una fecha específica
+    SELECT 
+        P.Nombre AS Producto,
+        SUM(F.Cantidad * P.Precio * ME.PrecioAR) AS TotalVentas  -- Conversión a ARS usando el valor del dólar
+    FROM 
+        Ventas.Facturas F
+    INNER JOIN 
+        Productos.Catalogo P ON F.IdProducto = P.Id
+    INNER JOIN 
+        Complementario.Sucursales S ON F.IdSucursal = S.IdSucursal
+    INNER JOIN 
+        Complementario.MonedaExtranjera ME ON ME.Nombre = 'USD'  -- Obtener el valor del USD
+    WHERE 
+        F.Fecha = @Fecha  -- Filtrar por la fecha específica
+        AND S.ReemplazarPor = @Sucursal  -- Filtrar por la sucursal
+    GROUP BY 
+        P.Nombre  -- Agrupar por nombre de producto
+    FOR XML PATH('Producto'), ROOT('TotalAcumuladoVentas')  -- Formato XML
 END;
 GO
 
@@ -250,12 +257,9 @@ DECLARE @xml XML;
 EXEC Reportes.TotalAcumuladoVentas @Fecha = '2019-03-15', @Sucursal = 'Ramos Mejia', @XMLResultado = @xml OUTPUT;
 SELECT @xml AS XMLResultado;
 
-
----------------------prueba---------------------------------
-
-
-
-CREATE OR ALTER PROCEDURE Reportes.GenerarReporteTrimestral
+----------------
+--para probrar, dsp borrar
+CREATE OR ALTER PROCEDURE Reportes.GenerarReporteTrimestral 
     @FechaInicio DATE,
     @FechaFin DATE,
     @XMLResultado XML OUTPUT
@@ -270,11 +274,13 @@ BEGIN
             WHEN DATEPART(HOUR, F.Hora) >= 8 AND DATEPART(HOUR, F.Hora) < 14 THEN 'Mañana'  -- Turno Mañana
             WHEN DATEPART(HOUR, F.Hora) >= 14 AND DATEPART(HOUR, F.Hora) <= 21 THEN 'Tarde'   -- Turno Tarde
         END AS Turno,  -- Asignar turno según la hora
-        SUM(F.Cantidad * P.Precio) AS TotalFacturado  -- Total facturado (Precio * Cantidad)
+        SUM(F.Cantidad * P.Precio * ME.PrecioAR) AS TotalFacturado  -- Convertir precio a ARS usando el valor del dólar
     FROM 
         Ventas.Facturas F
     INNER JOIN 
         Productos.Catalogo P ON F.IdProducto = P.Id
+    INNER JOIN 
+        Complementario.MonedaExtranjera ME ON ME.Nombre = 'USD'  -- Obtener el valor del USD
     WHERE 
         F.Fecha >= @FechaInicio  -- Filtrar por la fecha de inicio
         AND F.Fecha <= @FechaFin  -- Filtrar por la fecha de fin
@@ -295,4 +301,7 @@ EXEC Reportes.GenerarReporteTrimestral
     @FechaInicio = '2019-01-01',  -- Fecha de inicio
     @FechaFin = '2019-03-31',     -- Fecha de fin
     @XMLResultado = @XMLResultado;
+
+
+
 
