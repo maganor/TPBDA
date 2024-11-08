@@ -112,7 +112,7 @@ CREATE TABLE Productos.Catalogo(
 	Precio DECIMAL(6,2),
 	Proveedor VARCHAR(100),
 	IdCategoria INT,
-	CONSTRAINT FK_Categoria FOREIGN KEY (IdCategoria) REFERENCES Complementario.ClasificacionDeProductos(Id)
+	CONSTRAINT FK_Categoria FOREIGN KEY (IdCategoria) REFERENCES Complementario.CategoriaDeProds(Id)
 )
 
 DROP TABLE IF EXISTS Ventas.Facturas

@@ -15,24 +15,22 @@ CREATE OR ALTER PROCEDURE Procedimientos.AgregarEmpleado
     @EmailEmpresa VARCHAR(100),
     @CUIL VARCHAR(11),
     @Cargo VARCHAR(50),
-    @Sucursal VARCHAR(100), -- Recibe el nombre de la ciudad
+    @Sucursal VARCHAR(100),
     @Turno VARCHAR(25)
 AS
 BEGIN
     DECLARE @IdSucursal INT;
 
-    -- Obtener el IdSucursal correspondiente al nombre de la ciudad
     SELECT @IdSucursal = IdSucursal
     FROM Complementario.Sucursales
     WHERE Ciudad = @Sucursal;
 
-    -- Si no se encontró la sucursal o no existe la ciudad, lanzar un error
     IF @IdSucursal IS NULL
     BEGIN
         RAISERROR ('La sucursal especificada no existe o la ciudad no es válida.', 16, 1);
         RETURN;
     END
-	    -- Insertar el nuevo empleado
+	   
     INSERT INTO Complementario.Empleados 
         (Nombre, Apellido, DNI, Direccion, EmailPersonal, EmailEmpresa, CUIL, Cargo, IdSucursal, Turno, EstaActivo)
     VALUES 
@@ -55,20 +53,44 @@ CREATE OR ALTER PROCEDURE Procedimientos.ActualizarEmpleado
     @Direccion VARCHAR(200) = NULL,
     @EmailPersonal VARCHAR(100) = NULL,
     @Cargo VARCHAR(50) = NULL,
-    @IdSucursal INT = NULL,  -- Recibe el IdSucursal directamente
+    @IdSucursal INT = NULL,  
     @Turno VARCHAR(25) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
-    -- Actualizar los datos del empleado
-    UPDATE Complementario.Empleados
+    UPDATE Complementario.Empleados										
     SET 
         Cargo = COALESCE(@Cargo, Cargo),
-        Sucursal = COALESCE(@IdSucursal, Sucursal),  -- Se actualiza con el IdSucursal directamente
+        Sucursal = COALESCE(@IdSucursal, Sucursal),						
         Turno = COALESCE(@Turno, Turno),
         Direccion = COALESCE(@Direccion, Direccion),
         EmailPersonal = COALESCE(@EmailPersonal, EmailPersonal)
     WHERE Legajo = @Legajo;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.AgregarOActualizarProducto
+    @Nombre VARCHAR(100),
+    @Precio DECIMAL(6,2),
+    @IdCategoria INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF EXISTS (															-- Comprueba si ya existe el producto en el catálogo
+        SELECT 1
+        FROM Productos.Catalogo
+        WHERE Nombre = @Nombre AND IdCategoria = @IdCategoria
+    )
+    BEGIN
+        UPDATE Productos.Catalogo										-- Si existe, actualiza el precio
+        SET Precio = @Precio
+        WHERE Nombre = @Nombre AND IdCategoria = @IdCategoria;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO Productos.Catalogo (Nombre, Precio, IdCategoria)	-- Si no existe, insertar el nuevo producto
+        VALUES (@Nombre, @Precio, @IdCategoria);
+    END
 END;
 GO
 
@@ -92,7 +114,7 @@ BEGIN
         WHERE NombreING = @nombreING AND NombreESP = @nombreESP
     )
     BEGIN
-        RAISERROR ('El medio de pago con estos valores ya existe.', 16, 1);
+        RAISERROR ('El Medio de Pago ya existe.', 16, 1);
         RETURN;
     END
    
@@ -100,7 +122,6 @@ BEGIN
     VALUES (@nombreING, @nombreESP);
 END;
 GO
-
 
 CREATE OR ALTER PROCEDURE Procedimientos.EliminarMedioDePago
 	@id INT
@@ -119,8 +140,7 @@ CREATE OR ALTER PROCEDURE Procedimientos.AgregarSucursal
     @Telefono VARCHAR(20)
 AS
 BEGIN
-    -- Comprobar si ya existe una sucursal en la misma ciudad y dirección
-    IF EXISTS (
+    IF EXISTS (														-- Comprueba si ya existe una sucursal en la misma ciudad y dirección
         SELECT 1
         FROM Complementario.Sucursales
         WHERE Ciudad = @Ciudad AND Direccion = @Direccion AND ReemplazarPor = @ReemplazarPor
@@ -129,8 +149,7 @@ BEGIN
         RAISERROR ('Ya existe esa sucursal', 16, 1);
         RETURN;
     END
-    -- Inserta la nueva sucursal si no existe
-    INSERT INTO Complementario.Sucursales (Ciudad, ReemplazarPor, Direccion, Horario, Telefono)
+    INSERT INTO Complementario.Sucursales (Ciudad, ReemplazarPor, Direccion, Horario, Telefono)	-- Inserta la nueva sucursal si no existe
     VALUES (@Ciudad, @ReemplazarPor, @Direccion, @Horario, @Telefono);
 END;
 GO
@@ -145,36 +164,31 @@ END;
 GO
 
 CREATE OR ALTER PROCEDURE Procedimientos.GenerarNotaCredito
-    @IdFactura CHAR(11)    -- Parámetro que recibe el ID de la factura
+    @IdFactura CHAR(11)													
 AS
 BEGIN
     DECLARE @IdProducto INT;
 
-    -- Obtener el IdProducto asociado con la factura, por ejemplo, desde la tabla Ventas.Facturas
-    SELECT @IdProducto = IdProducto  
+    SELECT @IdProducto = IdProducto										-- Obtiene el IdProducto asociado con la factura
     FROM Ventas.Facturas
     WHERE Id = @IdFactura;
 
-    -- Verificar si se obtuvo un IdProducto
     IF @IdProducto IS NOT NULL
     BEGIN
-        -- Crear la nota de crédito, asociándola con la factura y el producto
-        INSERT INTO Ventas.NotasCredito (IdFactura, EstaActivo)
-        VALUES (@IdFactura, 1);  -- 1 representa el estado activo
+        INSERT INTO Ventas.NotasCredito (IdFactura, EstaActivo)			-- Crea la nota de crédito, asociándola con la factura y el producto
+        VALUES (@IdFactura, 1);  
     END
     ELSE
     BEGIN
-        -- Si no se encuentra un producto asociado a la factura, lanzar un error
         RAISERROR('No se encontró un producto asociado con la factura proporcionada.', 16, 1);
     END
 END;
 GO
 
 CREATE OR ALTER PROCEDURE Procedimientos.EliminarNotaCredito
-    @Id INT -- ID de la nota de crédito a actualizar
+    @Id INT
 AS
 BEGIN
-    -- Actualizar el estado de la nota de crédito a inactivo (0)
     UPDATE Ventas.NotasCredito
     SET EstaActivo = 0
     WHERE Id = @Id;
