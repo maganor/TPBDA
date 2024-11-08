@@ -33,8 +33,8 @@ DROP TABLE IF EXISTS Complementario.Sucursales
 GO
 CREATE TABLE Complementario.Sucursales(
 		IdSucursal INT IDENTITY(1,1) PRIMARY KEY,
-        Ciudad VARCHAR(100),
-        ReemplazarPor VARCHAR(100),
+        Ciudad VARCHAR(100),				--Ciudad
+        ReemplazarPor VARCHAR(100),			--Sucursal donde trabaja
         Direccion VARCHAR(200),
         Horario VARCHAR(100),
         Telefono VARCHAR(20)
@@ -53,10 +53,10 @@ CREATE TABLE Complementario.Empleados(
     EmailEmpresa VARCHAR(100),
     CUIL VARCHAR(11),
     Cargo VARCHAR(50),
-    Sucursal INT,
+    IdSucursal INT,
     Turno VARCHAR(25),
 	EstaActivo BIT NOT NULL DEFAULT 1,
-	CONSTRAINT FK_Sucursal FOREIGN KEY (Sucursal) REFERENCES Complementario.Sucursales(IdSucursal)
+	CONSTRAINT FK_Sucursal FOREIGN KEY (IdSucursal) REFERENCES Complementario.Sucursales(IdSucursal)
 )
 GO
 
@@ -90,6 +90,7 @@ DROP TABLE IF EXISTS Complementario.Clientes
 GO
 CREATE TABLE Complementario.Clientes(
 	IdCliente INT IDENTITY(1,1) PRIMARY KEY,
+	DNI INT UNIQUE,
 	Nombre VARCHAR(50),
 	TipoCliente CHAR(6),
 	Genero CHAR(6),
@@ -154,6 +155,24 @@ CREATE TABLE Ventas.NotasCredito (
 	EstaActivo BIT NOT NULL DEFAULT 1,
     CONSTRAINT FK_NotaCredito_Factura FOREIGN KEY (IdFactura) REFERENCES Ventas.Facturas(IdFactura),
 )
+GO
+
+--Para ver que las tablas pertenezcan al esquema 'Productos'
+SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = 'Productos'
+GO
+
+--Para ver que las tablas pertenezcan al esquema 'Compementario'
+SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = 'Complementario'
+GO
+
+--Para ver que las tablas pertenezcan al esquema 'Ventas'
+SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = 'Ventas'
 GO
 
 ------Para hacer el DER
@@ -368,22 +387,3 @@ SELECT JSON_QUERY(
         ', "database_name": "' + DB_NAME() + '"' +
         ', "version": ""}'
 ) AS metadata_json_to_import;
-
-
---Para ver que las tablas pertenezcan al esquema 'Productos'
-SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
-FROM INFORMATION_SCHEMA.TABLES
-WHERE TABLE_SCHEMA = 'Productos'
-GO
-
---Para ver que las tablas pertenezcan al esquema 'Compementario'
-SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
-FROM INFORMATION_SCHEMA.TABLES
-WHERE TABLE_SCHEMA = 'Complementario'
-GO
-
---Para ver que las tablas pertenezcan al esquema 'Ventas'
-SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
-FROM INFORMATION_SCHEMA.TABLES
-WHERE TABLE_SCHEMA = 'Ventas'
-GO
