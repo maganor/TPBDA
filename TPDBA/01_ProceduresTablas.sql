@@ -194,3 +194,91 @@ BEGIN
     WHERE Id = @Id;
 END;
 GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.CargarCliente
+    @Nombre VARCHAR(50),
+    @TipoCliente CHAR(6),
+    @Genero CHAR(6),
+	@DNI INT
+AS
+BEGIN
+    BEGIN TRY
+        -- Insertar el nuevo cliente en la tabla Complementario.Clientes, solo si no está su dni ya ingresado
+        IF EXISTS (SELECT 1 FROM Complementario.Clientes WHERE DNI = @DNI)
+        BEGIN
+            RAISERROR('Ya esiste un cliente con el DNI ingresado.', 16, 1);
+            RETURN;
+        END
+        INSERT INTO Complementario.Clientes (Nombre, TipoCliente, Genero, DNI)
+        VALUES (@Nombre, @TipoCliente, @Genero, @DNI);
+
+        PRINT 'Cliente creado con éxito.';
+    END TRY
+    BEGIN CATCH
+        -- Manejo de errores
+        PRINT 'Error al crear el cliente.';
+        THROW;
+    END CATCH;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.ModificarCliente
+	@DNI INT,
+	@TipoClienteNuevo CHAR(6)
+AS
+	BEGIN
+        BEGIN TRY
+            IF NOT EXISTS (SELECT 1 FROM Complementario.Clientes WHERE DNI = @DNI)
+            BEGIN
+                RAISERROR('No existe un cliente con el DNI ingresado.', 16, 1);
+                RETURN;
+            END
+                UPDATE Complementario.Clientes
+                SET TipoCliente = @TipoClienteNuevo
+                WHERE DNI = @DNI;
+        END TRY
+        BEGIN CATCH
+            PRINT 'Error al modificar el cliente.';
+            THROW;
+        END CATCH;
+    END;
+GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.EliminarCliente
+    @IdCliente INT
+AS
+    BEGIN
+        BEGIN TRY
+            IF NOT EXISTS (SELECT 1 FROM Complementario.Clientes WHERE IdCliente = @IdCliente)
+        BEGIN
+            RAISERROR('No existe un cliente con el ID ingresado.', 16, 1);
+            RETURN;
+        END
+            DELETE FROM Complementario.Clientes
+            WHERE IdCliente = @IdCliente;
+        END TRY
+        BEGIN CATCH
+            PRINT 'Error al eliminar el cliente.';
+            THROW;
+        END CATCH;
+    END;
+GO
+EXEC Procedimientos.ModificarCliente
+    @DNI = 43525943,
+    @TipoClienteNuevo = 'NORMAL';
+
+EXEC Procedimientos.ModificarCliente
+    @DNI = 44925943,
+    @TipoClienteNuevo = 'VIP';
+
+	
+USE Com5600G01
+GO
+EXEC Procedimientos.CargarCliente
+    @Nombre = 'Juan Fer Perez',
+    @TipoCliente = 'VIP',
+    @Genero = 'M',
+	@DNI = 43525943;
+
+EXEC Procedimientos.EliminarCliente
+    @IdCliente = 1;
