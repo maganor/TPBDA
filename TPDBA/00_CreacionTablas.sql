@@ -181,6 +181,17 @@ CREATE TABLE Ventas.Facturas(
 	CONSTRAINT FK_Sucursal FOREIGN KEY (IdSucursal) REFERENCES Complementario.Sucursales(IdSucursal)
 )
 
+DROP TABLE IF EXISTS Ventas.NotasCredito
+GO
+CREATE TABLE Ventas.NotasCredito (
+    Id INT IDENTITY(1,1) PRIMARY KEY,        -- ID de la nota de crédito
+    IdFactura CHAR(11),                      -- ID de la factura asociada (clave foránea)
+    IdProducto INT,                          -- ID del producto devuelto (clave foránea)
+	EstaActivo BIT NOT NULL DEFAULT 1,
+    CONSTRAINT FK_NotaCredito_Factura FOREIGN KEY (IdFactura) REFERENCES Ventas.Facturas(Id),
+    CONSTRAINT FK_NotaCredito_Producto FOREIGN KEY (IdProducto) REFERENCES Productos.Catalogo(Id)
+)
+
 --Para ver que las tablas pertenezcan al esquema 'Ventas'
 SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
 FROM INFORMATION_SCHEMA.TABLES

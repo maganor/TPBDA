@@ -210,3 +210,40 @@ BEGIN
 	WHERE IdSucursal = @id
 END;
 GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.GenerarNotaCredito
+    @IdFactura CHAR(11)    -- Parámetro que recibe el ID de la factura
+AS
+BEGIN
+    DECLARE @IdProducto INT;
+
+    -- Obtener el IdProducto asociado con la factura, por ejemplo, desde la tabla Ventas.Facturas
+    SELECT @IdProducto = IdProducto  
+    FROM Ventas.Facturas
+    WHERE Id = @IdFactura;
+
+    -- Verificar si se obtuvo un IdProducto
+    IF @IdProducto IS NOT NULL
+    BEGIN
+        -- Crear la nota de crédito, asociándola con la factura y el producto
+        INSERT INTO Ventas.NotasCredito (IdFactura, IdProducto, EstaActivo)
+        VALUES (@IdFactura, @IdProducto, 1);  -- 1 representa el estado activo
+    END
+    ELSE
+    BEGIN
+        -- Si no se encuentra un producto asociado a la factura, lanzar un error
+        RAISERROR('No se encontró un producto asociado con la factura proporcionada.', 16, 1);
+    END
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.EliminarNotaCredito
+    @Id INT -- ID de la nota de crédito a actualizar
+AS
+BEGIN
+    -- Actualizar el estado de la nota de crédito a inactivo (0)
+    UPDATE Ventas.NotasCredito
+    SET EstaActivo = 0
+    WHERE Id = @Id;
+END;
+GO

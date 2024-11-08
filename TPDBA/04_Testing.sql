@@ -53,50 +53,7 @@ EXEC Procedimientos.CargarVentas
 GO
 
 
-DECLARE @xml XML;
 
-EXEC Procedimientos.GenerarReportePorRangoFechas 
-    @FechaInicio = '2019-01-01', 
-    @FechaFin = '2019-03-31',
-    @XMLResultado = @xml OUTPUT;
-
-SELECT @xml AS ReporteVentasxRangoFechas;
-
-DECLARE @xml XML;
-
-EXEC Procedimientos.GenerarReportePorRangoFechasSucursal 
-    @FechaInicio = '2019-01-01', 
-    @FechaFin = '2019-03-31',
-    @XMLResultado = @xml OUTPUT;
-
-SELECT @xml AS ReportePorRangoFechasSucursal;
-
-DECLARE @xml XML;
-
-EXEC Procedimientos.Top5ProductosPorSemana 
-    @Mes = 1, 
-    @Anio = 2019, 
-    @XMLResultado = @xml OUTPUT;
-
-SELECT @xml AS Top5ProductosPorSemana;
-
-DECLARE @xml XML;
-
-EXEC Procedimientos.Menor5ProductosPorMes 
-    @Mes = 1, 
-    @Anio = 2019, 
-    @XMLResultado = @xml OUTPUT;
-
-SELECT @xml AS Menor5ProductosPorMes;
-
-DECLARE @xml XML;
-
-EXEC Procedimientos.TotalAcumuladoVentas 
-    @Fecha = '2019-01-15', 
-    @Sucursal = 'Ramos Mejia', 
-    @XMLResultado = @xml OUTPUT;
-
-SELECT @xml AS TotalAcumuladoVentas;
 
 --Para verificar la carga:
 SELECT * FROM ##CatalogoTemp
