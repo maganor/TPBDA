@@ -1,5 +1,5 @@
 > [!CAUTION]
-> TE QUEREMOS JAIR
+> LOS QUEREMOS JAIR Y JULIO
 
 # TPDBA
 TP Base de Datos Aplicada
