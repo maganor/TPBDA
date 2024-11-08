@@ -186,10 +186,8 @@ GO
 CREATE TABLE Ventas.NotasCredito (
     Id INT IDENTITY(1,1) PRIMARY KEY,        -- ID de la nota de crédito
     IdFactura CHAR(11),                      -- ID de la factura asociada (clave foránea)
-    IdProducto INT,                          -- ID del producto devuelto (clave foránea)
 	EstaActivo BIT NOT NULL DEFAULT 1,
     CONSTRAINT FK_NotaCredito_Factura FOREIGN KEY (IdFactura) REFERENCES Ventas.Facturas(Id),
-    CONSTRAINT FK_NotaCredito_Producto FOREIGN KEY (IdProducto) REFERENCES Productos.Catalogo(Id)
 )
 
 --Para ver que las tablas pertenezcan al esquema 'Ventas'

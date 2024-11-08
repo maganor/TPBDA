@@ -226,8 +226,8 @@ BEGIN
     IF @IdProducto IS NOT NULL
     BEGIN
         -- Crear la nota de crédito, asociándola con la factura y el producto
-        INSERT INTO Ventas.NotasCredito (IdFactura, IdProducto, EstaActivo)
-        VALUES (@IdFactura, @IdProducto, 1);  -- 1 representa el estado activo
+        INSERT INTO Ventas.NotasCredito (IdFactura, EstaActivo)
+        VALUES (@IdFactura, 1);  -- 1 representa el estado activo
     END
     ELSE
     BEGIN
