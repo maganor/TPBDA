@@ -27,7 +27,7 @@ Se descarga un .zip directo desde la pagina de GitHub.
     - Instalar en la ubicacion que le parezca bien.
     - No marcar la instalacion de las extensiones de azure.
     - El nombre de instancia se recomienda Aurora(Nombre Supermercado).
-    - Se utiliza mixed authentication (Acordarse la contrasenia!!).
+    - Se utiliza mixed authentication.
 - Se instala SQL Server Management Studio (https://aka.ms/ssmsfullsetup).
 
 ## Utilizacion de la base de datos
