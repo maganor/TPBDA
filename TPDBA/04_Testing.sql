@@ -54,7 +54,6 @@ GO
 EXEC Procedimientos.MostrarFacturas
 GO
 
-
 --Para verificar la carga:
 SELECT * FROM ##CatalogoTemp
 GO
@@ -75,7 +74,83 @@ GO
 SELECT * FROM Ventas.Facturas
 GO
 
+--------PRUEBAS
+ EXEC Procedimientos.AgregarFactura		@cantidad = 4,
+										@tipoCliente = 'Member',
+										@genero = 'Male',
+										@empleado = '257020',
+										@tipoFactura = 'A',
+										@medioDePago = 'Ewallet',
+										@producto = 'Cerveza Amstel',
+										@ciudad = 'Yangon',
+										@id = '898-04-2719'
+GO
+
+SELECT * FROM Ventas.Facturas as f
+WHERE f.Id = '898-04-2718'
+
+DELETE FROM Ventas.Facturas 
+WHERE Id = '898-04-2719'
+
+-------------
+EXEC Procedimientos.AgregarEmpleado		@Nombre = 'Coscu',
+										@Apellido = 'Army',
+										@DNI = '44485891',
+										@Direccion = 'CumbiaPeposa 1900',
+										@EmailPersonal = 'holamundo@gmail.com',
+										@EmailEmpresa = 'holaempresa@gmail.com',
+										@CUIL = '11111111112',
+										@Cargo = 'papu',
+										@Sucursal = 'San Justo',
+										@Turno = 'TM'
+GO
+
+EXEC Procedimientos.EliminarEmpleado @Legajo = '257035'
 
 
+EXEC Procedimientos.ActualizarEmpleado	@Legajo = '257035',
+										@Direccion = 'enrique segoviano 1944',
+										@EmailPersonal = 'Bombaloca@gmail.com',
+										@Cargo = 'Jefe',
+										@Sucursal = 'Ramos Mejia',
+										@Turno = 'Jornada completa'
+GO		
 
-TRUNCATE TABLE Productos.Catalogo
+SELECT * FROM Complementario.Empleados
+-------------
+EXEC Procedimientos.EliminarProductoCatalogo	@nombreProd = 'Aceite de aguacate Ethnos'	
+GO
+
+-------------
+EXEC Procedimientos.AgregarMedioDePago @nombreING = 'Debit card',
+                                       @nombreESP = 'Tarjeta de debito'
+GO 
+
+EXEC Procedimientos.EliminarMedioDePago @id = '4'
+GO
+
+SELECT * FROM Complementario.MediosDePago
+GO
+-------------
+EXEC Procedimientos.AgregarSucursal @Ciudad = 'Pekin',
+                                    @ReemplazarPor = 'Moron',
+                                    @Direccion = 'Aguero 1800',
+                                    @Horario = 'Lunes a Viernes de 8 am - 9 pm y Sabados y Domingos de 8 am - 8 pm',
+                                    @Telefono = '0912-1831'									
+GO
+
+
+EXEC Procedimientos.EliminarSucursal @id = '4'
+GO
+
+SELECT * FROM Complementario.Sucursales
+GO
+-------------
+EXEC Procedimientos.GenerarNotaCredito @IdFactura = '898-04-2717'
+GO
+
+EXEC Procedimientos.EliminarNotaCredito @Id = '1'
+GO
+
+SELECT * FROM Ventas.NotasCredito
+GO

@@ -203,11 +203,7 @@ BEGIN
         '-' AS Proveedor
     FROM
         ##ElectronicAccessories AS e
-    WHERE NOT EXISTS (
-		SELECT 1 
-		FROM Productos.Catalogo c 
-		WHERE c.Nombre = e.Nombre
-	)
+    WHERE e.Nombre NOT IN (SELECT Nombre FROM Productos.Catalogo)
 
     INSERT INTO Productos.Catalogo(LineaDeProducto, Categoria, Nombre, Precio, Proveedor)
     SELECT
@@ -262,7 +258,8 @@ BEGIN
 	UPDATE cf
 	SET cf.Precio = (SELECT c.Precio from ##CatalogoTemp c where c.Nombre = cf.Nombre)
 	FROM Productos.Catalogo cf
-	WHERE cf.Nombre IN (SELECT Nombre from ##CatalogoTemp) AND cf.Precio <> (SELECT c.Precio FROM ##CatalogoTemp AS c WHERE c.Nombre = cf.Nombre)
+	WHERE cf.Nombre IN (SELECT Nombre from ##CatalogoTemp) 
+	AND cf.Precio <> (SELECT c.Precio FROM ##CatalogoTemp AS c WHERE c.Nombre = cf.Nombre)
 	--Para los productos de ##ElectronicAccessories
 	UPDATE cf
 	SET cf.Precio = (SELECT e.PrecioUSD FROM ##ElectronicAccessories AS e WHERE e.Nombre = cf.Nombre)

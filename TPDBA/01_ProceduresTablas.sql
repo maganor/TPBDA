@@ -9,7 +9,7 @@ GO
 CREATE OR ALTER PROCEDURE Procedimientos.AgregarFactura
     @cantidad INT,
     @tipoCliente CHAR(6),
-    @genero CHAR,
+    @genero CHAR(6),
     @empleado INT,
     @tipoFactura CHAR,
     @medioDePago CHAR(11),
@@ -93,7 +93,8 @@ BEGIN
     JOIN Productos.Catalogo AS c ON f.IdProducto = c.Id
     JOIN Complementario.MonedaExtranjera AS me ON me.Nombre = 'USD' 
     JOIN Complementario.MediosDePago AS mdp ON f.IdMedioPago = mdp.IdMDP
-    JOIN Complementario.Sucursales AS s ON f.IdSucursal = s.IdSucursal;
+    JOIN Complementario.Sucursales AS s ON f.IdSucursal = s.IdSucursal
+	ORDER BY f.fecha, f.hora
 END;
 GO
 
@@ -130,7 +131,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE Procedimientos.EliminarEmpleado
+CREATE OR ALTER PROCEDURE Procedimientos.EliminarEmpleado
 	@Legajo INT
 AS 
 BEGIN
@@ -140,7 +141,7 @@ BEGIN
 END;
 GO
 
-CREATE PROCEDURE Procedimientos.ActualizarEmpleado
+CREATE OR ALTER PROCEDURE Procedimientos.ActualizarEmpleado
     @Legajo INT,
     @Direccion VARCHAR(200) = NULL,
     @EmailPersonal VARCHAR(100) = NULL,
