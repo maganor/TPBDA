@@ -47,39 +47,39 @@ DECLARE @xml XML;
 EXEC Reportes.GenerarReporteMensual @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
 SELECT @xml AS XMLResultado;
 
-
 CREATE OR ALTER PROCEDURE Reportes.GenerarReporteTrimestral
     @XMLResultado XML OUTPUT
 AS
 BEGIN
-    DECLARE @TempXML XML; -- Variable intermedia para almacenar el resultado XML
+    DECLARE @TempXML XML;
 
     -- Generación del reporte de ventas para los últimos tres meses, agrupado por mes y turno
     SELECT 
-        FORMAT(F.Fecha, 'MM-yyyy') AS Mes,  -- Formato de mes y año
+        FORMAT(F.Fecha, 'MM-yyyy') AS Mes,
         CASE 
-            WHEN DATEPART(HOUR, F.Fecha) >= 8 AND DATEPART(HOUR, F.Fecha) < 14 THEN 'Mañana'  -- Turno Mañana
-            WHEN DATEPART(HOUR, F.Fecha) >= 14 AND DATEPART(HOUR, F.Fecha) < 21 THEN 'Tarde'   -- Turno Tarde
-            ELSE 'Noche'  -- Asignación para cualquier otra hora, si corresponde
-        END AS Turno,  
-        SUM(F.PrecioUni * F.Cantidad) AS TotalFacturado  -- Total facturado (Precio * Cantidad)
+            WHEN DATEPART(HOUR, F.Hora) >= 8 AND DATEPART(HOUR, F.Hora) < 14 THEN 'Mañana'  -- Turno Mañana
+            WHEN DATEPART(HOUR, F.Hora) >= 14 AND DATEPART(HOUR, F.Hora) <= 21 THEN 'Tarde'   -- Turno Tarde
+        END AS Turno,
+        SUM(F.Cantidad * P.Precio) AS TotalFacturado  -- Total facturado (Precio * Cantidad)
     FROM 
         Ventas.Facturas F
+    INNER JOIN 
+        Productos.Catalogo P ON F.IdProducto = P.Id
     WHERE 
-        F.Fecha >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()) - 3, 0)  -- Inicio de los últimos 3 meses
-        AND F.Fecha < DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)  -- Fin de los últimos 3 meses
+        F.Fecha >= DATEADD(MONTH, -3, GETDATE())				--Calcula el inicio de los ultimos 3 meses
+        AND F.Fecha < GETDATE()									--Fin de los ultimos 3 meses					
     GROUP BY 
-        FORMAT(F.Fecha, 'MM-yyyy'),  -- Agrupar por mes y año
+        FORMAT(F.Fecha, 'MM-yyyy'),
         CASE 
-            WHEN DATEPART(HOUR, F.Fecha) >= 8 AND DATEPART(HOUR, F.Fecha) < 14 THEN 'Mañana'  -- Turno Mañana
-            WHEN DATEPART(HOUR, F.Fecha) >= 14 AND DATEPART(HOUR, F.Fecha) < 21 THEN 'Tarde'   -- Turno Tarde
-            ELSE 'Noche'  -- Asignación para cualquier otra hora, si corresponde
+            WHEN DATEPART(HOUR, F.Hora) >= 8 AND DATEPART(HOUR, F.Hora) < 14 THEN 'Mañana'
+            WHEN DATEPART(HOUR, F.Hora) >= 14 AND DATEPART(HOUR, F.Hora) < 21 THEN 'Tarde'
         END
-    FOR XML PATH('Venta'), ROOT('ReporteTrimestralxTurno');  -- Generar el XML
+    FOR XML PATH('Venta'), ROOT('ReporteTrimestralxTurno');
 
-    SET @XMLResultado = @TempXML;  -- Asignar el resultado final a la variable de salida
+    SET @XMLResultado = @TempXML;
 END;
 GO
+
 
 CREATE OR ALTER PROCEDURE Reportes.GenerarReportePorRangoFechas
     @FechaInicio DATE,  -- Parámetro de fecha de inicio
@@ -113,7 +113,6 @@ DECLARE @xml XML;
 EXEC Reportes.GenerarReportePorRangoFechas @FechaInicio = '2019-01-01', @FechaFin = '2019-03-31', @XMLResultado = @xml OUTPUT;
 SELECT @xml AS XMLResultado;
 
-
 CREATE OR ALTER PROCEDURE Reportes.GenerarReportePorRangoFechasSucursal
     @FechaInicio DATE,
     @FechaFin DATE,
@@ -122,25 +121,21 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    SET @XMLResultado = (
-        SELECT 
-            S.Ciudad AS Sucursal,
+		SELECT 
+            S.ReemplazarPor AS Sucursal,
             P.Nombre AS Producto,
             SUM(F.Cantidad) AS CantidadVendida
-        FROM 
-            Ventas.Facturas F
-        INNER JOIN 
-            Complementario.Sucursales S ON F.IdSucursal = S.IdSucursal  -- Relación con la tabla de sucursales
-        INNER JOIN 
-            Productos.Catalogo P ON F.IdProducto = P.Id  -- Relación con la tabla de productos
-        WHERE 
-            F.Fecha >= @FechaInicio 
-            AND F.Fecha <= @FechaFin
-        GROUP BY 
-            S.Ciudad, P.Nombre
-        ORDER BY 
-            CantidadVendida DESC
-        FOR XML PATH('Producto'), ROOT('ReportePorRangoFechasSucursal')  -- Formato XML
+        FROM Ventas.Facturas F
+
+        INNER JOIN Complementario.Sucursales S ON F.IdSucursal = S.IdSucursal
+        INNER JOIN Productos.Catalogo P ON F.IdProducto = P.Id
+
+        WHERE F.Fecha >= @FechaInicio AND F.Fecha <= @FechaFin
+
+        GROUP BY S.ReemplazarPor, P.Nombre  
+        ORDER BY CantidadVendida DESC
+
+        FOR XML PATH('Producto'), ROOT('ReportePorRangoFechasSucursal')
     );
 END;
 GO
@@ -148,7 +143,6 @@ GO
 DECLARE @xml XML;
 EXEC Reportes.GenerarReportePorRangoFechasSucursal @FechaInicio = '2019-01-01', @FechaFin = '2019-03-31', @XMLResultado = @xml OUTPUT;
 SELECT @xml AS XMLResultado;
-
 
 CREATE OR ALTER PROCEDURE Reportes.Top5ProductosPorSemana
     @Mes INT,
@@ -200,7 +194,6 @@ DECLARE @xml XML;
 EXEC Reportes.Top5ProductosPorSemana @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
 SELECT @xml AS XMLResultado;
 
-
 CREATE OR ALTER PROCEDURE Reportes.Menor5ProductosPorMes
     @Mes INT,
     @Anio INT,
@@ -231,7 +224,6 @@ DECLARE @xml XML;
 EXEC Reportes.Menor5ProductosPorMes @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
 SELECT @xml AS XMLResultado;
 
-
 CREATE OR ALTER PROCEDURE Reportes.TotalAcumuladoVentas
     @Fecha DATE,
     @Sucursal VARCHAR(100),
@@ -240,21 +232,18 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    SELECT 
-        P.Nombre AS Producto,  -- Obtener el nombre del producto
-        SUM(F.PrecioUni * F.Cantidad) AS TotalVentas
-    FROM 
-        Ventas.Facturas F
-    INNER JOIN 
-        Productos.Catalogo P ON F.IdProducto = P.Id  -- Relaciona el producto con la tabla Productos.Catalogo
-    INNER JOIN 
-        Complementario.Sucursales S ON F.IdSucursal = S.IdSucursal  -- Relaciona con Sucursal
-    WHERE 
-        F.Fecha = @Fecha 
-        AND S.Ciudad = @Sucursal  -- Filtra por ciudad en lugar de la sucursal
-    GROUP BY 
-        P.Nombre
-    FOR XML PATH('Producto'), ROOT('TotalAcumuladoVentas');
+        SELECT 
+            P.Nombre AS Producto,
+            SUM(F.Cantidad * P.Precio) AS TotalVentas
+        FROM Ventas.Facturas F
+
+        INNER JOIN Productos.Catalogo P ON F.IdProducto = P.Id
+        INNER JOIN Complementario.Sucursales S ON F.IdSucursal = S.IdSucursal
+
+        WHERE F.Fecha = @Fecha AND S.ReemplazarPor = @Sucursal
+        GROUP BY P.Nombre
+
+        FOR XML PATH('Producto'), ROOT('TotalAcumuladoVentas')
 END;
 GO
 
