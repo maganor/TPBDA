@@ -1,17 +1,4 @@
-# TPDBA
-TP Base de Datos Aplicada
-
-> [!IMPORTANT]
-> LOS QUEREMOS JAIR Y JULIO ^^
-
 # TP INTEGRADOR BASE DE DATOS
-
-## REQUISITOS TECNICOS
-**SISTEMA OPERATIVO RECOMENDADO** : Windows Server 2022
-**CPU**: Se necesita que tenga 4 cores como minimo. Se recomienda tener 8.
-**MEMORIA RAM**: Con 16GB esta bien, en este momento, pero se podria necesitar mas a corto plazo.
-**DISCO DURO**: 100GB.
-
 
 ## OPCIONES PARA DESCARGAR EL PROYECTO
 ### GIT
@@ -21,14 +8,48 @@ TP Base de Datos Aplicada
 ### FORMA MANUAL
 Se descarga un .zip directo desde la pagina de GitHub.
 - Click en la pestania verde, arriba de los archivos, y la ultima opcion que dice Descargar ZIP
+## SISTEMA UTILIZADO
+- CPU: 4 Cores
+- Memoria Ram: 8GB
+- Espacio utilizado por el proyecto < 100 MB
 ## SQL SERVER/SMSS
-- Se instala SQL SERVER 2022 (https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
-    - Al momento de instalar, realizar la instalacion custom.
-    - Instalar en la ubicacion que le parezca bien.
-    - No marcar la instalacion de las extensiones de azure.
-    - El nombre de instancia se recomienda Aurora(Nombre Supermercado).
-    - Se utiliza mixed authentication.
-- Se instala SQL Server Management Studio (https://aka.ms/ssmsfullsetup).
+- Media Location: C:\SQL2022
+- NO utilizar Azure Extension for SQL Server
+---
+- Instance Features utilizadas:
+    - Database Engine Services
+        - Ninguna de las opciones
+- Instance Root Directory: C:\Program Files\Microsoft SQL Server\
+- Shared Feature Directory: C:\Program Files\Microsoft SQL Server\
+- Shared Feature Directory: C:\Program Files(x86)\Microsoft SQL Server\
+---
+- Named instance con el nombre COM5600G01
+- SQL Server Directory:  C:\Program Files\Microsoft SQL Server\MSSQL16.COM5600G01
+---
+- Service Accounts
+    - SQL Server Database Engine: NT SERVICE\MSSQL$COM5600G01 - Automatic
+- Collation: SQL_Latin1_General_CP1_CI_AS
+---
+- Server Configuration
+    - Mixed Mode (Cuenta: sa - Pass = COM5600G01)
+    - Administrators: Mauri\Mauri (mauri)
+- Data Directories
+    - Data root directory: C:\Program Files\Microsoft SQL Server\
+    - User database directory: C:\Program Files\Microsoft SQL Server\MSSQL16.COM5600G01\Data
+    - User database log directory: C:\Program Files\Microsoft SQL Server\MSSQL16.COM5600G01\Data
+    - Backup directory: C:\Program Files\Microsoft SQL Server\MSSQL16.COM5600G01\Backup
+- TempDB
+    - 1 solo archivo, con un tamaño inicial de 8MB y un autogrowth de 32MB
+    - Data Directories: Solo C:\Program Files\Microsoft SQL Server\MSSQL16.COM5600G01\Data
+    - El TempDB log, tiene los mismo tamaño que la tempDB, y el log directory tambien igual a ese unico
+- Memory
+    - Recommended
+    - Marcar la opcion de aceptar las configuraciones recomendadas tambien
+- User instances
+    - Permitido
+- FILESTREAM
+    - Deshabilitado
+---
 
 ## Utilizacion de la base de datos
 - Se abre el archivo TPDBA.ssmsln, ubicado en la carpeta principal del proyecto.
@@ -42,11 +63,3 @@ Dado que la información de ventas diarias es fundamental, se establece una rép
 Cada domingo al finalizar los turnos para generar un respaldo completo de los datos al cierre de cada semana, manteniendo la consistencia y reduciendo el tiempo de restauración en caso de un fallo mayor. En dicho momento suelen generarse menos movimientos, lo que ayudaría en la asignación de recursos para la generación del respaldo completo.
 **Backup diferencial diario**:
 Cada día al finalizar los turnos para optimizar y agilizar el tiempo de restauración de los respaldos y la asignación de los recursos para llevar adelante dicho respaldo.
-
-
-
-## DER
-
-![image](https://github.com/user-attachments/assets/59d07f85-5771-4b21-8743-2b0351eca705)
-
-
