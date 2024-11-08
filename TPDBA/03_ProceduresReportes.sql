@@ -136,7 +136,6 @@ BEGIN
         ORDER BY CantidadVendida DESC
 
         FOR XML PATH('Producto'), ROOT('ReportePorRangoFechasSucursal')
-    );
 END;
 GO
 
@@ -248,5 +247,52 @@ END;
 GO
 
 DECLARE @xml XML;
-EXEC Reportes.TotalAcumuladoVentas @Fecha = '2019-03-15', @Sucursal = 'Buenos Aires', @XMLResultado = @xml OUTPUT;
+EXEC Reportes.TotalAcumuladoVentas @Fecha = '2019-03-15', @Sucursal = 'Ramos Mejia', @XMLResultado = @xml OUTPUT;
 SELECT @xml AS XMLResultado;
+
+
+---------------------prueba---------------------------------
+
+
+
+CREATE OR ALTER PROCEDURE Reportes.GenerarReporteTrimestral
+    @FechaInicio DATE,
+    @FechaFin DATE,
+    @XMLResultado XML OUTPUT
+AS
+BEGIN
+    DECLARE @TempXML XML;
+
+    -- Generación del reporte de ventas para el rango de fechas, agrupado por mes y turno
+    SELECT 
+        FORMAT(F.Fecha, 'MM-yyyy') AS Mes,  -- Formato de mes y año
+        CASE 
+            WHEN DATEPART(HOUR, F.Hora) >= 8 AND DATEPART(HOUR, F.Hora) < 14 THEN 'Mañana'  -- Turno Mañana
+            WHEN DATEPART(HOUR, F.Hora) >= 14 AND DATEPART(HOUR, F.Hora) <= 21 THEN 'Tarde'   -- Turno Tarde
+        END AS Turno,  -- Asignar turno según la hora
+        SUM(F.Cantidad * P.Precio) AS TotalFacturado  -- Total facturado (Precio * Cantidad)
+    FROM 
+        Ventas.Facturas F
+    INNER JOIN 
+        Productos.Catalogo P ON F.IdProducto = P.Id
+    WHERE 
+        F.Fecha >= @FechaInicio  -- Filtrar por la fecha de inicio
+        AND F.Fecha <= @FechaFin  -- Filtrar por la fecha de fin
+    GROUP BY 
+        FORMAT(F.Fecha, 'MM-yyyy'),  -- Agrupar por mes y año
+        CASE 
+            WHEN DATEPART(HOUR, F.Hora) >= 8 AND DATEPART(HOUR, F.Hora) < 14 THEN 'Mañana'  -- Turno Mañana
+            WHEN DATEPART(HOUR, F.Hora) >= 14 AND DATEPART(HOUR, F.Hora) <= 21 THEN 'Tarde'   -- Turno Tarde
+        END  -- Agrupar también por turno
+    FOR XML PATH('Venta'), ROOT('ReporteTrimestralxTurno');  -- Generar el XML
+
+    SET @XMLResultado = @TempXML;  -- Asignar el resultado final a la variable de salida
+END;
+GO
+
+DECLARE @XMLResultado XML;
+EXEC Reportes.GenerarReporteTrimestral 
+    @FechaInicio = '2019-01-01',  -- Fecha de inicio
+    @FechaFin = '2019-03-31',     -- Fecha de fin
+    @XMLResultado = @XMLResultado;
+
