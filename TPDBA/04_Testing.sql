@@ -87,7 +87,7 @@ GO
 GO
 
 SELECT * FROM Ventas.Facturas as f
-WHERE f.Id = '898-04-2718'
+WHERE f.Id = '898-04-2719'
 
 DELETE FROM Ventas.Facturas 
 WHERE Id = '898-04-2719'

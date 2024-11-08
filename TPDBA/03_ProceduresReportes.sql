@@ -45,6 +45,7 @@ GO
 DECLARE @xml XML;
 EXEC Reportes.GenerarReporteMensual @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
 SELECT @xml AS XMLResultado;
+GO
 
 CREATE OR ALTER PROCEDURE Reportes.GenerarReporteTrimestral
     @XMLResultado XML OUTPUT
@@ -80,6 +81,10 @@ BEGIN
 END;
 GO
 
+DECLARE @xml XML;
+EXEC Reportes.GenerarReporteTrimestral @XMLResultado = @xml OUTPUT
+GO
+
 CREATE OR ALTER PROCEDURE Reportes.GenerarReportePorRangoFechas
     @FechaInicio DATE,  -- Parámetro de fecha de inicio
     @FechaFin DATE,     -- Parámetro de fecha de fin
@@ -109,6 +114,7 @@ GO
 DECLARE @xml XML;
 EXEC Reportes.GenerarReportePorRangoFechas @FechaInicio = '2019-01-01', @FechaFin = '2019-03-31', @XMLResultado = @xml OUTPUT;
 SELECT @xml AS XMLResultado;
+GO
 
 CREATE OR ALTER PROCEDURE Reportes.GenerarReportePorRangoFechasSucursal
     @FechaInicio DATE,
@@ -140,6 +146,7 @@ DECLARE @xml XML;
 EXEC Reportes.GenerarReportePorRangoFechasSucursal @FechaInicio = '2019-01-01', @FechaFin = '2019-03-31', @XMLResultado = @xml OUTPUT;
 SELECT @xml AS XMLResultado;
 
+GO
 CREATE OR ALTER PROCEDURE Reportes.Top5ProductosPorSemana
     @Mes INT,
     @Anio INT,
@@ -189,7 +196,7 @@ GO
 DECLARE @xml XML;
 EXEC Reportes.Top5ProductosPorSemana @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
 SELECT @xml AS XMLResultado;
-
+GO
 CREATE OR ALTER PROCEDURE Reportes.Menor5ProductosPorMes
     @Mes INT,
     @Anio INT,
@@ -223,7 +230,7 @@ GO
 DECLARE @xml XML;
 EXEC Reportes.Menor5ProductosPorMes @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
 SELECT @xml AS XMLResultado;
-
+GO
 CREATE OR ALTER PROCEDURE Reportes.TotalAcumuladoVentas
     @Fecha DATE,               -- Parámetro para la fecha específica
     @Sucursal VARCHAR(100),    -- Parámetro para la sucursal
@@ -256,52 +263,6 @@ GO
 DECLARE @xml XML;
 EXEC Reportes.TotalAcumuladoVentas @Fecha = '2019-03-15', @Sucursal = 'Ramos Mejia', @XMLResultado = @xml OUTPUT;
 SELECT @xml AS XMLResultado;
-
-----------------
---para probrar, dsp borrar
-CREATE OR ALTER PROCEDURE Reportes.GenerarReporteTrimestral 
-    @FechaInicio DATE,
-    @FechaFin DATE,
-    @XMLResultado XML OUTPUT
-AS
-BEGIN
-    DECLARE @TempXML XML;
-
-    -- Generación del reporte de ventas para el rango de fechas, agrupado por mes y turno
-    SELECT 
-        FORMAT(F.Fecha, 'MM-yyyy') AS Mes,  -- Formato de mes y año
-        CASE 
-            WHEN DATEPART(HOUR, F.Hora) >= 8 AND DATEPART(HOUR, F.Hora) < 14 THEN 'Mañana'  -- Turno Mañana
-            WHEN DATEPART(HOUR, F.Hora) >= 14 AND DATEPART(HOUR, F.Hora) <= 21 THEN 'Tarde'   -- Turno Tarde
-        END AS Turno,  -- Asignar turno según la hora
-        SUM(F.Cantidad * P.Precio * ME.PrecioAR) AS TotalFacturado  -- Convertir precio a ARS usando el valor del dólar
-    FROM 
-        Ventas.Facturas F
-    INNER JOIN 
-        Productos.Catalogo P ON F.IdProducto = P.Id
-    INNER JOIN 
-        Complementario.MonedaExtranjera ME ON ME.Nombre = 'USD'  -- Obtener el valor del USD
-    WHERE 
-        F.Fecha >= @FechaInicio  -- Filtrar por la fecha de inicio
-        AND F.Fecha <= @FechaFin  -- Filtrar por la fecha de fin
-    GROUP BY 
-        FORMAT(F.Fecha, 'MM-yyyy'),  -- Agrupar por mes y año
-        CASE 
-            WHEN DATEPART(HOUR, F.Hora) >= 8 AND DATEPART(HOUR, F.Hora) < 14 THEN 'Mañana'  -- Turno Mañana
-            WHEN DATEPART(HOUR, F.Hora) >= 14 AND DATEPART(HOUR, F.Hora) <= 21 THEN 'Tarde'   -- Turno Tarde
-        END  -- Agrupar también por turno
-    FOR XML PATH('Venta'), ROOT('ReporteTrimestralxTurno');  -- Generar el XML
-
-    SET @XMLResultado = @TempXML;  -- Asignar el resultado final a la variable de salida
-END;
-GO
-
-DECLARE @XMLResultado XML;
-EXEC Reportes.GenerarReporteTrimestral 
-    @FechaInicio = '2019-01-01',  -- Fecha de inicio
-    @FechaFin = '2019-03-31',     -- Fecha de fin
-    @XMLResultado = @XMLResultado;
-
 
 
 

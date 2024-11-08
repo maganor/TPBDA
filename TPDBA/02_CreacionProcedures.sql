@@ -1,6 +1,21 @@
 USE Com5600G01
 GO
 
+CREATE OR ALTER FUNCTION Procedimientos.ArreglarLetras(@str NVARCHAR(100)) RETURNS NVARCHAR(100)
+BEGIN
+
+    SET @str = REPLACE(@str, 'Ã', '')
+    SET @str = REPLACE(@str, '¡', 'á')
+    SET @str = REPLACE(@str, '³', 'ó') 
+    SET @str = REPLACE(@str, '©', 'é')
+    SET @str = REPLACE(@str, '±', 'ñ')
+    SET @str = REPLACE(@str, 'º', 'ú')
+    SET @str = REPLACE(@str, NCHAR(0xAD), 'í')
+
+    return @str;
+END
+GO
+
 --Para insertar los datos de los archivos
 --Para el .csv:
 CREATE OR ALTER PROCEDURE Procedimientos.CargarCSV
@@ -215,6 +230,9 @@ BEGIN
     FROM
         ##ProductosImportados AS p
     WHERE p.Nombre NOT IN (SELECT Nombre FROM Productos.Catalogo)
+
+	UPDATE Productos.Catalogo
+	SET Nombre = Procedimientos.ArreglarLetras(Nombre)
 
 END;
 GO

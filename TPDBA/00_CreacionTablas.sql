@@ -181,7 +181,6 @@ CREATE TABLE Ventas.Facturas(
 	CONSTRAINT FK_Legajo FOREIGN KEY (Empleado) REFERENCES Complementario.Empleados(Legajo),
 	CONSTRAINT FK_Sucursal FOREIGN KEY (IdSucursal) REFERENCES Complementario.Sucursales(IdSucursal)
 )
-SELECT * FROM Ventas.Facturas-----------------------KAKAKKAKAAKAKAKK
 
 DROP TABLE IF EXISTS Ventas.NotasCredito
 GO
