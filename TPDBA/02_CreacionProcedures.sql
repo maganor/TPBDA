@@ -18,13 +18,13 @@ GO
 CREATE OR ALTER FUNCTION Procedimientos.ArreglarLetras(@str NVARCHAR(100)) RETURNS NVARCHAR(100)
 BEGIN
 
-    SET @str = REPLACE(@str, 'Ã', '')
-    SET @str = REPLACE(@str, '¡', 'á')
-    SET @str = REPLACE(@str, '³', 'ó') 
-    SET @str = REPLACE(@str, '©', 'é')
-    SET @str = REPLACE(@str, '±', 'ñ')
-    SET @str = REPLACE(@str, 'º', 'ú')
-    SET @str = REPLACE(@str, NCHAR(0xAD), 'í')
+    SET @str = REPLACE(@str, 'ï¿½', '')
+    SET @str = REPLACE(@str, 'ï¿½', 'ï¿½')
+    SET @str = REPLACE(@str, 'ï¿½', 'ï¿½') 
+    SET @str = REPLACE(@str, 'ï¿½', 'ï¿½')
+    SET @str = REPLACE(@str, 'ï¿½', 'ï¿½')
+    SET @str = REPLACE(@str, 'ï¿½', 'ï¿½')
+    SET @str = REPLACE(@str, NCHAR(0xAD), 'ï¿½')
 
     return @str;
 END;
@@ -34,7 +34,7 @@ GO
 --Para el .csv:
 --Archivo de Catalogo:
 CREATE OR ALTER PROCEDURE Procedimientos.CargarCatalogo
-    @direccion VARCHAR(255),					-- Parámetro para la ruta del archivo
+    @direccion VARCHAR(255),					-- Parï¿½metro para la ruta del archivo
     @terminator CHAR(1)							-- Delimitador de campo
 AS
 BEGIN
@@ -157,7 +157,7 @@ BEGIN
         CAST(IdProducto AS INT),
         CAST(NombreProducto AS NVARCHAR(100)),
         CAST(Proveedor AS VARCHAR(100)),
-        CAST([Categoría] AS VARCHAR(50)),
+        CAST([Categorï¿½a] AS VARCHAR(50)),
         CAST(CantidadPorUnidad AS VARCHAR(50)),
         CAST(REPLACE(REPLACE(PrecioUnidad, ''$'', ''''), '' '', '''') AS DECIMAL(6,2))
     FROM OPENROWSET(
@@ -257,7 +257,7 @@ BEGIN
     SET @sql = N'
     INSERT INTO #ClasificacionTemp (LineaDeProducto, Producto)
     SELECT 
-        CAST([Línea de producto] AS VARCHAR(100)),
+        CAST([Lï¿½nea de producto] AS VARCHAR(100)),
         CAST(Producto AS VARCHAR(100))
     FROM OPENROWSET(
         ''Microsoft.ACE.OLEDB.12.0'',
@@ -342,7 +342,7 @@ GO
 CREATE OR ALTER PROCEDURE Procedimientos.CargarSucursales
     @direccion VARCHAR(100)
 AS
-BEGIN
+BEGIN --test
     SET NOCOUNT ON;
 
     IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '#SucursalesTemp')
