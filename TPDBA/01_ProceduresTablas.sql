@@ -6,98 +6,6 @@ GO
 CREATE SCHEMA Procedimientos 
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.AgregarFactura
-    @cantidad INT,
-    @tipoCliente CHAR(6),
-    @genero CHAR(6),
-    @empleado INT,
-    @tipoFactura CHAR,
-    @medioDePago CHAR(11),
-    @producto VARCHAR(100),
-    @ciudad VARCHAR(15),
-    @id CHAR(11)
-AS
-BEGIN
-    DECLARE @IdProducto INT
-    DECLARE @IdSucursal INT
-    DECLARE @IdMedioPago INT
-    DECLARE @precio DECIMAL(6,2)
-
-    -- Obtener IdProducto y precio
-    SELECT @IdProducto = Id, @precio = Precio 
-    FROM Productos.Catalogo 
-    WHERE Nombre = @producto;
-
-    -- Validar que se haya encontrado el producto
-    IF @IdProducto IS NULL
-    BEGIN
-        RAISERROR('Producto NO encontrado', 16, 1);
-        RETURN;
-    END
-    -- Obtener IdSucursal según la ciudad
-    SELECT @IdSucursal = IdSucursal 
-    FROM Complementario.Sucursales 
-    WHERE Ciudad = @ciudad;
-
-    -- Validar que se haya encontrado la sucursal
-    IF @IdSucursal IS NULL
-    BEGIN
-        RAISERROR('Sucursal NO encontrada', 16, 1);
-        RETURN;
-    END
-    -- Obtener IdMedioPago según el nombre en inglés del medio de pago
-    SELECT @IdMedioPago = IdMDP 
-    FROM Complementario.MediosDePago 
-    WHERE NombreING = @medioDePago OR NombreESP = @medioDePago;
-    -- Validar que se haya encontrado el medio de pago
-    IF @IdMedioPago IS NULL
-    BEGIN
-        RAISERROR('Medio de Pago NO encontrado', 16, 1);
-        RETURN;
-    END
-    -- Validar que el empleado exista
-    IF NOT EXISTS (SELECT 1 FROM Complementario.Empleados WHERE Legajo = @empleado)
-    BEGIN
-        RAISERROR('Empleado NO encontrado', 16, 1);
-        RETURN;
-    END
-    -- Insertar en la tabla Ventas.Facturas
-    INSERT INTO Ventas.Facturas (Id,TipoFactura,Ciudad,TipoCliente,Genero,IdProducto,Cantidad,Fecha,Hora,IdMedioPago,Empleado,IdSucursal)
-    VALUES (
-        @id, @tipoFactura, @ciudad, @tipoCliente, @genero, 
-        @IdProducto, @cantidad, GETDATE(), CAST(SYSDATETIME() AS TIME(0)), 
-        @IdMedioPago, @empleado, @IdSucursal
-    );
-END;
-GO
-
-CREATE OR ALTER PROCEDURE Procedimientos.MostrarFacturas
-AS
-BEGIN
-    SELECT 
-        f.Id AS [ID Factura],
-        f.TipoFactura AS [Tipo de Factura],
-        f.Ciudad AS [Ciudad],
-        f.TipoCliente AS [Tipo de Cliente],
-        f.Genero AS [Género],
-        c.LineaDeProducto AS [Línea de Producto],
-        c.Nombre AS [Producto],
-        FORMAT(c.Precio * me.PrecioAR, 'N2') AS [Precio Unitario], -- Convertimos el precio a pesos, multiplicando el precio en USD por el precio AR de la moneda extranjera
-        f.Cantidad AS [Cantidad],
-        f.Fecha AS [Fecha],
-        f.Hora AS [Hora],
-        mdp.NombreESP AS [Medio de Pago],
-        f.Empleado AS [Empleado],
-        s.ReemplazarPor AS [Sucursal]
-    FROM Ventas.Facturas AS f
-    JOIN Productos.Catalogo AS c ON f.IdProducto = c.Id
-    JOIN Complementario.MonedaExtranjera AS me ON me.Nombre = 'USD' 
-    JOIN Complementario.MediosDePago AS mdp ON f.IdMedioPago = mdp.IdMDP
-    JOIN Complementario.Sucursales AS s ON f.IdSucursal = s.IdSucursal
-	ORDER BY f.fecha, f.hora
-END;
-GO
-
 CREATE OR ALTER PROCEDURE Procedimientos.AgregarEmpleado
     @Nombre VARCHAR(50),
     @Apellido VARCHAR(50),
@@ -108,31 +16,25 @@ CREATE OR ALTER PROCEDURE Procedimientos.AgregarEmpleado
     @CUIL VARCHAR(11),
     @Cargo VARCHAR(50),
     @Sucursal VARCHAR(100),
-    @Turno VARCHAR(25),
-	@FraseClave NVARCHAR(128)
+    @Turno VARCHAR(25)
 AS
 BEGIN
-	DECLARE @Legajo INT
-	SELECT @Legajo = MAX(E.Legajo) FROM Complementario.Empleados as E
-    INSERT INTO Complementario.Empleados
-    VALUES (
-		@Legajo + 1,
-        @Nombre,
-        @Apellido,
-        @DNI,
-        @Direccion,
-        @EmailPersonal,
-        @EmailEmpresa,
-        @CUIL,
-        @Cargo,
-        @Sucursal,
-        @Turno,
-		1,
-		EncryptByPassPhrase(@FraseClave, CONVERT(NVARCHAR(12), @DNI)),				-- Cifrado del DNI
-        EncryptByPassPhrase(@FraseClave, @Direccion),								-- Cifrado de la dirección
-        EncryptByPassPhrase(@FraseClave, @EmailPersonal),							-- Cifrado del email personal
-        EncryptByPassPhrase(@FraseClave, @CUIL)										-- Cifrado del CUIL
-    );
+    DECLARE @IdSucursal INT;
+
+    SELECT @IdSucursal = IdSucursal
+    FROM Complementario.Sucursales
+    WHERE Ciudad = @Sucursal;
+
+    IF @IdSucursal IS NULL
+    BEGIN
+        RAISERROR ('La sucursal especificada no existe o la ciudad no es válida.', 16, 1);
+        RETURN;
+    END
+	   
+    INSERT INTO Complementario.Empleados 
+        (Nombre, Apellido, DNI, Direccion, EmailPersonal, EmailEmpresa, CUIL, Cargo, IdSucursal, Turno, EstaActivo)
+    VALUES 
+        (@Nombre, @Apellido, @DNI, @Direccion, @EmailPersonal, @EmailEmpresa, @CUIL, @Cargo, @IdSucursal, @Turno, 1);
 END;
 GO
 
@@ -151,48 +53,73 @@ CREATE OR ALTER PROCEDURE Procedimientos.ActualizarEmpleado
     @Direccion VARCHAR(200) = NULL,
     @EmailPersonal VARCHAR(100) = NULL,
     @Cargo VARCHAR(50) = NULL,
-    @Sucursal VARCHAR(100) = NULL,
-    @Turno VARCHAR(25) = NULL,
-    @FraseClave NVARCHAR(128)  -- Parámetro para la frase clave de cifrado
+    @IdSucursal INT = NULL,  
+    @Turno VARCHAR(25) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
-
-    -- Actualizar los datos del empleado
-    UPDATE Complementario.Empleados
+    UPDATE Complementario.Empleados										
     SET 
         Cargo = COALESCE(@Cargo, Cargo),
-        Sucursal = COALESCE(@Sucursal, Sucursal),
+        Sucursal = COALESCE(@IdSucursal, Sucursal),						
         Turno = COALESCE(@Turno, Turno),
-        -- Cifrado de los campos sensibles solo si el nuevo valor es proporcionado
-        Direccion_Cifrada = CASE 
-                              WHEN @Direccion IS NOT NULL THEN EncryptByPassPhrase(@FraseClave, @Direccion) 
-                              ELSE Direccion_Cifrada 
-                           END,  -- Cifrado de la dirección solo si se proporciona un valor
-        EmailPersonal_Cifrado = CASE 
-                                  WHEN @EmailPersonal IS NOT NULL THEN EncryptByPassPhrase(@FraseClave, @EmailPersonal) 
-                                  ELSE EmailPersonal_Cifrado 
-                               END
+        Direccion = COALESCE(@Direccion, Direccion),
+        EmailPersonal = COALESCE(@EmailPersonal, EmailPersonal)
     WHERE Legajo = @Legajo;
 END;
 GO
 
+CREATE OR ALTER PROCEDURE Procedimientos.AgregarOActualizarProducto
+    @Nombre VARCHAR(100),
+    @Precio DECIMAL(6,2),
+    @IdCategoria INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF EXISTS (															-- Comprueba si ya existe el producto en el catálogo
+        SELECT 1
+        FROM Productos.Catalogo
+        WHERE Nombre = @Nombre AND IdCategoria = @IdCategoria
+    )
+    BEGIN
+        UPDATE Productos.Catalogo										-- Si existe, actualiza el precio
+        SET Precio = @Precio
+        WHERE Nombre = @Nombre AND IdCategoria = @IdCategoria;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO Productos.Catalogo (Nombre, Precio, IdCategoria)	-- Si no existe, insertar el nuevo producto
+        VALUES (@Nombre, @Precio, @IdCategoria);
+    END
+END;
+GO
+
 CREATE OR ALTER PROCEDURE Procedimientos.EliminarProductoCatalogo
-    @nombreProd varchar(100)
+    @Id INT
 AS
 BEGIN
     DELETE FROM Productos.Catalogo
-    WHERE Nombre = @nombreProd
+    WHERE Id = @Id
 END;
 GO
 
 CREATE OR ALTER PROCEDURE Procedimientos.AgregarMedioDePago
-	@nombreING varchar(15),
-	@nombreESP varchar(25)
+    @nombreING VARCHAR(15),
+    @nombreESP VARCHAR(25)
 AS
 BEGIN
-	INSERT INTO Complementario.MediosDePago(NombreING,NombreESP)
-	VALUES(@nombreING,@nombreESP)
+    IF EXISTS (
+        SELECT 1
+        FROM Complementario.MediosDePago
+        WHERE NombreING = @nombreING AND NombreESP = @nombreESP
+    )
+    BEGIN
+        RAISERROR ('El Medio de Pago ya existe.', 16, 1);
+        RETURN;
+    END
+   
+    INSERT INTO Complementario.MediosDePago (NombreING, NombreESP)
+    VALUES (@nombreING, @nombreESP);
 END;
 GO
 
@@ -206,15 +133,24 @@ END;
 GO
 
 CREATE OR ALTER PROCEDURE Procedimientos.AgregarSucursal
-	@Ciudad VARCHAR(100),
+    @Ciudad VARCHAR(100),
     @ReemplazarPor VARCHAR(100),
     @Direccion VARCHAR(200),
     @Horario VARCHAR(100),
     @Telefono VARCHAR(20)
 AS
 BEGIN
-	INSERT INTO Complementario.Sucursales(Ciudad,ReemplazarPor,Direccion,Horario,Telefono)
-	VALUES(@Ciudad,@ReemplazarPor,@Direccion,@Horario,@Telefono)
+    IF EXISTS (														-- Comprueba si ya existe una sucursal en la misma ciudad y dirección
+        SELECT 1
+        FROM Complementario.Sucursales
+        WHERE Ciudad = @Ciudad AND Direccion = @Direccion AND ReemplazarPor = @ReemplazarPor
+    )
+    BEGIN
+        RAISERROR ('Ya existe esa sucursal', 16, 1);
+        RETURN;
+    END
+    INSERT INTO Complementario.Sucursales (Ciudad, ReemplazarPor, Direccion, Horario, Telefono)	-- Inserta la nueva sucursal si no existe
+    VALUES (@Ciudad, @ReemplazarPor, @Direccion, @Horario, @Telefono);
 END;
 GO
 
@@ -228,38 +164,105 @@ END;
 GO
 
 CREATE OR ALTER PROCEDURE Procedimientos.GenerarNotaCredito
-    @IdFactura CHAR(11)    -- Parámetro que recibe el ID de la factura
+    @IdFactura CHAR(11)													
 AS
 BEGIN
     DECLARE @IdProducto INT;
 
-    -- Obtener el IdProducto asociado con la factura, por ejemplo, desde la tabla Ventas.Facturas
-    SELECT @IdProducto = IdProducto  
+    SELECT @IdProducto = IdProducto										-- Obtiene el IdProducto asociado con la factura
     FROM Ventas.Facturas
     WHERE Id = @IdFactura;
 
-    -- Verificar si se obtuvo un IdProducto
     IF @IdProducto IS NOT NULL
     BEGIN
-        -- Crear la nota de crédito, asociándola con la factura y el producto
-        INSERT INTO Ventas.NotasCredito (IdFactura, EstaActivo)
-        VALUES (@IdFactura, 1);  -- 1 representa el estado activo
+        INSERT INTO Ventas.NotasCredito (IdFactura, EstaActivo)			-- Crea la nota de crédito, asociándola con la factura y el producto
+        VALUES (@IdFactura, 1);  
     END
     ELSE
     BEGIN
-        -- Si no se encuentra un producto asociado a la factura, lanzar un error
         RAISERROR('No se encontró un producto asociado con la factura proporcionada.', 16, 1);
     END
 END;
 GO
 
 CREATE OR ALTER PROCEDURE Procedimientos.EliminarNotaCredito
-    @Id INT -- ID de la nota de crédito a actualizar
+    @Id INT
 AS
 BEGIN
-    -- Actualizar el estado de la nota de crédito a inactivo (0)
     UPDATE Ventas.NotasCredito
     SET EstaActivo = 0
     WHERE Id = @Id;
 END;
 GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.AgregarCliente
+    @Nombre VARCHAR(50),
+    @TipoCliente CHAR(6),
+    @Genero CHAR(6),
+	@DNI INT
+AS
+BEGIN
+        IF EXISTS (SELECT 1 FROM Complementario.Clientes WHERE DNI = @DNI) -- Inserta el cliente en la tabla solo si no está su dni ya ingresado
+        BEGIN
+            RAISERROR('Ya esiste un cliente con el DNI ingresado.', 16, 1);
+            RETURN;
+        END
+
+        INSERT INTO Complementario.Clientes (Nombre, TipoCliente, Genero, DNI)
+        VALUES (@Nombre, @TipoCliente, @Genero, @DNI);
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.ModificarCliente
+	@DNI INT,
+	@TipoClienteNuevo CHAR(6)
+AS
+BEGIN
+      IF NOT EXISTS (SELECT 1 FROM Complementario.Clientes WHERE DNI = @DNI)
+      BEGIN
+           RAISERROR('No existe un cliente con el DNI ingresado.', 16, 1);
+		   RETURN;
+      END
+      
+	  UPDATE Complementario.Clientes
+      SET TipoCliente = @TipoClienteNuevo
+      WHERE DNI = @DNI;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.EliminarCliente
+    @IdCliente INT
+AS
+BEGIN
+       IF NOT EXISTS (SELECT 1 FROM Complementario.Clientes WHERE IdCliente = @IdCliente)
+       BEGIN
+            RAISERROR('No existe un cliente con el ID ingresado.', 16, 1);
+            RETURN;
+       END
+
+       DELETE FROM Complementario.Clientes
+       WHERE IdCliente = @IdCliente;   
+END;
+GO
+
+
+-----Despues pasar a testing
+EXEC Procedimientos.ModificarCliente
+    @DNI = 43525943,
+    @TipoClienteNuevo = 'NORMAL';
+
+EXEC Procedimientos.ModificarCliente
+    @DNI = 44925943,
+    @TipoClienteNuevo = 'VIP';
+
+	
+USE Com5600G01
+GO
+EXEC Procedimientos.CargarCliente
+    @Nombre = 'Juan Fer Perez',
+    @TipoCliente = 'VIP',
+    @Genero = 'M',
+	@DNI = 43525943;
+
+EXEC Procedimientos.EliminarCliente
+    @IdCliente = 1;
