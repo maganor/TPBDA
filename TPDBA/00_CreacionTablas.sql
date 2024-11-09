@@ -6,6 +6,8 @@
 --Villegas Brandolini, Lucas      -       44459666
 --Zapata, Santiago                -       44525943
 
+--CREACION TABLAS:
+
 USE master
 GO
 DROP DATABASE Com5600G01
@@ -96,10 +98,6 @@ CREATE TABLE Complementario.Clientes(
 	Genero CHAR(6),
 )
 GO
-
---INSERT INTO Complementario.ValorDolar(Nombre,PrecioAR) 	Comentada por ahora
---VALUES ('USD',1110)
---GO
 
 INSERT INTO Complementario.MediosDePago(NombreING,NombreESP)
 VALUES ('Credit card','Tarjeta de credito'),('Cash','Efectivo'),('Ewallet','Billetera Electronica')

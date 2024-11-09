@@ -2,6 +2,7 @@ USE Com5600G01
 GO 
 
 EXEC Procedimientos.CargarValorDolar
+GO
 
 DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
 DECLARE @FullPath VARCHAR(500) = @PATH + '\Informacion_complementaria.xlsx'

@@ -1,3 +1,6 @@
+
+---ABM:
+
 USE Com5600G01
 GO 
 
@@ -6,6 +9,7 @@ GO
 CREATE SCHEMA Procedimientos 
 GO
 
+-------------SP'S Para Empleados:
 CREATE OR ALTER PROCEDURE Procedimientos.AgregarEmpleado
     @Nombre VARCHAR(50),
     @Apellido VARCHAR(50),
@@ -38,16 +42,6 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.EliminarEmpleado
-	@Legajo INT
-AS 
-BEGIN
-	UPDATE Complementario.Empleados
-	SET EstaActivo = 0
-	WHERE Legajo = @Legajo
-END;
-GO
-
 CREATE OR ALTER PROCEDURE Procedimientos.ActualizarEmpleado
     @Legajo INT,
     @Direccion VARCHAR(200) = NULL,
@@ -69,7 +63,18 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.AgregarOActualizarProducto
+CREATE OR ALTER PROCEDURE Procedimientos.EliminarEmpleado
+	@Legajo INT
+AS 
+BEGIN
+	UPDATE Complementario.Empleados
+	SET EstaActivo = 0
+	WHERE Legajo = @Legajo
+END;
+GO
+
+-------------SP'S para Productos:
+CREATE OR ALTER PROCEDURE Procedimientos.AgregarOActualizarProductoCatalogo
     @Nombre VARCHAR(100),
     @Precio DECIMAL(6,2),
     @IdCategoria INT
@@ -103,6 +108,7 @@ BEGIN
 END;
 GO
 
+-------------SP'S para Medios de Pago:
 CREATE OR ALTER PROCEDURE Procedimientos.AgregarMedioDePago
     @nombreING VARCHAR(15),
     @nombreESP VARCHAR(25)
@@ -132,6 +138,7 @@ BEGIN
 END;
 GO
 
+-------------SP'S Para Sucursales:
 CREATE OR ALTER PROCEDURE Procedimientos.AgregarSucursal
     @Ciudad VARCHAR(100),
     @ReemplazarPor VARCHAR(100),
@@ -154,6 +161,24 @@ BEGIN
 END;
 GO
 
+CREATE OR ALTER PROCEDURE Procedimientos.ActualizarSucursal
+    @IdSucursal INT,                  
+    @Direccion VARCHAR(200) = NULL,     --Si no se le envian parametros, toman el valor NULL
+    @Telefono VARCHAR(20) = NULL,       
+    @Horario VARCHAR(100) = NULL        
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE Complementario.Sucursales							-- Actualiza solo los campos que no son NULL
+    SET 
+        Direccion = COALESCE(@Direccion, Direccion),		
+        Telefono = COALESCE(@Telefono, Telefono),			
+        Horario = COALESCE(@Horario, Horario)				
+    WHERE IdSucursal = @IdSucursal;
+END;
+GO
+
 CREATE OR ALTER PROCEDURE Procedimientos.EliminarSucursal
 	@id int
 AS
@@ -163,6 +188,7 @@ BEGIN
 END;
 GO
 
+-------------SP'S Para Notas de Credito:
 CREATE OR ALTER PROCEDURE Procedimientos.GenerarNotaCredito
     @IdFactura CHAR(11)													
 AS
@@ -195,6 +221,7 @@ BEGIN
 END;
 GO
 
+-------------SP'S Para Clientes:
 CREATE OR ALTER PROCEDURE Procedimientos.AgregarCliente
     @Nombre VARCHAR(50),
     @TipoCliente CHAR(6),
@@ -245,6 +272,7 @@ BEGIN
 END;
 GO
 
+-------------SP'S para Detalles de Ventas:
 CREATE OR ALTER PROCEDURE AgregarProducto
     @IdProducto INT
 AS
@@ -323,8 +351,7 @@ BEGIN
     PRINT 'Factura cargada correctamente.';
 END;
 
---Para obtener el valor actual del Dolar:
-
+-------------SP'S para el Valor Actual del Dolar:
 CREATE OR ALTER PROCEDURE Procedimientos.CargarValorDolar
 AS
 BEGIN
