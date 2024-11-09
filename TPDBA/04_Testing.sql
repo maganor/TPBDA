@@ -8,13 +8,11 @@ DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
 DECLARE @FullPath VARCHAR(500) = @PATH + '\Informacion_complementaria.xlsx'
 
 --Primero que todo, cargamos la tabla de Clasificacion de Productos con el SP:
-EXEC Procedimientos.CargarClasificacion @direccion = @FullPath,
-										@pagina =  'Clasificacion productos'
-
+EXEC Procedimientos.CargarClasificacion @direccion = @FullPath
+									
 --Cargamos los Empleados con el SP:
-EXEC Procedimientos.CargarEmpleados		@direccion = @FullPath,
-										@pagina =  'Empleados'
-										
+EXEC Procedimientos.CargarEmpleados		@direccion = @FullPath
+																			
 --Cargamos las Sucursales con el SP:
 EXEC Procedimientos.CargarSucursales	@direccion = @FullPath									
 
@@ -25,14 +23,12 @@ EXEC Procedimientos.CargarCatalogo		@direccion = @FullPath,
 
 --Cargamos los Productos Importados con el SP:
 SET @FULLPATH = @PATH + '\Productos\Productos_importados.xlsx'
-EXEC Procedimientos.CargarImportados	@direccion = @FullPath,
-										@pagina = 'Listado de Productos'
+EXEC Procedimientos.CargarImportados	@direccion = @FullPath
 
 --Cargamoslos Accesorios Electronicos con el SP:
 SET @FULLPATH = @PATH + '\Productos\Electronic accessories.xlsx'
 EXEC Procedimientos.CargarElectronic	@direccion = @FullPath,
-										@pagina =  'Sheet1'
-										
+																	
 --Cargamos las Ventas Registradas con el SP:
 SET @FULLPATH = @PATH + '\Ventas_registradas.csv'
 EXEC Procedimientos.CargarHistorial		@direccion = @FullPath, 

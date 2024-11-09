@@ -283,7 +283,7 @@ CREATE OR ALTER PROCEDURE AgregarProducto
 AS
 BEGIN
 	
-	IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '##DetalleVentas' AND type = 'U')
+	IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '##DetalleVentas')
 	BEGIN
 		CREATE TABLE ##DetalleVentas
 		(
