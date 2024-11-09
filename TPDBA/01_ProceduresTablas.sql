@@ -266,3 +266,81 @@ EXEC Procedimientos.CargarCliente
 
 EXEC Procedimientos.EliminarCliente
     @IdCliente = 1;
+
+CREATE OR ALTER PROCEDURE AgregarProducto
+    @IdProducto INT
+AS
+BEGIN
+	
+	CREATE OR ALTER TABLE ##DetalleVentas
+	(
+		IdDetalle INT IDENTITY(1,1) PRIMARY KEY, -- ID auto incrementable como clave primaria
+		IdProducto INT,                          -- Relación con el producto
+		Cantidad INT                             -- Cantidad de producto
+	)
+	GO
+
+    IF EXISTS (SELECT 1 FROM #DetalleVentas WHERE IdProducto = @IdProducto)
+    BEGIN
+        UPDATE #DetalleVentas
+        SET Cantidad = Cantidad + 1
+        WHERE IdProducto = @IdProducto;
+    END
+    ELSE
+    BEGIN
+        INSERT INTO #DetalleVentas (IdProducto, Cantidad)
+        VALUES (@IdProducto, 1);
+    END
+END;
+GO
+
+CREATE OR ALTER PROCEDURE FinalizarCompra
+    @IdFactura INT 
+AS
+BEGIN
+    INSERT INTO Ventas.DetalleVentas (IdFactura, IdProducto, Cantidad, Precio)
+    SELECT
+        @IdFactura,                             
+        d.IdProducto,                            
+        d.Cantidad,                             
+        p.PrecioUnitario                          
+    FROM #DetalleVentas d
+    JOIN Productos.Catalogo p ON d.IdProducto = p.Id;  
+	DROP TABLE ##DetalleVentas
+END;
+GO
+
+CREATE OR ALTER PROCEDURE CargarFacturas
+    @IdCliente INT,
+    @IdSucursal INT,
+    @Empleado INT,
+    @TipoFactura CHAR(1),
+    @IdMedioPago INT
+AS
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM Complementario.MediosDePago WHERE IdMDP = @IdMedioPago)
+    BEGIN
+        RAISERROR ('El medio de pago no existe.', 16, 1); -- Código de error 16
+        RETURN;
+    END
+
+    IF @TipoFactura NOT IN ('A', 'B', 'C')
+    BEGIN
+        RAISERROR ('El tipo de factura no es válido. Debe ser A, B o C.', 16, 1); -- Código de error 16
+        RETURN;
+    END
+
+    INSERT INTO Ventas.Facturas (TipoFactura, Fecha, Hora, IdMedioPago, Empleado, IdSucursal, IdCliente)
+    VALUES 
+    (
+        @TipoFactura,                              
+        GETDATE(),                                
+        CONVERT(TIME(0), GETDATE()),              
+        @IdMedioPago,                             
+        @Empleado,                             
+        @IdSucursal,                              
+        @IdCliente                                
+    );
+
+    PRINT 'Factura cargada correctamente.';
+END;

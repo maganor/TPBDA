@@ -195,3 +195,37 @@ DECLARE @xml XML;
 EXEC Reportes.TotalAcumuladoVentas @Fecha = '2019-03-15', @Sucursal = 'Ramos Mejia', @XMLResultado = @xml OUTPUT;
 SELECT @xml AS XMLResultado;
 GO
+--
+BEGIN TRANSACTION;  
+
+BEGIN TRY
+    DECLARE @Error INT;
+    
+    EXEC @Error = CargarFacturas 
+        @IdCliente = 123, 
+        @IdSucursal = 1, 
+        @Empleado = 101, 
+        @TipoFactura = 'A', 
+        @IdMedioPago = 5;
+
+    IF @Error <> 0		-- Verificar si ocurrió un error en CargarFacturas
+    BEGIN
+        THROW;		-- Nos vamos
+    END;
+
+    EXEC AgregarProducto @IdProducto = 101;
+    EXEC AgregarProducto @IdProducto = 102;
+
+    DECLARE @IdFactura INT;
+    SET @IdFactura = (SELECT TOP 1 IdFactura FROM Ventas.Facturas ORDER BY IdFactura DESC); 
+
+    EXEC FinalizarCompra @IdFactura = @IdFactura;
+
+    COMMIT TRANSACTION;
+    PRINT 'Compra finalizada con éxito. Factura generada.';
+    
+END TRY
+BEGIN CATCH
+    ROLLBACK TRANSACTION;
+    PRINT 'Error en el proceso de finalización de la compra. Transacción revertida.';
+END CATCH;
