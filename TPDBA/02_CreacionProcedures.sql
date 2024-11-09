@@ -329,9 +329,10 @@ BEGIN
 
     EXEC sp_executesql @sql;
 
-    INSERT INTO Complementario.Empleados (Legajo, Nombre, Apellido, DNI, Direccion, EmailPersonal, EmailEmpresa, CUIL, Cargo, Sucursal, Turno, EstaActivo)
-    SELECT e.Legajo,e.Nombre,e.Apellido,e.DNI,e.Direccion,e.EmailPersonal,e.EmailEmpresa,e.CUIL,e.Cargo,e.Sucursal,e.Turno,e.EstaActivo
+    INSERT INTO Complementario.Empleados (Legajo, Nombre, Apellido, DNI, Direccion, EmailPersonal, EmailEmpresa, CUIL, Cargo,IdSucursal, Turno, EstaActivo)
+    SELECT e.Legajo,e.Nombre,e.Apellido,e.DNI,e.Direccion,e.EmailPersonal,e.EmailEmpresa,e.CUIL,e.Cargo,s.IdSucursal,e.Turno,e.EstaActivo
     FROM #EmpleadosTemp e
+		JOIN Complementario.Sucursales s on s.ReemplazarPor = e.Sucursal
     WHERE NOT EXISTS (SELECT 1 FROM Complementario.Empleados c WHERE c.Legajo = e.Legajo);
 
     DROP TABLE #EmpleadosTemp;
