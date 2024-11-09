@@ -63,3 +63,4 @@ Dado que la información de ventas diarias es fundamental, se establece una rép
 Cada domingo al finalizar los turnos para generar un respaldo completo de los datos al cierre de cada semana, manteniendo la consistencia y reduciendo el tiempo de restauración en caso de un fallo mayor. En dicho momento suelen generarse menos movimientos, lo que ayudaría en la asignación de recursos para la generación del respaldo completo.
 **Backup diferencial diario**:
 Cada día al finalizar los turnos para optimizar y agilizar el tiempo de restauración de los respaldos y la asignación de los recursos para llevar adelante dicho respaldo.
+![image](https://github.com/user-attachments/assets/7b991786-0fcb-4170-91c9-ebfc5083680c)
