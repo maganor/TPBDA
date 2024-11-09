@@ -55,7 +55,7 @@ BEGIN
     UPDATE Complementario.Empleados										
     SET 
         Cargo = COALESCE(@Cargo, Cargo),
-        Sucursal = COALESCE(@IdSucursal, Sucursal),						
+        IdSucursal = COALESCE(@IdSucursal, IdSucursal),						
         Turno = COALESCE(@Turno, Turno),
         Direccion = COALESCE(@Direccion, Direccion),
         EmailPersonal = COALESCE(@EmailPersonal, EmailPersonal)
@@ -189,27 +189,27 @@ END;
 GO
 
 -------------SP'S Para Notas de Credito:
-CREATE OR ALTER PROCEDURE Procedimientos.GenerarNotaCredito
-    @IdFactura CHAR(11)													
-AS
-BEGIN
-    DECLARE @IdProducto INT;
+----CREATE OR ALTER PROCEDURE Procedimientos.GenerarNotaCredito
+----    @IdFactura CHAR(11)													
+----AS
+----BEGIN
+----    DECLARE @IdProducto INT;
 
-    SELECT @IdProducto = IdProducto										-- Obtiene el IdProducto asociado con la factura
-    FROM Ventas.Facturas
-    WHERE Id = @IdFactura;
+----    SELECT @IdProducto = IdProducto										-- Obtiene el IdProducto asociado con la factura
+----    FROM Ventas.Facturas
+----    WHERE Id = @IdFactura;
 
-    IF @IdProducto IS NOT NULL
-    BEGIN
-        INSERT INTO Ventas.NotasCredito (IdFactura, EstaActivo)			-- Crea la nota de crédito, asociándola con la factura y el producto
-        VALUES (@IdFactura, 1);  
-    END
-    ELSE
-    BEGIN
-        RAISERROR('No se encontró un producto asociado con la factura proporcionada.', 16, 1);
-    END
-END;
-GO
+----    IF @IdProducto IS NOT NULL
+----    BEGIN
+----        INSERT INTO Ventas.NotasCredito (IdFactura, EstaActivo)			-- Crea la nota de crédito, asociándola con la factura y el producto
+----        VALUES (@IdFactura, 1);  
+----    END
+----    ELSE
+----    BEGIN
+----        RAISERROR('No se encontró un producto asociado con la factura proporcionada.', 16, 1);
+----    END
+----END;
+----GO
 
 CREATE OR ALTER PROCEDURE Procedimientos.EliminarNotaCredito
     @Id INT
@@ -278,13 +278,15 @@ CREATE OR ALTER PROCEDURE AgregarProducto
 AS
 BEGIN
 	
-	CREATE OR ALTER TABLE ##DetalleVentas
-	(
-		IdDetalle INT IDENTITY(1,1) PRIMARY KEY, -- ID auto incrementable como clave primaria
-		IdProducto INT,                          -- Relación con el producto
-		Cantidad INT                             -- Cantidad de producto
-	)
-	GO
+	IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '##DetalleVentas' AND type = 'U')
+	BEGIN
+		CREATE TABLE ##DetalleVentas
+		(
+			IdDetalle INT IDENTITY(1,1) PRIMARY KEY,  -- ID auto incrementable como clave primaria
+			IdProducto INT,                            -- Relación con el producto
+			Cantidad INT                               -- Cantidad de producto
+		);
+	END
 
     IF EXISTS (SELECT 1 FROM #DetalleVentas WHERE IdProducto = @IdProducto)
     BEGIN
@@ -350,6 +352,7 @@ BEGIN
 
     PRINT 'Factura cargada correctamente.';
 END;
+GO
 
 -------------SP'S para el Valor Actual del Dolar:
 CREATE OR ALTER PROCEDURE Procedimientos.CargarValorDolar

@@ -298,10 +298,8 @@ BEGIN
 END;
 GO
 
---Archivo Informacion_Complementaria / Sucursales:
 CREATE OR ALTER PROCEDURE Procedimientos.CargarSucursales
-    @direccion VARCHAR(100),
-    @pagina VARCHAR(100)
+    @direccion VARCHAR(100)  -- Solo se mantiene la dirección del archivo Excel
 AS
 BEGIN
     DECLARE @sql NVARCHAR(MAX);
@@ -309,15 +307,15 @@ BEGIN
     SET @sql = N'
     INSERT INTO Complementario.Sucursales (Ciudad, ReemplazarPor, Direccion, Horario, Telefono)
     SELECT 
-        Ciudad,
-        [Reemplazar por] AS ReemplazarPor,
-        direccion AS Direccion,
-        Horario,
-        Telefono
+        CAST(Ciudad AS VARCHAR(100)),  
+        CAST([Reemplazar por] AS VARCHAR(100)) AS ReemplazarPor,  
+        CAST(direccion AS VARCHAR(200)) AS Direccion,  
+        CAST(Horario AS VARCHAR(100)) AS Horario,  
+        CAST(Telefono AS VARCHAR(20)) AS Telefono  
     FROM OPENROWSET(
         ''Microsoft.ACE.OLEDB.12.0'',
         ''Excel 12.0; Database=' + @direccion + '; HDR=YES;'', 
-        ''SELECT * FROM [' + @pagina + N'$]''
+        ''SELECT * FROM [sucursal$]''  
     );';
 
     EXEC sp_executesql @sql;
