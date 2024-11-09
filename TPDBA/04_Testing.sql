@@ -36,6 +36,12 @@ EXEC Procedimientos.CargarHistorial		@direccion = @FullPath,
 			   																		
 GO
 
+EXEC Procedimientos.CargarFacturasDesdeHistorial
+GO
+
+EXEC Productos.PesificarPrecios
+GO
+
 --Para verificar la carga:
 SELECT * FROM Complementario.ValorDolar
 GO

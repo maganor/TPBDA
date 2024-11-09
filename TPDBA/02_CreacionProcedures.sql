@@ -88,15 +88,15 @@ END;
 GO
 
 --Archivo de Ventas_registradas:									REVISAR LA IMPORTACION A FACTURAS
-CREATE OR ALTER PROCEDURE Procedimientos.CargarHistorial
-    @direccion VARCHAR(255),    
-    @terminator CHAR(1)        
+CREATE OR ALTER PROCEDURE Procedimientos.CargarHistorialTemp
+    @direccion VARCHAR(255),
+    @terminator CHAR(1)
 AS
 BEGIN
-    IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '##Historial')
+    IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '##HistorialTemp')
     BEGIN
-        CREATE TABLE ##Historial (
-            IdFactura VARCHAR(11),
+        CREATE TABLE ##HistorialTemp (
+            IdFactura CHAR(11),
             TipoFactura VARCHAR(1),
             Ciudad VARCHAR(100),
             TipoCliente VARCHAR(10),
@@ -115,17 +115,76 @@ BEGIN
     DECLARE @sql NVARCHAR(MAX);
 
     SET @sql = N'
-    BULK INSERT ##Historial
+    BULK INSERT ##HistorialTemp
     FROM ''' + @direccion + '''
     WITH (
-        FIELDTERMINATOR = ''' + @terminator + ''',   
-        ROWTERMINATOR = ''0x0A'',                    
-        CODEPAGE = ''65001'',                        
-        FIRSTROW = 2,                               
+        FIELDTERMINATOR = ''' + @terminator + ''',
+        ROWTERMINATOR = ''0x0A'',
+        CODEPAGE = ''65001'',
+        FIRSTROW = 2,
         FORMAT = ''CSV''
     );';
 
     EXEC sp_executesql @sql;
+END;
+GO
+CREATE OR ALTER PROCEDURE Procedimientos.CargarHistorial
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '##Historial')
+    BEGIN
+        CREATE TABLE ##Historial (
+            IdFactura CHAR(11),
+            TipoFactura CHAR(1),
+            Ciudad VARCHAR(100),
+            TipoCliente VARCHAR(10),
+            Genero VARCHAR(6),
+            Producto VARCHAR(100),
+            PrecioUni DECIMAL(10,2),
+            Cantidad INT,
+            Fecha DATETIME,
+            Hora TIME,
+            MedioPago VARCHAR(30),
+            Empleado INT,
+            IdPago VARCHAR(30)
+        );
+    END;
+    INSERT INTO ##Historial(
+        IdFactura,
+        TipoFactura,
+        Ciudad,
+        TipoCliente,
+        Genero,
+        Producto,
+        PrecioUni,
+        Cantidad,
+        Fecha,
+        Hora,
+        MedioPago,
+        Empleado,
+        IdPago
+    )
+    SELECT
+    IdFactura,
+    TipoFactura,
+    Ciudad,
+    TipoCliente,
+    Genero,
+    Producto,
+    CAST(PrecioUni AS DECIMAL(10, 2)),
+    CAST(Cantidad AS INT),
+    TRY_CONVERT(DATE, Fecha, 103),
+    TRY_CONVERT(TIME, Hora, 108),
+    MedioPago,
+    CAST(Empleado AS INT) AS Empleado,
+    IdPago
+    FROM ##HistorialTemp;
+
+    DROP TABLE ##HistorialTemp;
+
+
 END;
 GO
 
@@ -382,6 +441,50 @@ BEGIN
 					  AND s.Direccion = t.Direccion);
 
     DROP TABLE #SucursalesTemp;
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Procedimientos.CargarFacturasDesdeHistorial
+AS
+BEGIN
+    INSERT INTO Ventas.Facturas (
+        IdViejo, 
+        TipoFactura, 
+        Fecha, 
+        Hora, 
+        IdMedioPago, 
+        Empleado, 
+        IdSucursal, 
+        IdCliente
+    )
+    SELECT 
+        H.IdFactura AS IdViejo,
+        H.TipoFactura,
+        CAST(H.Fecha AS DATE) AS Fecha, 
+        CAST(H.Hora AS TIME(0)) AS Hora, 
+        M.IdMDP AS IdMedioPago, 
+        CAST(H.Empleado AS INT) AS Empleado,
+        '-' AS IdSucursal, 
+        '-' AS IdCliente 
+    FROM 
+        ##Historial H
+    JOIN 
+        Complementario.MediosDePago M
+    ON 
+        H.MedioPago = M.NombreING; 
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Productos.PesificarPrecios
+AS
+BEGIN
+    DECLARE @PrecioDolar DECIMAL(6,2);
+
+    SELECT @PrecioDolar = PrecioAR
+    FROM Complementario.ValorDolar
+
+    UPDATE Productos.Catalogo
+    SET Precio = Precio * @PrecioDolar;
 END;
 GO
 
