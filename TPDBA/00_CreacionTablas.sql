@@ -68,12 +68,12 @@ CREATE TABLE Complementario.CategoriaDeProds(
 )
 GO
 
-DROP TABLE IF EXISTS Complementario.MonedaExtranjera
+DROP TABLE IF EXISTS Complementario.ValorDolar
 GO
-CREATE TABLE Complementario.MonedaExtranjera(
+CREATE TABLE Complementario.ValorDolar(
 	Id INT IDENTITY(1,1) PRIMARY KEY,
-	Nombre CHAR(3),
-	PrecioAR DECIMAL(6,2)
+	PrecioAR DECIMAL(6,2),
+	FechaHora DATETIME2 DEFAULT SYSDATETIME(),
 )
 GO
 
@@ -95,10 +95,11 @@ CREATE TABLE Complementario.Clientes(
 	TipoCliente CHAR(6),
 	Genero CHAR(6),
 )
-
-INSERT INTO Complementario.MonedaExtranjera(Nombre,PrecioAR)
-VALUES ('USD',1110)
 GO
+
+--INSERT INTO Complementario.ValorDolar(Nombre,PrecioAR) 	Comentada por ahora
+--VALUES ('USD',1110)
+--GO
 
 INSERT INTO Complementario.MediosDePago(NombreING,NombreESP)
 VALUES ('Credit card','Tarjeta de credito'),('Cash','Efectivo'),('Ewallet','Billetera Electronica')

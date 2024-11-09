@@ -1,6 +1,8 @@
 USE Com5600G01
 GO 
 
+EXEC Procedimientos.CargarValorDolar
+
 DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
 DECLARE @FullPath VARCHAR(500) = @PATH + '\Informacion_complementaria.xlsx'
 
@@ -38,8 +40,9 @@ EXEC Procedimientos.CargarHistorial		@direccion = @FullPath,
 			   																		
 GO
 
-
 --Para verificar la carga:
+SELECT * FROM Complementario.ValorDolar
+GO
 SELECT * FROM Productos.Catalogo
 GO
 SELECT * FROM ##Historial		--Revisar

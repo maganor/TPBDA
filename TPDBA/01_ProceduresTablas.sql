@@ -322,3 +322,54 @@ BEGIN
 
     PRINT 'Factura cargada correctamente.';
 END;
+
+--Para obtener el valor actual del Dolar:
+
+CREATE OR ALTER PROCEDURE Procedimientos.CargarValorDolar
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Habilitar Ole Automation Procedures
+    EXEC sp_configure 'Ole Automation Procedures', 1; 
+    RECONFIGURE;
+    
+    -- Variables para manejar la respuesta de la API
+    DECLARE @url NVARCHAR(64) = 'https://dolarapi.com/v1/dolares/blue'; -- URL del API
+    DECLARE @Object INT; -- Objeto para la llamada HTTP
+    DECLARE @json TABLE(DATA NVARCHAR(MAX)); -- Tabla para almacenar la respuesta
+    DECLARE @respuesta NVARCHAR(MAX); -- Variable para almacenar el JSON de la respuesta
+    DECLARE @Venta DECIMAL(6,2); -- Variable para almacenar el valor de venta del dólar
+
+    -- Crear el objeto para la llamada HTTP
+    EXEC sp_OACreate 'MSXML2.XMLHTTP', @Object OUT;
+
+    -- Realizar la solicitud GET al API
+    EXEC sp_OAMethod @Object, 'OPEN', NULL, 'GET', @url, 'FALSE';
+    EXEC sp_OAMethod @Object, 'SEND';
+    EXEC sp_OAMethod @Object, 'RESPONSETEXT', @respuesta OUTPUT;
+
+    -- Insertar la respuesta del JSON en la tabla temporal
+    INSERT INTO @json
+    EXEC sp_OAGetProperty @Object, 'RESPONSETEXT';
+
+    -- Extraer el valor de "venta" del JSON
+    SELECT @Venta = JSON_VALUE(DATA, '$.venta') FROM @json;
+
+    -- Intentar actualizar el valor del dólar en la tabla
+    UPDATE Complementario.ValorDolar
+    SET PrecioAR = @Venta, FechaHora = SYSDATETIME()
+    WHERE FechaHora = (SELECT MAX(FechaHora) FROM Complementario.ValorDolar);
+
+    -- Si no se actualizó ninguna fila, insertar un nuevo registro
+    IF @@ROWCOUNT = 0
+    BEGIN
+        INSERT INTO Complementario.ValorDolar (PrecioAR, FechaHora)
+        VALUES (@Venta, SYSDATETIME());
+    END
+
+    -- Limpiar el objeto COM
+    EXEC sp_OADestroy @Object;
+
+END;
+GO
