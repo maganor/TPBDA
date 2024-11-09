@@ -27,7 +27,7 @@ BEGIN
     SET @str = REPLACE(@str, NCHAR(0xAD), 'í')
 
     return @str;
-END
+END;
 GO
 
 --Para insertar los datos de los archivos
@@ -42,14 +42,14 @@ BEGIN
 
     IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '##CatalogoTemp' AND type = 'U')
 	BEGIN
-		CREATE TABLE ##CatalogoTemp (
-			Id VARCHAR(10),              
+		CREATE TABLE ##CatalogoTemp(
+			Id INT,
 			Categoria VARCHAR(100),
 			Nombre NVARCHAR(100),
-			Precio VARCHAR(10),          
-			Precio_Ref VARCHAR(10),      
+			Precio DECIMAL(6,2),
+			Precio_Ref DECIMAL(6,2),
 			Unidad_Ref VARCHAR(10),
-			Fecha VARCHAR(20)        
+			Fecha DATETIME        
 		);
 	END;
 
@@ -67,11 +67,28 @@ BEGIN
     );';
 
     EXEC sp_executesql @sql;
+
+	UPDATE ##CatalogoTemp SET Nombre = Procedimientos.ArreglarLetras(Nombre)
+
+	ALTER TABLE ##CatalogoTemp ADD IdCategoria INT;
+
+	UPDATE ct SET ct.IdCategoria = cp.Id
+	FROM ##CatalogoTemp ct
+		JOIN Complementario.CategoriaDeProds cp ON cp.Producto = ct.Categoria
+
+	INSERT INTO Productos.Catalogo(Nombre,Precio,Proveedor,IdCategoria)
+	SELECT ct.Nombre,ct.Precio,'-' AS Proveedor,ct.IdCategoria			--Pesificar precio
+	FROM ##CatalogoTemp ct
+	WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo c 
+					  WHERE c.Nombre = ct.Nombre AND c.IdCategoria = ct.IdCategoria)
+
+	DROP TABLE ##CatalogoTemp
+
 END;
 GO
 
---Archivo de Ventas_registradas:
-CREATE OR ALTER PROCEDURE Procedimientos.CargarHistorialCSV
+--Archivo de Ventas_registradas:									REVISAR LA IMPORTACION A FACTURAS
+CREATE OR ALTER PROCEDURE Procedimientos.CargarHistorial
     @direccion VARCHAR(255),    
     @terminator CHAR(1)        
 AS
@@ -121,28 +138,28 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-	IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '##ProductosImportados' AND type = 'U')
+	IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '#ProductosImportados' AND type = 'U')
 	BEGIN
-		CREATE TABLE ##ProductosImportados (
-			IdProducto VARCHAR(10),             
+		CREATE TABLE #ProductosImportados(
+			IdProducto INT,
 			Nombre NVARCHAR(100),
 			Proveedor VARCHAR(100),
 			Categoria VARCHAR(50),
 			CantidadPorUnidad VARCHAR(50),
-			PrecioUnidad VARCHAR(10)             
+			PrecioUnidad DECIMAL(6,2),             
 		);
 	END;
 
     DECLARE @sql NVARCHAR(MAX);
     SET @sql = N'
-    INSERT INTO ##ProductosImportados
+    INSERT INTO #ProductosImportados
     SELECT 
-        CAST(IdProducto AS VARCHAR(10)),                
+        CAST(IdProducto AS INT),
         CAST(NombreProducto AS NVARCHAR(100)),
         CAST(Proveedor AS VARCHAR(100)),
         CAST([Categoría] AS VARCHAR(50)),
         CAST(CantidadPorUnidad AS VARCHAR(50)),
-        CAST(REPLACE(REPLACE(PrecioUnidad, ''$'', ''''), '' '', '''') AS VARCHAR(10)) 
+        CAST(REPLACE(REPLACE(PrecioUnidad, ''$'', ''''), '' '', '''') AS DECIMAL(6,2))
     FROM OPENROWSET(
         ''Microsoft.ACE.OLEDB.12.0'',
         ''Excel 12.0; Database=' + QUOTENAME(@direccion, '''') + '; HDR=YES;'', 
@@ -150,6 +167,23 @@ BEGIN
     );';
 
     EXEC sp_executesql @sql;
+
+	--Verificar esto si agregar el nombre o no
+	INSERT INTO Complementario.CategoriaDeProds(LineaDeProducto,Producto)
+	SELECT i.Categoria,i.Nombre
+	FROM #ProductosImportados i
+	WHERE NOT EXISTS (SELECT 1 FROM Complementario.CategoriaDeProds c 
+					  WHERE c.LineaDeProducto = i.Categoria AND c.Producto = i.Nombre)
+    
+	INSERT INTO Productos.Catalogo(Nombre,Precio,Proveedor,IdCategoria)
+	SELECT i.Nombre,i.PrecioUnidad,i.Proveedor,cp.Id			--Pesificar el precio
+	FROM #ProductosImportados i 
+		JOIN Complementario.CategoriaDeProds cp ON cp.LineaDeProducto = i.Categoria AND cp.Producto = i.Nombre
+	WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo c
+					  WHERE c.Nombre = i.Nombre AND c.IdCategoria = cp.Id)
+
+	DROP TABLE #ProductosImportados
+		
 END;
 GO
 
@@ -161,18 +195,18 @@ AS
 BEGIN
 	SET NOCOUNT ON;
 
-    IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '##ElectronicAccessories' AND type = 'U')
+    IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '#ElectronicAccessories' AND type = 'U')
     BEGIN
-        CREATE TABLE ##ElectronicAccessories (
+        CREATE TABLE #ElectronicAccessories(
             Nombre NVARCHAR(100),
-            PrecioUSD VARCHAR(10) 
+			PrecioUSD DECIMAL(6,2) 
         );
     END;
 
     DECLARE @sql NVARCHAR(MAX);
 
     SET @sql = N'
-    INSERT INTO ##ElectronicAccessories (Nombre, PrecioUSD)
+    INSERT INTO #ElectronicAccessories (Nombre, PrecioUSD)
     SELECT 
         CAST(Product AS NVARCHAR(100)),
         CAST(REPLACE([Precio Unitario en dolares], ''$'', '''') AS DECIMAL(6,2))
@@ -183,6 +217,26 @@ BEGIN
     );';
 
     EXEC sp_executesql @sql;
+
+	IF NOT EXISTS (SELECT 1 FROM Complementario.CategoriaDeProds WHERE LineaDeProducto = 'Accesorios Electronicos')
+    BEGIN
+        INSERT INTO Complementario.CategoriaDeProds (LineaDeProducto, Producto)
+        VALUES ('Accesorios Electronicos', 'Accesorios Electronicos');
+    END
+
+	DECLARE @IdCategoria INT
+	SELECT @IdCategoria = c.Id 
+	FROM Complementario.CategoriaDeProds c
+	WHERE c.LineaDeProducto = 'Accesorios Electronicos'
+
+	INSERT INTO Productos.Catalogo(Nombre,Precio,Proveedor,IdCategoria)
+	SELECT ea.Nombre,ea.PrecioUSD,'-' AS Proveedor,@IdCategoria			--Pesificar Precio
+	FROM #ElectronicAccessories ea
+	WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo C
+					  WHERE C.Nombre = ea.Nombre)
+
+	DROP TABLE #ElectronicAccessories
+
 END;
 GO
 
@@ -206,6 +260,7 @@ BEGIN
     );';
 
     EXEC sp_executesql @sql;
+
 END;
 GO
 
@@ -266,110 +321,6 @@ BEGIN
     );';
 
     EXEC sp_executesql @sql;
-END;
-GO
-
-CREATE OR ALTER PROCEDURE Procedimientos.LlenarCatalogo
-AS
-BEGIN 
-    UPDATE ##CatalogoTemp
-    SET Nombre = Procedimientos.ArreglarLetras(Nombre)
-    -- Insertar solo productos nuevos
-    INSERT INTO Productos.Catalogo (Categoria, LineaDeProducto, Nombre, Precio, Proveedor)
-    SELECT 
-        DISTINCT
-        c.Categoria,
-        cdp.LineaDeProducto, 
-        c.Nombre,
-        c.Precio,
-        '-' AS Proveedor
-    FROM 
-        ##CatalogoTemp AS c
-    JOIN 
-        Complementario.ClasificacionDeProductos AS cdp ON c.Categoria = cdp.Producto
-    WHERE c.Nombre NOT IN (SELECT Nombre FROM Productos.Catalogo)
-
-    INSERT INTO Productos.Catalogo (LineaDeProducto, Categoria, Nombre, Precio, Proveedor)
-    SELECT
-        DISTINCT
-        'Accesorios Electronicos' AS LineaDeProducto,
-        'Accesorios Electronicos' AS Categoria,
-        e.Nombre,
-        e.PrecioUSD,
-        '-' AS Proveedor
-    FROM
-        ##ElectronicAccessories AS e
-    WHERE e.Nombre NOT IN (SELECT Nombre FROM Productos.Catalogo)
-
-    INSERT INTO Productos.Catalogo(LineaDeProducto, Categoria, Nombre, Precio, Proveedor)
-    SELECT
-        'Importado' AS LineaDeProducto,
-        p.Categoria,
-        p.Nombre,
-        p.PrecioUnidad,
-        p.Proveedor
-    FROM
-        ##ProductosImportados AS p
-    WHERE p.Nombre NOT IN (SELECT Nombre FROM Productos.Catalogo)
-
-END;
-GO
-
-CREATE OR ALTER PROCEDURE Procedimientos.CargarVentas
-AS
-BEGIN 
-    INSERT INTO Ventas.Facturas (Id,TipoFactura,Ciudad,TipoCliente,Genero,IdProducto,Cantidad,Fecha,Hora,IdMedioPago,Empleado,IdSucursal)
-    SELECT
-        h.Id,
-        h.TipoFactura,
-        h.Ciudad,
-        h.TipoCliente,
-        h.Genero,
-        p.Id AS IdProducto,            -- Obtener el IdProducto desde Catalogo
-        h.Cantidad,
-        h.Fecha,
-        h.Hora,
-        m.IdMDP AS IdMedioPago,       -- Obtener el IdMedioPago de MediosDePago
-        h.Empleado,
-        s.IdSucursal                  -- Obtener el IdSucursal desde Sucursales
-    FROM 
-    ##Historial AS h
-CROSS APPLY 
-    (SELECT TOP 1 Id, Nombre, Precio 
-     FROM Productos.Catalogo 
-     WHERE Nombre = h.Producto AND Precio = h.PrecioUni
-     ORDER BY Id) AS p
-		-- Relacionar el producto por nombre
-    JOIN 
-        Complementario.MediosDePago AS m ON h.MedioPago = m.NombreING		-- Relacionar el medio de pago por nombre
-    JOIN 
-        Complementario.Sucursales AS s ON h.Ciudad = s.Ciudad;				-- Relacionar la sucursal por ciudad
-END;
-GO
-
-CREATE OR ALTER PROCEDURE Procedimientos.ActualizarPrecioCatalogo  --Probar dsp cuando inventemos datos
-AS
-BEGIN
-	--Para los productos de ##CatalogoTemp
-	UPDATE cf
-	SET cf.Precio = (SELECT c.Precio from ##CatalogoTemp c where c.Nombre = cf.Nombre)
-	FROM Productos.Catalogo cf
-	WHERE cf.Nombre IN (SELECT Nombre from ##CatalogoTemp) 
-	AND cf.Precio <> (SELECT c.Precio FROM ##CatalogoTemp AS c WHERE c.Nombre = cf.Nombre)
-	--Para los productos de ##ElectronicAccessories
-	UPDATE cf
-	SET cf.Precio = (SELECT e.PrecioUSD FROM ##ElectronicAccessories AS e WHERE e.Nombre = cf.Nombre)
-	FROM Productos.Catalogo AS cf
-	WHERE cf.LineaDeProducto = 'Accesorios Electronicos' 
-    AND cf.Nombre IN (SELECT Nombre FROM ##ElectronicAccessories) 
-    AND cf.Precio <> (SELECT e.PrecioUSD FROM ##ElectronicAccessories AS e WHERE e.Nombre = cf.Nombre)
-	--Para los productos de ##ProductosImportados
-	UPDATE cf
-	SET cf.Precio = (SELECT p.PrecioUnidad FROM ##ProductosImportados AS p WHERE p.Nombre = cf.Nombre)
-	FROM Productos.Catalogo AS cf
-	WHERE cf.LineaDeProducto = (SELECT p.Categoria FROM ##ProductosImportados AS p WHERE p.Nombre = cf.Nombre)
-    AND cf.Nombre IN (SELECT Nombre FROM ##ProductosImportados) 
-    AND cf.Precio <> (SELECT p.PrecioUnidad FROM ##ProductosImportados AS p WHERE p.Nombre = cf.Nombre)
 END;
 GO
 

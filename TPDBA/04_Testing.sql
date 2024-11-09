@@ -2,76 +2,53 @@ USE Com5600G01
 GO 
 
 DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
-DECLARE @FullPath VARCHAR(500) = @PATH + '\Productos\catalogo.csv'
+DECLARE @FullPath VARCHAR(500) = @PATH + '\Informacion_complementaria.xlsx'
 
---Cargamos la tabla catalogo con el SP:
-EXEC Procedimientos.CargarCSV		@direccion = @FullPath,
-									@terminator = ',',
-									@tabla = '##CatalogoTemp'
-
-SET @FULLPATH = @PATH + '\Ventas_registradas.csv'
---Cargamos la tabla historial con el SP:
-EXEC Procedimientos.CargarCSV	@direccion = @FullPath, 
-								@terminator = ';',
-								@tabla = '##Historial'   
---Cargamos las hojas del archivo de Info Complementaria con el SP:
-SET @FULLPATH = @PATH + '\Informacion_complementaria.xlsx'
---Hoja: Clasificacion de productos
+--Primero que todo, cargamos la tabla de Clasificacion de Productos con el SP:
 EXEC Procedimientos.CargarClasificacion @direccion = @FullPath,
-										@tabla = 'ClasificacionDeProductos',
-										@pagina =  'Clasificacion productos',
-										@esquema = 'Complementario'
---Hoja: Empleados
-EXEC Procedimientos.CargarEmpleados		@direccion = @FullPath,
-										@tabla = 'Empleados',
-										@pagina =  'Empleados',
-										@esquema = 'Complementario',
-										@FraseClave = 'AvenidaSiempreViva742'
---Hoja: Sucursales
-EXEC Procedimientos.CargarSucursales	@direccion = @FullPath,
-										@tabla = 'Sucursales',
-										@pagina =  'Sucursal',
-										@esquema = 'Complementario'
+										@pagina =  'Clasificacion productos'
 
+--Cargamos los Empleados con el SP:
+EXEC Procedimientos.CargarEmpleados		@direccion = @FullPath,
+										@pagina =  'Empleados'
+										
+--Cargamos las Sucursales con el SP:
+EXEC Procedimientos.CargarSucursales	@direccion = @FullPath,
+										@pagina =  'Sucursal'
+
+--Cargamos el Catalogo con el SP:
+SET @FULLPATH = @PATH + '\Productos\catalogo.csv'
+EXEC Procedimientos.CargarCatalogo		@direccion = @FullPath,
+										@terminator = ','
+
+--Cargamos los Productos Importados con el SP:
+SET @FULLPATH = @PATH + '\Productos\Productos_importados.xlsx'
+EXEC Procedimientos.CargarImportados	@direccion = @FullPath,
+										@pagina = 'Listado de Productos'
+
+--Cargamoslos Accesorios Electronicos con el SP:
 SET @FULLPATH = @PATH + '\Productos\Electronic accessories.xlsx'
---Cargamos el archivo de Accesorios Electronicos con el SP:
 EXEC Procedimientos.CargarElectronic	@direccion = @FullPath,
-										@tabla = '##ElectronicAccessories',
 										@pagina =  'Sheet1'
 										
-
-SET @FULLPATH = @PATH + '\Productos\Productos_importados.xlsx'
---Cargamos el archivo de Productos Importados con el SP:
-EXEC Procedimientos.CargarImportados	@direccion = @FullPath,
-										@tabla = '##ProductosImportados',
-										@pagina = 'Listado de Productos'
-										
-GO
-
-EXEC Procedimientos.LlenarCatalogo 
-GO
-EXEC Procedimientos.CargarVentas
-GO
-EXEC Procedimientos.MostrarFacturas
+--Cargamos las Ventas Registradas con el SP:
+SET @FULLPATH = @PATH + '\Ventas_registradas.csv'
+EXEC Procedimientos.CargarHistorial		@direccion = @FullPath, 
+										@terminator = ';'
+			   																		
 GO
 
 
 --Para verificar la carga:
-SELECT * FROM ##CatalogoTemp
+SELECT * FROM Productos.Catalogo
 GO
-SELECT * FROM ##ProductosImportados
+SELECT * FROM ##Historial		--Revisar
 GO
-SELECT * FROM ##ElectronicAccessories
-GO
-SELECT * FROM ##Historial
-GO
-SELECT * FROM Complementario.ClasificacionDeProductos
+SELECT * FROM Complementario.CategoriaDeProds
 GO
 SELECT * FROM Complementario.Empleados
 GO
 SELECT * FROM Complementario.Sucursales
-GO
-SELECT * FROM Productos.Catalogo
 GO
 SELECT * FROM Ventas.Facturas
 GO
