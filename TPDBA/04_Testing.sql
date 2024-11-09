@@ -8,15 +8,15 @@ DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
 DECLARE @FullPath VARCHAR(500) = @PATH + '\Informacion_complementaria.xlsx'
 
 --Primero que todo, cargamos la tabla de Clasificacion de Productos con el SP:
---EXEC Procedimientos.CargarClasificacion @direccion = @FullPath,
---										@pagina =  'Clasificacion productos'
+EXEC Procedimientos.CargarClasificacion @direccion = @FullPath,
+										@pagina =  'Clasificacion productos'
 
-----Cargamos los Empleados con el SP:
---EXEC Procedimientos.CargarEmpleados		@direccion = @FullPath,
---										@pagina =  'Empleados'
+--Cargamos los Empleados con el SP:
+EXEC Procedimientos.CargarEmpleados		@direccion = @FullPath,
+										@pagina =  'Empleados'
 										
-----Cargamos las Sucursales con el SP:
---EXEC Procedimientos.CargarSucursales	@direccion = @FullPath									
+--Cargamos las Sucursales con el SP:
+EXEC Procedimientos.CargarSucursales	@direccion = @FullPath									
 
 --Cargamos el Catalogo con el SP:
 SET @FullPath = @PATH + '\Productos\catalogo.csv'

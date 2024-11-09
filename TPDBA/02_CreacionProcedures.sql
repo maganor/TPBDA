@@ -68,7 +68,7 @@ BEGIN
 
     EXEC sp_executesql @sql;
 
-	UPDATE ##CatalogoTemp SET Nombre = Procedimientos.ArreglarLetras(Nombre)
+	--UPDATE ##CatalogoTemp SET Nombre = Procedimientos.ArreglarLetras(Nombre)
 
 	ALTER TABLE ##CatalogoTemp ADD IdCategoria INT;
 

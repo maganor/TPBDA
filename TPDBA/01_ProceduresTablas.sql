@@ -52,6 +52,11 @@ CREATE OR ALTER PROCEDURE Procedimientos.ActualizarEmpleado
 AS
 BEGIN
     SET NOCOUNT ON;
+	IF @IdSucursal IS NOT NULL AND NOT EXISTS (SELECT 1 FROM Complementario.Sucursales WHERE IdSucursal = @IdSucursal)
+    BEGIN
+        RAISERROR('El ID de Sucursal proporcionado no existe.', 16, 1);
+        RETURN;
+    END
     UPDATE Complementario.Empleados										
     SET 
         Cargo = COALESCE(@Cargo, Cargo),
