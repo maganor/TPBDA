@@ -138,6 +138,30 @@ GO
 SELECT * FROM Complementario.MediosDePago
 GO
 -------------
+EXEC Procedimientos.AgregarCliente
+    @Nombre = 'Juan Fer Perez',
+    @TipoCliente = 'VIP',
+    @Genero = 'M',
+	@DNI = 43525943;
+GO
+
+EXEC Procedimientos.ModificarCliente
+	@IdCliente = 3,										--revisar uso de id
+    @TipoClienteNuevo = 'NORMAL';
+GO
+
+EXEC Procedimientos.ModificarCliente
+    @IdCliente = 2,
+    @TipoClienteNuevo = 'VIP';
+GO
+
+SELECT * FROM Complementario.Clientes
+GO
+
+EXEC Procedimientos.EliminarCliente
+    @IdCliente = 3;
+GO
+-------------
 EXEC Procedimientos.AgregarSucursal @Ciudad = 'Pekin',
                                     @ReemplazarPor = 'Moron',
                                     @Direccion = 'Aguero 1800',

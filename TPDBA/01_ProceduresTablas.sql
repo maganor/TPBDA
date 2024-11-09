@@ -214,19 +214,19 @@ END;
 GO
 
 CREATE OR ALTER PROCEDURE Procedimientos.ModificarCliente
-	@DNI INT,
+	@IdCliente INT,
 	@TipoClienteNuevo CHAR(6)
 AS
 BEGIN
-      IF NOT EXISTS (SELECT 1 FROM Complementario.Clientes WHERE DNI = @DNI)
+      IF NOT EXISTS (SELECT 1 FROM Complementario.Clientes WHERE IdCliente = @IdCliente)
       BEGIN
-           RAISERROR('No existe un cliente con el DNI ingresado.', 16, 1);
+           RAISERROR('No existe un cliente con el ID ingresado.', 16, 1);
 		   RETURN;
       END
       
 	  UPDATE Complementario.Clientes
       SET TipoCliente = @TipoClienteNuevo
-      WHERE DNI = @DNI;
+      WHERE IdCliente = @IdCliente;
 END;
 GO
 
@@ -244,28 +244,6 @@ BEGIN
        WHERE IdCliente = @IdCliente;   
 END;
 GO
-
-
------Despues pasar a testing
-EXEC Procedimientos.ModificarCliente
-    @DNI = 43525943,
-    @TipoClienteNuevo = 'NORMAL';
-
-EXEC Procedimientos.ModificarCliente
-    @DNI = 44925943,
-    @TipoClienteNuevo = 'VIP';
-
-	
-USE Com5600G01
-GO
-EXEC Procedimientos.CargarCliente
-    @Nombre = 'Juan Fer Perez',
-    @TipoCliente = 'VIP',
-    @Genero = 'M',
-	@DNI = 43525943;
-
-EXEC Procedimientos.EliminarCliente
-    @IdCliente = 1;
 
 CREATE OR ALTER PROCEDURE AgregarProducto
     @IdProducto INT
