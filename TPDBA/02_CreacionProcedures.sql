@@ -9,6 +9,11 @@ GO
 --Se busca services.msc, dentro de ese programa se busca SQL SERVER(SQLEXPRESS), 
 --click derecho propiedades, pestania inicio sesion y seleccionar Cuenta del sistema local(o algo parecido)
 --Antes, para que funcione este SP:
+DROP SCHEMA IF EXISTS Carga
+GO
+CREATE SCHEMA Carga
+GO
+
 sp_configure 'show advanced options', 1;
 GO
 RECONFIGURE;
@@ -23,39 +28,37 @@ BEGIN
 
     SET @str = REPLACE(@str, 'Ã', '')
     SET @str = REPLACE(@str, '¡', 'á')
-    SET @str = REPLACE(@str, '³', 'ó') 
     SET @str = REPLACE(@str, '©', 'é')
-    SET @str = REPLACE(@str, '±', 'ñ')
-    SET @str = REPLACE(@str, 'º', 'ú')
     SET @str = REPLACE(@str, NCHAR(0xAD), 'í')
+    SET @str = REPLACE(@str, '³', 'ó') 
+    SET @str = REPLACE(@str, 'º', 'ú')
+    SET @str = REPLACE(@str, '±', 'ñ')
 
     return @str;
-END;
+END;	
 GO
 
 --Para insertar los datos de los archivos
 --Para el .csv:
 --Archivo de Catalogo:
 
-CREATE OR ALTER PROCEDURE Procedimientos.CargarCatalogo
+CREATE OR ALTER PROCEDURE Carga.CargarCatalogo
     @direccion VARCHAR(255),						-- Parámetro para la ruta del archivo
     @terminator CHAR(1)                             -- Delimitador de campo
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '##CatalogoTemp')
-    BEGIN
-        CREATE TABLE ##CatalogoTemp(
-            Id INT,
-            Categoria VARCHAR(100),
-            Nombre NVARCHAR(100),
-            Precio DECIMAL(6,2),
-            Precio_Ref DECIMAL(6,2),
-            Unidad_Ref VARCHAR(10),
-            Fecha DATETIME
-        );
-    END;
+    DROP TABLE IF EXISTS ##CatalogoTemp
+    CREATE TABLE ##CatalogoTemp(
+        Id INT,
+        Categoria VARCHAR(100),
+        Nombre NVARCHAR(100),
+        Precio DECIMAL(6,2),
+        Precio_Ref DECIMAL(6,2),
+        Unidad_Ref VARCHAR(10),
+        Fecha DATETIME
+    );
 
     DECLARE @sql NVARCHAR(MAX); 
 
@@ -93,29 +96,27 @@ END;
 GO
 
 --Archivo de Ventas_registradas:									
-CREATE OR ALTER PROCEDURE Procedimientos.CargarHistorialTemp
+CREATE OR ALTER PROCEDURE Carga.CargarHistorialTemp
     @direccion VARCHAR(255),
     @terminator CHAR(1)
 AS
 BEGIN
-    IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '##HistorialTemp')
-    BEGIN
-        CREATE TABLE ##HistorialTemp (
-            IdFactura CHAR(11),
-            TipoFactura VARCHAR(1),
-            Ciudad VARCHAR(100),
-            TipoCliente VARCHAR(10),
-            Genero VARCHAR(6),
-            Producto VARCHAR(100),
-            PrecioUni VARCHAR(10),
-            Cantidad VARCHAR(10),
-            Fecha VARCHAR(15),
-            Hora VARCHAR(10),
-            MedioPago VARCHAR(30),
-            Empleado VARCHAR(10),
-            IdPago VARCHAR(30)
-        );
-    END;
+    DROP TABLE IF EXISTS ##HistorialTemp
+    CREATE TABLE ##HistorialTemp (
+        IdFactura CHAR(11),
+        TipoFactura VARCHAR(1),
+        Ciudad VARCHAR(100),
+        TipoCliente VARCHAR(10),
+        Genero VARCHAR(6),
+        Producto VARCHAR(100),
+        PrecioUni VARCHAR(10),
+        Cantidad VARCHAR(10),
+        Fecha VARCHAR(15),
+        Hora VARCHAR(10),
+        MedioPago VARCHAR(30),
+        Empleado VARCHAR(10),
+        IdPago VARCHAR(30)
+    );
 
     DECLARE @sql NVARCHAR(MAX);
 
@@ -134,29 +135,28 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.CargarHistorial
+CREATE OR ALTER PROCEDURE Carga.CargarHistorial
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '##Historial')
-    BEGIN
-        CREATE TABLE ##Historial (
-            IdFactura CHAR(11),
-            TipoFactura CHAR(1),
-            Ciudad VARCHAR(100),
-            TipoCliente VARCHAR(10),
-            Genero VARCHAR(6),
-            Producto VARCHAR(100),
-            PrecioUni DECIMAL(10,2),
-            Cantidad INT,
-            Fecha DATE,
-            Hora TIME(0),
-            MedioPago VARCHAR(30),
-            Empleado INT,
-            IdPago VARCHAR(30)
-        );
-    END;
+    DROP TABLE IF EXISTS ##Historial
+    CREATE TABLE ##Historial (
+        IdFactura CHAR(11),
+        TipoFactura CHAR(1),
+        Ciudad VARCHAR(100),
+        TipoCliente VARCHAR(10),
+        Genero VARCHAR(6),
+        Producto VARCHAR(100),
+        PrecioUni DECIMAL(10,2),
+        Cantidad INT,
+        Fecha DATE,
+        Hora TIME(0),
+        MedioPago VARCHAR(30),
+        Empleado INT,
+        IdPago VARCHAR(30)
+    );
+
     INSERT INTO ##Historial(IdFactura,TipoFactura,Ciudad,TipoCliente,Genero,Producto,PrecioUni,Cantidad,Fecha,Hora,MedioPago,Empleado,IdPago)
     SELECT
 		IdFactura,
@@ -184,14 +184,13 @@ GO
 
 --Para los .xlsx:
 --Archivo de Productos_importados:
-CREATE OR ALTER PROCEDURE Procedimientos.CargarImportados
+CREATE OR ALTER PROCEDURE Carga.CargarImportados
     @direccion VARCHAR(100)  
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    IF OBJECT_ID('tempdb..#ProductosImportados') IS NOT NULL
-        DROP TABLE #ProductosImportados;
+	DROP TABLE IF EXISTS #ProductosImportados
 
     CREATE TABLE #ProductosImportados(
         IdProducto INT,
@@ -239,14 +238,13 @@ END;
 GO
 
 --Archivo de Electronic Accessories:
-CREATE OR ALTER PROCEDURE Procedimientos.CargarElectronic
+CREATE OR ALTER PROCEDURE Carga.CargarElectronic
     @direccion VARCHAR(100)
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    IF OBJECT_ID('tempdb..#ElectronicAccessories') IS NOT NULL
-        DROP TABLE #ElectronicAccessories;
+	DROP TABLE IF EXISTS #ElectronicAccessories
 
     CREATE TABLE #ElectronicAccessories(
         Nombre NVARCHAR(100),
@@ -275,8 +273,8 @@ BEGIN
 
     DECLARE @IdCategoria INT;														--Obtiene el Id de la categoria
     SELECT @IdCategoria = c.Id 
-    FROM Complementario.CategoriaDeProds c
-	WHERE c.LineaDeProducto = 'Accesorios Electronicos';
+		FROM Complementario.CategoriaDeProds c
+		WHERE c.LineaDeProducto = 'Accesorios Electronicos';
 
     INSERT INTO Productos.Catalogo(Nombre, Precio, Proveedor, IdCategoria)			--Inserta en el catalogo si no está
     SELECT ea.Nombre,ea.PrecioUSD,'-' AS Proveedor,@IdCategoria
@@ -290,19 +288,17 @@ END;
 GO
 
 --Archivo Informacion_Complementaria / Clasificacion Productos:
-CREATE OR ALTER PROCEDURE Procedimientos.CargarClasificacion
+CREATE OR ALTER PROCEDURE Carga.CargarClasificacion
     @direccion VARCHAR(100)       
 AS
 BEGIN
     SET NOCOUNT ON;
-    
-    IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '#ClasificacionTemp')
-    BEGIN
-        CREATE TABLE #ClasificacionTemp (
-            LineaDeProducto VARCHAR(100),
-            Producto VARCHAR(100)
-        );
-    END;
+   
+	DROP TABLE IF EXISTS #ClasificacionTemp
+	CREATE TABLE #ClasificacionTemp (
+    LineaDeProducto VARCHAR(100),
+    Producto VARCHAR(100)
+	);
 
     DECLARE @sql NVARCHAR(MAX);
 
@@ -331,29 +327,27 @@ END;
 GO
 
 --Archivo Informacion_Complementaria / Empleados:
-CREATE OR ALTER PROCEDURE Procedimientos.CargarEmpleados
+CREATE OR ALTER PROCEDURE Carga.CargarEmpleados
     @direccion VARCHAR(100)       
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '#EmpleadosTemp')
-    BEGIN
-        CREATE TABLE #EmpleadosTemp (
-            Legajo INT,
-            Nombre VARCHAR(50),
-            Apellido VARCHAR(50),
-            DNI INT,
-            Direccion VARCHAR(200),
-            EmailPersonal VARCHAR(100),
-            EmailEmpresa VARCHAR(100),
-            CUIL VARCHAR(11),
-            Cargo VARCHAR(50),
-            Sucursal VARCHAR(100),
-            Turno VARCHAR(25),
-            EstaActivo BIT DEFAULT 1
-        );
-    END;
+    DROP TABLE IF EXISTS #EmpleadosTemp
+    CREATE TABLE #EmpleadosTemp (
+        Legajo INT,
+        Nombre VARCHAR(50),
+        Apellido VARCHAR(50),
+        DNI INT,
+        Direccion VARCHAR(200),
+        EmailPersonal VARCHAR(100),
+        EmailEmpresa VARCHAR(100),
+        CUIL VARCHAR(11),
+        Cargo VARCHAR(50),
+        Sucursal VARCHAR(100),
+        Turno VARCHAR(25),
+        EstaActivo BIT DEFAULT 1
+    );
 
     DECLARE @sql NVARCHAR(MAX);
 
@@ -392,22 +386,20 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.CargarSucursales
+CREATE OR ALTER PROCEDURE Carga.CargarSucursales
     @direccion VARCHAR(100)
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '#SucursalesTemp')
-    BEGIN
-        CREATE TABLE #SucursalesTemp (
-            Ciudad VARCHAR(100),
-            ReemplazarPor VARCHAR(100),
-            Direccion VARCHAR(200),
-            Horario VARCHAR(100),
-            Telefono VARCHAR(20)
-        );
-    END;
+    DROP TABLE IF EXISTS #SucursalesTemp
+    CREATE TABLE #SucursalesTemp (
+        Ciudad VARCHAR(100),
+        ReemplazarPor VARCHAR(100),
+        Direccion VARCHAR(200),
+        Horario VARCHAR(100),
+        Telefono VARCHAR(20)
+    );
 
     DECLARE @sql NVARCHAR(MAX);
 
@@ -438,7 +430,7 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.CargarFacturasDesdeHistorial
+CREATE OR ALTER PROCEDURE Carga.CargarFacturasDesdeHistorial
 AS
 BEGIN
     INSERT INTO Ventas.Facturas (IdViejo,TipoFactura,Fecha,Hora,IdMedioPago,Empleado,IdSucursal,IdCliente)
