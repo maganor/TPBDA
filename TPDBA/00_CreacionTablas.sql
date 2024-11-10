@@ -6,7 +6,7 @@
 --Villegas Brandolini, Lucas      -       44459666
 --Zapata, Santiago                -       44525943
 
---CREACION TABLAS:
+---CREACION TABLAS:
 
 USE master
 GO

@@ -1,6 +1,9 @@
+
+---IMPORTACION DE ARCHIVOS .CSV Y .XLSX
+
 USE Com5600G01
 GO
-PRINT
+
 --Para el .xlsx:
 --Para cargar los XLSX tuvimos que cambiar algo de los permisos de windows.
 --Se busca services.msc, dentro de ese programa se busca SQL SERVER(SQLEXPRESS), 
@@ -35,8 +38,8 @@ GO
 --Archivo de Catalogo:
 
 CREATE OR ALTER PROCEDURE Procedimientos.CargarCatalogo
-    @direccion VARCHAR(255),                    -- Parámetro para la ruta del archivo
-    @terminator CHAR(1)                            -- Delimitador de campo
+    @direccion VARCHAR(255),						-- Parámetro para la ruta del archivo
+    @terminator CHAR(1)                             -- Delimitador de campo
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -69,22 +72,17 @@ BEGIN
 
     EXEC sp_executesql @sql;
 
-    ALTER TABLE ##CatalogoTemp ADD IdCategoria INT;
+    ALTER TABLE ##CatalogoTemp ADD IdCategoria INT;					--Añade IdCategoria para usarlo luego en la comparación
 
 	UPDATE ##CatalogoTemp
-	SET Nombre = REPLACE(Nombre, NCHAR(0x5358), 'ñ')
+	SET Nombre = REPLACE(Nombre, NCHAR(0x5358), 'ñ')				--Corrige errores por la Ñ
 
-    UPDATE ct SET ct.IdCategoria = cp.Id
+    UPDATE ct SET ct.IdCategoria = cp.Id							--Añade el valor de IdCategoria al Producto
     FROM ##CatalogoTemp ct
         JOIN Complementario.CategoriaDeProds cp ON cp.Producto = ct.Categoria
 
-	SELECT ct.Nombre,ct.Precio,'-' AS Proveedor,ct.IdCategoria            --Pesificar precio
-    FROM ##CatalogoTemp ct
-    WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo c 
-                      WHERE c.Nombre = ct.Nombre AND c.IdCategoria = ct.IdCategoria)
-
-    INSERT INTO Productos.Catalogo(Nombre,Precio,Proveedor,IdCategoria)
-    SELECT ct.Nombre,ct.Precio,'-' AS Proveedor,ct.IdCategoria            --Pesificar precio
+    INSERT INTO Productos.Catalogo(Nombre,Precio,Proveedor,IdCategoria)	 --Inserta al catalogo si está el mismo nombre ni la categoria
+    SELECT ct.Nombre,ct.Precio,'-' AS Proveedor,ct.IdCategoria            
     FROM ##CatalogoTemp ct
     WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo c 
                       WHERE c.Nombre = ct.Nombre AND c.IdCategoria = ct.IdCategoria)
@@ -94,7 +92,7 @@ BEGIN
 END;
 GO
 
---Archivo de Ventas_registradas:									REVISAR LA IMPORTACION A FACTURAS
+--Archivo de Ventas_registradas:									
 CREATE OR ALTER PROCEDURE Procedimientos.CargarHistorialTemp
     @direccion VARCHAR(255),
     @terminator CHAR(1)
@@ -135,6 +133,7 @@ BEGIN
     EXEC sp_executesql @sql;
 END;
 GO
+
 CREATE OR ALTER PROCEDURE Procedimientos.CargarHistorial
 AS
 BEGIN
@@ -158,44 +157,30 @@ BEGIN
             IdPago VARCHAR(30)
         );
     END;
-    INSERT INTO ##Historial(
-        IdFactura,
-        TipoFactura,
-        Ciudad,
-        TipoCliente,
-        Genero,
-        Producto,
-        PrecioUni,
-        Cantidad,
-        Fecha,
-        Hora,
-        MedioPago,
-        Empleado,
-        IdPago
-    )
+    INSERT INTO ##Historial(IdFactura,TipoFactura,Ciudad,TipoCliente,Genero,Producto,PrecioUni,Cantidad,Fecha,Hora,MedioPago,Empleado,IdPago)
     SELECT
-    IdFactura,
-    TipoFactura,
-    Ciudad,
-    TipoCliente,
-    Genero,
-    Producto,
-    CAST(PrecioUni AS DECIMAL(10, 2)),
-    CAST(Cantidad AS INT),
-    TRY_CONVERT(DATE, Fecha, 101),
-	CAST(Hora AS TIME(0)),
-    MedioPago,
-    CAST(Empleado AS INT) AS Empleado,
-    IdPago
-    FROM ##HistorialTemp;
+		IdFactura,
+		TipoFactura,
+		Ciudad,
+		TipoCliente,
+		Genero,
+		Producto,
+		CAST(PrecioUni AS DECIMAL(10, 2)),
+		CAST(Cantidad AS INT),
+		TRY_CONVERT(DATE, Fecha, 101),
+		CAST(Hora AS TIME(0)),
+		MedioPago,
+		CAST(Empleado AS INT) AS Empleado,
+		IdPago
+	FROM ##HistorialTemp;
 
     DROP TABLE ##HistorialTemp;
 
 	UPDATE ##Historial
 	SET Producto = Procedimientos.ArreglarLetras(Producto)
+
 END;
 GO
-
 
 --Para los .xlsx:
 --Archivo de Productos_importados:
@@ -233,39 +218,25 @@ BEGIN
         ''SELECT * FROM [Listado de Productos$]''
     ) AS a;';
 
-        EXEC sp_executesql @sql;
+    EXEC sp_executesql @sql;
 
-        INSERT INTO Complementario.CategoriaDeProds(LineaDeProducto, Producto)
-        SELECT DISTINCT i.Categoria, i.Nombre
-        FROM #ProductosImportados i
-        WHERE NOT EXISTS (
-            SELECT 1 
-            FROM Complementario.CategoriaDeProds c 
-            WHERE c.LineaDeProducto = i.Categoria 
-            AND c.Producto = i.Nombre
-        );
+    INSERT INTO Complementario.CategoriaDeProds(LineaDeProducto, Producto)	--Inserta la Categoria del archivo en el tabla de Categorias
+    SELECT DISTINCT i.Categoria, i.Nombre
+    FROM #ProductosImportados i
+    WHERE NOT EXISTS (SELECT 1 FROM Complementario.CategoriaDeProds c 
+					  WHERE c.LineaDeProducto = i.Categoria AND c.Producto = i.Nombre);
 
-        INSERT INTO Productos.Catalogo(Nombre, Precio, Proveedor, IdCategoria)
-        SELECT 
-            i.Nombre, 
-            i.PrecioUnidad, 
-            i.Proveedor, 
-            cp.Id
-        FROM #ProductosImportados i 
-        JOIN Complementario.CategoriaDeProds cp 
-            ON cp.LineaDeProducto = i.Categoria 
-            AND cp.Producto = i.Nombre
-        WHERE NOT EXISTS (
-            SELECT 1 
-            FROM Productos.Catalogo c
-            WHERE c.Nombre = i.Nombre 
-            AND c.IdCategoria = cp.Id
-        );
+    INSERT INTO Productos.Catalogo(Nombre, Precio, Proveedor, IdCategoria)	--Inserta en el Catalogo si no tiene el mismo nombre ni IdCategoria
+    SELECT i.Nombre,i.PrecioUnidad,i.Proveedor,cp.Id
+    FROM #ProductosImportados i 
+		JOIN Complementario.CategoriaDeProds cp ON cp.LineaDeProducto = i.Categoria AND cp.Producto = i.Nombre
+    WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo c
+					  WHERE c.Nombre = i.Nombre AND c.IdCategoria = cp.Id);
 
-        DROP TABLE #ProductosImportados;
+    DROP TABLE #ProductosImportados;
+
 END;
 GO
-
 
 --Archivo de Electronic Accessories:
 CREATE OR ALTER PROCEDURE Procedimientos.CargarElectronic
@@ -294,34 +265,27 @@ BEGIN
         ''SELECT * FROM [Sheet1$]''
     ) AS a;';
 
-        EXEC sp_executesql @sql;
+    EXEC sp_executesql @sql;
 
-        IF NOT EXISTS (SELECT 1 FROM Complementario.CategoriaDeProds WHERE LineaDeProducto = 'Accesorios Electronicos')
-        BEGIN
-            INSERT INTO Complementario.CategoriaDeProds (LineaDeProducto, Producto)
-            VALUES ('Accesorios Electronicos', 'Accesorios Electronicos');
-        END;
+    IF NOT EXISTS (SELECT 1 FROM Complementario.CategoriaDeProds WHERE LineaDeProducto = 'Accesorios Electronicos')
+    BEGIN
+        INSERT INTO Complementario.CategoriaDeProds (LineaDeProducto, Producto)		--Agrega la Categoria a la tabla de Categorias
+        VALUES ('Accesorios Electronicos', 'Accesorios Electronicos');
+    END;
 
-        -- Get category ID
-        DECLARE @IdCategoria INT;
-        SELECT @IdCategoria = c.Id 
-        FROM Complementario.CategoriaDeProds c
-        WHERE c.LineaDeProducto = 'Accesorios Electronicos';
+    DECLARE @IdCategoria INT;														--Obtiene el Id de la categoria
+    SELECT @IdCategoria = c.Id 
+    FROM Complementario.CategoriaDeProds c
+	WHERE c.LineaDeProducto = 'Accesorios Electronicos';
 
-        -- Insert new products
-        INSERT INTO Productos.Catalogo(Nombre, Precio, Proveedor, IdCategoria)
-        SELECT 
-            ea.Nombre, 
-            ea.PrecioUSD,
-            '-' AS Proveedor, 
-            @IdCategoria
-        FROM #ElectronicAccessories ea
-        WHERE NOT EXISTS (
-            SELECT 1 
-            FROM Productos.Catalogo C 
-            WHERE C.Nombre = ea.Nombre
-        );
-        DROP TABLE #ElectronicAccessories;
+    INSERT INTO Productos.Catalogo(Nombre, Precio, Proveedor, IdCategoria)			--Inserta en el catalogo si no está
+    SELECT ea.Nombre,ea.PrecioUSD,'-' AS Proveedor,@IdCategoria
+    FROM #ElectronicAccessories ea
+	WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo C 
+					  WHERE C.Nombre = ea.Nombre);
+    
+	DROP TABLE #ElectronicAccessories;
+
 END;
 GO
 
@@ -355,15 +319,14 @@ BEGIN
 
     EXEC sp_executesql @sql;
 
-    INSERT INTO Complementario.CategoriaDeProds (LineaDeProducto, Producto)
-    SELECT 
-        t.LineaDeProducto, 
-        t.Producto
-    FROM #ClasificacionTemp t
+    INSERT INTO Complementario.CategoriaDeProds (LineaDeProducto, Producto)		--Inserta la categoria a la tabla final si no está
+    SELECT ct.LineaDeProducto,ct.Producto
+    FROM #ClasificacionTemp ct
     WHERE NOT EXISTS (SELECT 1 FROM Complementario.CategoriaDeProds c
-                      WHERE c.LineaDeProducto = t.LineaDeProducto AND c.Producto = t.Producto);
+                      WHERE c.LineaDeProducto = ct.LineaDeProducto AND c.Producto = ct.Producto);
 
     DROP TABLE #ClasificacionTemp;
+
 END;
 GO
 
@@ -416,7 +379,8 @@ BEGIN
     );';
 
     EXEC sp_executesql @sql;
-
+	
+	--Inserta el Empleado en la tabla final si no está
     INSERT INTO Complementario.Empleados (Legajo, Nombre, Apellido, DNI, Direccion, EmailPersonal, EmailEmpresa, CUIL, Cargo,IdSucursal, Turno, EstaActivo)
     SELECT e.Legajo,e.Nombre,e.Apellido,e.DNI,e.Direccion,e.EmailPersonal,e.EmailEmpresa,e.CUIL,e.Cargo,s.IdSucursal,e.Turno,e.EstaActivo
     FROM #EmpleadosTemp e
@@ -424,6 +388,7 @@ BEGIN
     WHERE NOT EXISTS (SELECT 1 FROM Complementario.Empleados c WHERE c.Legajo = e.Legajo);
 
     DROP TABLE #EmpleadosTemp;
+
 END;
 GO
 
@@ -463,11 +428,11 @@ BEGIN
     EXEC sp_executesql @sql;
 
     INSERT INTO Complementario.Sucursales (Ciudad, ReemplazarPor, Direccion, Horario, Telefono)
-    SELECT t.Ciudad, t.ReemplazarPor, t.Direccion, t.Horario, t.Telefono
-    FROM #SucursalesTemp t
+    SELECT st.Ciudad, st.ReemplazarPor, st.Direccion, st.Horario, st.Telefono
+    FROM #SucursalesTemp st																	--Inserta la sucursal si no está
     WHERE NOT EXISTS (SELECT 1 FROM Complementario.Sucursales s
-					  WHERE s.Ciudad = t.Ciudad AND s.ReemplazarPor = t.ReemplazarPor
-					  AND s.Direccion = t.Direccion);
+					  WHERE s.Ciudad = st.Ciudad AND s.ReemplazarPor = st.ReemplazarPor
+					  AND s.Direccion = st.Direccion);
 
     DROP TABLE #SucursalesTemp;
 END;
@@ -476,16 +441,7 @@ GO
 CREATE OR ALTER PROCEDURE Procedimientos.CargarFacturasDesdeHistorial
 AS
 BEGIN
-    INSERT INTO Ventas.Facturas (
-        IdViejo, 
-        TipoFactura, 
-        Fecha, 
-        Hora, 
-        IdMedioPago, 
-        Empleado, 
-        IdSucursal, 
-        IdCliente
-    )
+    INSERT INTO Ventas.Facturas (IdViejo,TipoFactura,Fecha,Hora,IdMedioPago,Empleado,IdSucursal,IdCliente)
     SELECT 
         H.IdFactura AS IdViejo,
         H.TipoFactura,
@@ -495,12 +451,8 @@ BEGIN
         CAST(H.Empleado AS INT) AS Empleado,
         '-' AS IdSucursal, 
         '-' AS IdCliente 
-    FROM 
-        ##Historial H
-    JOIN 
-        Complementario.MediosDePago M
-    ON 
-        H.MedioPago = M.NombreING; 
+    FROM ##Historial H
+		JOIN Complementario.MediosDePago M ON H.MedioPago = M.NombreING; 
 END;
 GO
 
