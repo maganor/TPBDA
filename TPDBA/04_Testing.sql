@@ -232,3 +232,10 @@ BEGIN CATCH
     ROLLBACK TRANSACTION;
     PRINT 'Error en el proceso de finalización de la compra. Transacción revertida.';
 END CATCH;
+
+
+
+EXEC CargarNotaDeCredito 
+    @IdFactura = 123,  
+    @IdProducto = 101, 
+    @Cantidad = 3;     
