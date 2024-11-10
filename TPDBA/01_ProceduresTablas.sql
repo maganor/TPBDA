@@ -1,4 +1,3 @@
-
 ---ABM:
 
 USE Com5600G01
@@ -9,8 +8,39 @@ GO
 CREATE SCHEMA Procedimientos 
 GO
 
+DROP SCHEMA IF EXISTS Empleado
+GO
+CREATE SCHEMA Empleado
+GO
+
+DROP SCHEMA IF EXISTS Cliente
+GO
+CREATE SCHEMA Cliente
+GO
+
+DROP SCHEMA IF EXISTS Producto
+GO
+CREATE SCHEMA Producto
+GO
+
+DROP SCHEMA IF EXISTS MedioDePago
+GO
+CREATE SCHEMA MedioDePago
+GO
+
+DROP SCHEMA IF EXISTS Sucursal
+GO
+CREATE SCHEMA Sucursal
+GO
+
+DROP SCHEMA IF EXISTS NotaCredito
+GO
+CREATE SCHEMA NotaCredito
+GO
+
+
 -------------SP'S Para Empleados:
-CREATE OR ALTER PROCEDURE Procedimientos.AgregarEmpleado
+CREATE OR ALTER PROCEDURE Empleado.AgregarEmpleado
     @Nombre VARCHAR(50),
     @Apellido VARCHAR(50),
     @DNI INT,
@@ -42,7 +72,7 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.ActualizarEmpleado
+CREATE OR ALTER PROCEDURE Empleado.ActualizarEmpleado
     @Legajo INT,
     @Direccion VARCHAR(200) = NULL,
     @EmailPersonal VARCHAR(100) = NULL,
@@ -68,7 +98,7 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.EliminarEmpleado
+CREATE OR ALTER PROCEDURE Empleado.EliminarEmpleado
 	@Legajo INT
 AS 
 BEGIN
@@ -79,7 +109,7 @@ END;
 GO
 
 -------------SP'S para Productos:
-CREATE OR ALTER PROCEDURE Procedimientos.AgregarOActualizarProductoCatalogo
+CREATE OR ALTER PROCEDURE Producto.AgregarOActualizarProductoCatalogo
     @Nombre VARCHAR(100),
     @Precio DECIMAL(6,2),
     @IdCategoria INT
@@ -104,7 +134,7 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.EliminarProductoCatalogo
+CREATE OR ALTER PROCEDURE Producto.EliminarProductoCatalogo
     @Id INT
 AS
 BEGIN
@@ -112,9 +142,8 @@ BEGIN
     WHERE Id = @Id
 END;
 GO
-
 -------------SP'S para Medios de Pago:
-CREATE OR ALTER PROCEDURE Procedimientos.AgregarMedioDePago
+CREATE OR ALTER PROCEDURE MedioDePago.AgregarMedioDePago
     @nombreING VARCHAR(15),
     @nombreESP VARCHAR(25)
 AS
@@ -134,7 +163,7 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.EliminarMedioDePago
+CREATE OR ALTER PROCEDURE MedioDePago.EliminarMedioDePago
 	@id INT
 AS
 BEGIN
@@ -142,9 +171,8 @@ BEGIN
 	WHERE IdMDP = @id
 END;
 GO
-
 -------------SP'S Para Sucursales:
-CREATE OR ALTER PROCEDURE Procedimientos.AgregarSucursal
+CREATE OR ALTER PROCEDURE Sucursal.AgregarSucursal
     @Ciudad VARCHAR(100),
     @ReemplazarPor VARCHAR(100),
     @Direccion VARCHAR(200),
@@ -166,7 +194,7 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.ActualizarSucursal
+CREATE OR ALTER PROCEDURE Sucursal.ActualizarSucursal
     @IdSucursal INT,                  
     @Direccion VARCHAR(200) = NULL,     --Si no se le envian parametros, toman el valor NULL
     @Telefono VARCHAR(20) = NULL,       
@@ -184,7 +212,7 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.EliminarSucursal
+CREATE OR ALTER PROCEDURE Sucursal.EliminarSucursal
 	@id int
 AS
 BEGIN
