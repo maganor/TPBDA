@@ -145,8 +145,8 @@ BEGIN
             Producto VARCHAR(100),
             PrecioUni DECIMAL(10,2),
             Cantidad INT,
-            Fecha DATETIME,
-            Hora TIME,
+            Fecha DATE,
+            Hora TIME(0),
             MedioPago VARCHAR(30),
             Empleado INT,
             IdPago VARCHAR(30)
@@ -176,8 +176,8 @@ BEGIN
     Producto,
     CAST(PrecioUni AS DECIMAL(10, 2)),
     CAST(Cantidad AS INT),
-    TRY_CONVERT(DATE, Fecha, 103),
-    TRY_CONVERT(TIME, Hora, 108),
+    TRY_CONVERT(DATE, Fecha, 101),
+	CAST(Hora AS TIME(0)),
     MedioPago,
     CAST(Empleado AS INT) AS Empleado,
     IdPago
@@ -188,6 +188,7 @@ BEGIN
 
 END;
 GO
+
 
 --Para los .xlsx:
 --Archivo de Productos_importados:

@@ -4,7 +4,7 @@ GO
 EXEC Procedimientos.CargarValorDolar
 GO
 
-DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
+DECLARE @PATH VARCHAR(255) = 'C:\Users\santi\ArchivosTPBDA'
 DECLARE @FullPath VARCHAR(500) = @PATH + '\Informacion_complementaria.xlsx'
 
 ----Primero que todo, cargamos la tabla de Clasificacion de Productos con el SP:
@@ -16,18 +16,18 @@ DECLARE @FullPath VARCHAR(500) = @PATH + '\Informacion_complementaria.xlsx'
 ----Cargamos los Empleados con el SP:
 --EXEC Procedimientos.CargarEmpleados		@direccion = @FullPath
 																										
---Cargamos el Catalogo con el SP:
-SET @FullPath = @PATH + '\Productos\catalogo.csv'
-EXEC Procedimientos.CargarCatalogo		@direccion = @FullPath,
-										@terminator = ','
+----Cargamos el Catalogo con el SP:
+--SET @FullPath = @PATH + '\Productos\catalogo.csv'
+--EXEC Procedimientos.CargarCatalogo		@direccion = @FullPath,
+--										@terminator = ','
 
---Cargamos los Productos Importados con el SP:
-SET @FULLPATH = @PATH + '\Productos\Productos_importados.xlsx'
-EXEC Procedimientos.CargarImportados	@direccion = @FullPath
+----Cargamos los Productos Importados con el SP:
+--SET @FULLPATH = @PATH + '\Productos\Productos_importados.xlsx'
+--EXEC Procedimientos.CargarImportados	@direccion = @FullPath
 
---Cargamoslos Accesorios Electronicos con el SP:
-SET @FULLPATH = @PATH + '\Productos\Electronic accessories.xlsx'
-EXEC Procedimientos.CargarElectronic	@direccion = @FullPath
+----Cargamoslos Accesorios Electronicos con el SP:
+--SET @FULLPATH = @PATH + '\Productos\Electronic accessories.xlsx'
+--EXEC Procedimientos.CargarElectronic	@direccion = @FullPath
 																	
 --Cargamos las Ventas Registradas con el SP:
 SET @FULLPATH = @PATH + '\Ventas_registradas.csv'
@@ -45,7 +45,7 @@ GO
 EXEC Productos.PesificarPrecios
 GO
 
-DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
+DECLARE @PATH VARCHAR(255) = 'C:\Users\santi\ArchivosTPBDA'
 DECLARE @FULLPATH VARCHAR(500) = @PATH + '\Productos\catalogo.csv'
 EXEC Procedimientos.CargarCatalogo 
     @direccion = @FULLPATH,
@@ -59,6 +59,7 @@ SELECT * FROM Productos.Catalogo
 GO
 SELECT * FROM ##Historial		--Revisar
 GO
+DROP TABLE ##Historial
 SELECT * FROM Complementario.CategoriaDeProds
 GO
 SELECT * FROM Complementario.Empleados
