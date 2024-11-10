@@ -7,14 +7,14 @@ GO
 DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
 DECLARE @FullPath VARCHAR(500) = @PATH + '\Informacion_complementaria.xlsx'
 
---Primero que todo, cargamos la tabla de Clasificacion de Productos con el SP:
-EXEC Procedimientos.CargarClasificacion @direccion = @FullPath
+----Primero que todo, cargamos la tabla de Clasificacion de Productos con el SP:
+--EXEC Procedimientos.CargarClasificacion @direccion = @FullPath
 									
---Cargamos las Sucursales con el SP:
-EXEC Procedimientos.CargarSucursales	@direccion = @FullPath	
+----Cargamos las Sucursales con el SP:
+--EXEC Procedimientos.CargarSucursales	@direccion = @FullPath	
 
---Cargamos los Empleados con el SP:
-EXEC Procedimientos.CargarEmpleados		@direccion = @FullPath
+----Cargamos los Empleados con el SP:
+--EXEC Procedimientos.CargarEmpleados		@direccion = @FullPath
 																										
 --Cargamos el Catalogo con el SP:
 SET @FullPath = @PATH + '\Productos\catalogo.csv'
@@ -31,9 +31,12 @@ EXEC Procedimientos.CargarElectronic	@direccion = @FullPath
 																	
 --Cargamos las Ventas Registradas con el SP:
 SET @FULLPATH = @PATH + '\Ventas_registradas.csv'
-EXEC Procedimientos.CargarHistorial		@direccion = @FullPath, 
+EXEC Procedimientos.CargarHistorialTemp	@direccion = @FullPath, 
 										@terminator = ';'
 			   																		
+GO
+
+EXEC Procedimientos.CargarHistorial
 GO
 
 EXEC Procedimientos.CargarFacturasDesdeHistorial
@@ -41,6 +44,13 @@ GO
 
 EXEC Productos.PesificarPrecios
 GO
+
+DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
+DECLARE @FULLPATH VARCHAR(500) = @PATH + '\Productos\catalogo.csv'
+EXEC Procedimientos.CargarCatalogo 
+    @direccion = @FULLPATH,
+    @terminator = ','
+
 
 --Para verificar la carga:
 SELECT * FROM Complementario.ValorDolar
@@ -59,6 +69,8 @@ SELECT * FROM Ventas.Facturas
 GO
 SELECT * FROM Ventas.Facturas
 GO
+
+DELETE FROM Productos.Catalogo 
 
 --------PRUEBAS
  EXEC Procedimientos.AgregarFactura		@cantidad = 4,

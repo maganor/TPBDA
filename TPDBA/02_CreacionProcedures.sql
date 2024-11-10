@@ -33,25 +33,26 @@ GO
 --Para insertar los datos de los archivos
 --Para el .csv:
 --Archivo de Catalogo:
+
 CREATE OR ALTER PROCEDURE Procedimientos.CargarCatalogo
-    @direccion VARCHAR(255),					-- Parámetro para la ruta del archivo
-    @terminator CHAR(1)							-- Delimitador de campo
+    @direccion VARCHAR(255),                    -- Parámetro para la ruta del archivo
+    @terminator CHAR(1)                            -- Delimitador de campo
 AS
 BEGIN
     SET NOCOUNT ON;
 
     IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '##CatalogoTemp')
-	BEGIN
-		CREATE TABLE ##CatalogoTemp(
-			Id INT,
-			Categoria VARCHAR(100),
-			Nombre NVARCHAR(100),
-			Precio DECIMAL(6,2),
-			Precio_Ref DECIMAL(6,2),
-			Unidad_Ref VARCHAR(10),
-			Fecha DATETIME        
-		);
-	END;
+    BEGIN
+        CREATE TABLE ##CatalogoTemp(
+            Id INT,
+            Categoria VARCHAR(100),
+            Nombre NVARCHAR(100),
+            Precio DECIMAL(6,2),
+            Precio_Ref DECIMAL(6,2),
+            Unidad_Ref VARCHAR(10),
+            Fecha DATETIME
+        );
+    END;
 
     DECLARE @sql NVARCHAR(MAX); 
 
@@ -60,29 +61,29 @@ BEGIN
     FROM ''' + @direccion + '''
     WITH (
         FIELDTERMINATOR = ''' + @terminator + ''',
-        ROWTERMINATOR = ''0x0A'',       
-        CODEPAGE = ''65001'',           
-        FIRSTROW = 2,                   
+        ROWTERMINATOR = ''0x0A'',
+        CODEPAGE = ''65001'',
+        FIRSTROW = 2,
         FORMAT = ''CSV''
     );';
 
     EXEC sp_executesql @sql;
 
-	--UPDATE ##CatalogoTemp SET Nombre = Procedimientos.ArreglarLetras(Nombre)
+    --UPDATE ##CatalogoTemp SET Nombre = Procedimientos.ArreglarLetras(Nombre)
 
-	ALTER TABLE ##CatalogoTemp ADD IdCategoria INT;
+    ALTER TABLE ##CatalogoTemp ADD IdCategoria INT;
 
-	UPDATE ct SET ct.IdCategoria = cp.Id
-	FROM ##CatalogoTemp ct
-		JOIN Complementario.CategoriaDeProds cp ON cp.Producto = ct.Categoria
+    UPDATE ct SET ct.IdCategoria = cp.Id
+    FROM ##CatalogoTemp ct
+        JOIN Complementario.CategoriaDeProds cp ON cp.Producto = ct.Categoria
 
-	INSERT INTO Productos.Catalogo(Nombre,Precio,Proveedor,IdCategoria)
-	SELECT ct.Nombre,ct.Precio,'-' AS Proveedor,ct.IdCategoria			--Pesificar precio
-	FROM ##CatalogoTemp ct
-	WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo c 
-					  WHERE c.Nombre = ct.Nombre AND c.IdCategoria = ct.IdCategoria)
+    INSERT INTO Productos.Catalogo(Nombre,Precio,Proveedor,IdCategoria)
+    SELECT ct.Nombre,ct.Precio,'-' AS Proveedor,ct.IdCategoria            --Pesificar precio
+    FROM ##CatalogoTemp ct
+    WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo c 
+                      WHERE c.Nombre = ct.Nombre AND c.IdCategoria = ct.IdCategoria)
 
-	DROP TABLE ##CatalogoTemp
+    DROP TABLE ##CatalogoTemp
 
 END;
 GO
@@ -196,52 +197,64 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '#ProductosImportados')
-    BEGIN
-        CREATE TABLE #ProductosImportados(
-            IdProducto INT,
-            Nombre NVARCHAR(100),
-            Proveedor VARCHAR(100),
-            Categoria VARCHAR(50),
-            CantidadPorUnidad VARCHAR(50),
-            PrecioUnidad DECIMAL(6,2)
-        );
-    END;
+    IF OBJECT_ID('tempdb..#ProductosImportados') IS NOT NULL
+        DROP TABLE #ProductosImportados;
+
+    CREATE TABLE #ProductosImportados(
+        IdProducto INT,
+        Nombre VARCHAR(100),
+        Proveedor VARCHAR(100),
+        Categoria VARCHAR(50),
+        CantidadPorUnidad VARCHAR(50),
+        PrecioUnidad DECIMAL(6,2)
+    );
 
     DECLARE @sql NVARCHAR(MAX);
-
     SET @sql = N'
     INSERT INTO #ProductosImportados
     SELECT 
-        CAST(IdProducto AS INT),
-        CAST(NombreProducto AS NVARCHAR(100)),
+        TRY_CAST(IdProducto AS INT),
+        CAST(NombreProducto AS VARCHAR(100)),
         CAST(Proveedor AS VARCHAR(100)),
         CAST([Categoría] AS VARCHAR(50)),
         CAST(CantidadPorUnidad AS VARCHAR(50)),
-        CAST(REPLACE(REPLACE(PrecioUnidad, ''$'', ''''), '' '', '''') AS DECIMAL(6,2))
+        TRY_CAST(REPLACE(REPLACE(PrecioUnidad, ''$'', ''''), '' '', '''') AS DECIMAL(6,2))
     FROM OPENROWSET(
-        ''Microsoft.ACE.OLEDB.12.0'',
-        ''Excel 12.0; Database=' + QUOTENAME(@direccion, '''') + '; HDR=YES;'', 
+        ''Microsoft.ACE.OLEDB.16.0'',
+        ''Excel 12.0 Xml; Database=' + @direccion + '; HDR=YES;'', 
         ''SELECT * FROM [Listado de Productos$]''
-    );';
+    ) AS a;';
 
-    EXEC sp_executesql @sql;
+        EXEC sp_executesql @sql;
 
-    INSERT INTO Complementario.CategoriaDeProds(LineaDeProducto, Producto)
-    SELECT i.Categoria, i.Nombre
-    FROM #ProductosImportados i
-    WHERE NOT EXISTS (SELECT 1 FROM Complementario.CategoriaDeProds c 
-					  WHERE c.LineaDeProducto = i.Categoria AND c.Producto = i.Nombre);
+        INSERT INTO Complementario.CategoriaDeProds(LineaDeProducto, Producto)
+        SELECT DISTINCT i.Categoria, i.Nombre
+        FROM #ProductosImportados i
+        WHERE NOT EXISTS (
+            SELECT 1 
+            FROM Complementario.CategoriaDeProds c 
+            WHERE c.LineaDeProducto = i.Categoria 
+            AND c.Producto = i.Nombre
+        );
 
-    INSERT INTO Productos.Catalogo(Nombre, Precio, Proveedor, IdCategoria)
-    SELECT i.Nombre, i.PrecioUnidad, i.Proveedor, cp.Id
-    FROM #ProductosImportados i 
-    JOIN Complementario.CategoriaDeProds cp 
-        ON cp.LineaDeProducto = i.Categoria AND cp.Producto = i.Nombre
-    WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo c
-                      WHERE c.Nombre = i.Nombre AND c.IdCategoria = cp.Id);
+        INSERT INTO Productos.Catalogo(Nombre, Precio, Proveedor, IdCategoria)
+        SELECT 
+            i.Nombre, 
+            i.PrecioUnidad, 
+            i.Proveedor, 
+            cp.Id
+        FROM #ProductosImportados i 
+        JOIN Complementario.CategoriaDeProds cp 
+            ON cp.LineaDeProducto = i.Categoria 
+            AND cp.Producto = i.Nombre
+        WHERE NOT EXISTS (
+            SELECT 1 
+            FROM Productos.Catalogo c
+            WHERE c.Nombre = i.Nombre 
+            AND c.IdCategoria = cp.Id
+        );
 
-    DROP TABLE #ProductosImportados;
+        DROP TABLE #ProductosImportados;
 END;
 GO
 
@@ -253,46 +266,54 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '#ElectronicAccessories')
-    BEGIN
-        CREATE TABLE #ElectronicAccessories(
-            Nombre NVARCHAR(100),
-            PrecioUSD DECIMAL(6,2) 
-        );
-    END;
+    IF OBJECT_ID('tempdb..#ElectronicAccessories') IS NOT NULL
+        DROP TABLE #ElectronicAccessories;
+
+    CREATE TABLE #ElectronicAccessories(
+        Nombre NVARCHAR(100),
+        PrecioUSD DECIMAL(6,2) 
+    );
 
     DECLARE @sql NVARCHAR(MAX);
-
     SET @sql = N'
     INSERT INTO #ElectronicAccessories (Nombre, PrecioUSD)
     SELECT 
         CAST(Product AS NVARCHAR(100)),
-        CAST(REPLACE([Precio Unitario en dolares], ''$'', '''') AS DECIMAL(6,2))
+        TRY_CAST(REPLACE(REPLACE([Precio Unitario en dolares], ''$'', ''''), '' '', '''') AS DECIMAL(6,2))
     FROM OPENROWSET(
-        ''Microsoft.ACE.OLEDB.12.0'',
-        ''Excel 12.0; Database=' + QUOTENAME(@direccion, '''') + '; HDR=YES;'', 
+        ''Microsoft.ACE.OLEDB.16.0'',
+        ''Excel 12.0 Xml; Database=' + @direccion + '; HDR=YES;'', 
         ''SELECT * FROM [Sheet1$]''
-    );';
+    ) AS a;';
 
-    EXEC sp_executesql @sql;
+        EXEC sp_executesql @sql;
 
-    IF NOT EXISTS (SELECT 1 FROM Complementario.CategoriaDeProds WHERE LineaDeProducto = 'Accesorios Electronicos')
-    BEGIN
-        INSERT INTO Complementario.CategoriaDeProds (LineaDeProducto, Producto)
-        VALUES ('Accesorios Electronicos', 'Accesorios Electronicos');
-    END;
+        IF NOT EXISTS (SELECT 1 FROM Complementario.CategoriaDeProds WHERE LineaDeProducto = 'Accesorios Electronicos')
+        BEGIN
+            INSERT INTO Complementario.CategoriaDeProds (LineaDeProducto, Producto)
+            VALUES ('Accesorios Electronicos', 'Accesorios Electronicos');
+        END;
 
-    DECLARE @IdCategoria INT;
-    SELECT @IdCategoria = c.Id 
-    FROM Complementario.CategoriaDeProds c
-    WHERE c.LineaDeProducto = 'Accesorios Electronicos';
+        -- Get category ID
+        DECLARE @IdCategoria INT;
+        SELECT @IdCategoria = c.Id 
+        FROM Complementario.CategoriaDeProds c
+        WHERE c.LineaDeProducto = 'Accesorios Electronicos';
 
-    INSERT INTO Productos.Catalogo(Nombre, Precio, Proveedor, IdCategoria)
-    SELECT ea.Nombre, ea.PrecioUSD, '-' AS Proveedor, @IdCategoria  -- Pesificar Precio
-    FROM #ElectronicAccessories ea
-    WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo C WHERE C.Nombre = ea.Nombre);
-
-    DROP TABLE #ElectronicAccessories;
+        -- Insert new products
+        INSERT INTO Productos.Catalogo(Nombre, Precio, Proveedor, IdCategoria)
+        SELECT 
+            ea.Nombre, 
+            ea.PrecioUSD,
+            '-' AS Proveedor, 
+            @IdCategoria
+        FROM #ElectronicAccessories ea
+        WHERE NOT EXISTS (
+            SELECT 1 
+            FROM Productos.Catalogo C 
+            WHERE C.Nombre = ea.Nombre
+        );
+        DROP TABLE #ElectronicAccessories;
 END;
 GO
 
