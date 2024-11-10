@@ -278,7 +278,7 @@ END;
 GO
 
 -------------SP'S para Detalles de Ventas:
-CREATE OR ALTER PROCEDURE AgregarProducto
+CREATE OR ALTER PROCEDURE Procedimientos.AgregarProducto
     @IdProducto INT
 AS
 BEGIN
@@ -307,7 +307,7 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE FinalizarCompra
+CREATE OR ALTER PROCEDURE Procedimientos.FinalizarCompra
     @IdFactura INT 
 AS
 BEGIN
@@ -323,7 +323,15 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE CargarFacturas
+CREATE OR ALTER PROCEDURE Procedimientos.CancelarCompra
+AS
+BEGIN
+    RAISERROR ('Compra cancelada por el usuario.', 16, 1);
+END;
+GO
+
+
+CREATE OR ALTER PROCEDURE Procedimientos.CargarFacturas
     @IdCliente INT,
     @IdSucursal INT,
     @Empleado INT,

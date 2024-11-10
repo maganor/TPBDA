@@ -213,8 +213,8 @@ BEGIN TRANSACTION;
 BEGIN TRY
     DECLARE @Error INT;
     
-    EXEC @Error = CargarFacturas 
-        @IdCliente = 123, 
+    EXEC @Error = Procedimientos.CargarFacturas 
+		@IdCliente = 123, 
         @IdSucursal = 1, 
         @Empleado = 101, 
         @TipoFactura = 'A', 
@@ -225,13 +225,15 @@ BEGIN TRY
         THROW;		-- Nos vamos
     END;
 
-    EXEC AgregarProducto @IdProducto = 101;
-    EXEC AgregarProducto @IdProducto = 102;
+    EXEC Procedimientos.AgregarProducto @IdProducto = 101;
+    EXEC Procedimientos.AgregarProducto @IdProducto = 102;
+
+	EXEC Procedimientos.CancelarCompra; 
 
     DECLARE @IdFactura INT;
     SET @IdFactura = (SELECT TOP 1 IdFactura FROM Ventas.Facturas ORDER BY IdFactura DESC); 
 
-    EXEC FinalizarCompra @IdFactura = @IdFactura;
+    EXEC Procedimientos.FinalizarCompra @IdFactura = @IdFactura;
 
     COMMIT TRANSACTION;
     PRINT 'Compra finalizada con éxito. Factura generada.';
