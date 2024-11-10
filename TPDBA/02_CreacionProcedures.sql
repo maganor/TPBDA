@@ -1,6 +1,6 @@
 USE Com5600G01
 GO
-
+PRINT
 --Para el .xlsx:
 --Para cargar los XLSX tuvimos que cambiar algo de los permisos de windows.
 --Se busca services.msc, dentro de ese programa se busca SQL SERVER(SQLEXPRESS), 
@@ -69,13 +69,19 @@ BEGIN
 
     EXEC sp_executesql @sql;
 
-    --UPDATE ##CatalogoTemp SET Nombre = Procedimientos.ArreglarLetras(Nombre)
-
     ALTER TABLE ##CatalogoTemp ADD IdCategoria INT;
+
+	UPDATE ##CatalogoTemp
+	SET Nombre = REPLACE(Nombre, NCHAR(0x5358), 'ñ')
 
     UPDATE ct SET ct.IdCategoria = cp.Id
     FROM ##CatalogoTemp ct
         JOIN Complementario.CategoriaDeProds cp ON cp.Producto = ct.Categoria
+
+	SELECT ct.Nombre,ct.Precio,'-' AS Proveedor,ct.IdCategoria            --Pesificar precio
+    FROM ##CatalogoTemp ct
+    WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo c 
+                      WHERE c.Nombre = ct.Nombre AND c.IdCategoria = ct.IdCategoria)
 
     INSERT INTO Productos.Catalogo(Nombre,Precio,Proveedor,IdCategoria)
     SELECT ct.Nombre,ct.Precio,'-' AS Proveedor,ct.IdCategoria            --Pesificar precio
@@ -185,7 +191,8 @@ BEGIN
 
     DROP TABLE ##HistorialTemp;
 
-
+	UPDATE ##Historial
+	SET Producto = Procedimientos.ArreglarLetras(Producto)
 END;
 GO
 
