@@ -148,15 +148,19 @@ CREATE TABLE Ventas.DetalleVentas(
 )
 GO
 
-DROP TABLE IF EXISTS Ventas.NotasCredito
-GO
-CREATE TABLE Ventas.NotasCredito (
-    Id INT IDENTITY(1,1) PRIMARY KEY,							-- ID de la nota de credito
-    IdFactura INT,												-- ID de la factura asociada (clave foranea)
-	EstaActivo BIT NOT NULL DEFAULT 1,
-    CONSTRAINT FK_NotaCredito_Factura FOREIGN KEY (IdFactura) REFERENCES Ventas.Facturas(IdFactura),
-)
-GO
+CREATE TABLE Ventas.NotasDeCredito (
+    Id INT IDENTITY(1,1) PRIMARY KEY,       
+    IdProd INT,                            
+    IdFactura INT,                    
+    EstadoActivo BIT,                   
+    Cantidad INT,                       
+    IdCategoria INT,                   
+    Precio DECIMAL(6, 2),                 
+    CONSTRAINT FK_Nota_Factura FOREIGN KEY (IdFactura) REFERENCES Ventas.Facturas(IdFactura),
+    CONSTRAINT FK_Nota_Producto FOREIGN KEY (IdProd) REFERENCES Productos.Catalogo(Id),
+    CONSTRAINT FK_Nota_Categoria FOREIGN KEY (IdCategoria) REFERENCES Complementario.CategoriaDeProds(Id)
+);
+
 
 --Para ver que las tablas pertenezcan al esquema 'Productos'
 SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla

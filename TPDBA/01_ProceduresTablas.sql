@@ -226,27 +226,45 @@ END;
 GO
 
 -------------SP'S Para Notas de Credito:
-----CREATE OR ALTER PROCEDURE Procedimientos.GenerarNotaCredito
-----    @IdFactura CHAR(11)													
-----AS
-----BEGIN
-----    DECLARE @IdProducto INT;
 
-----    SELECT @IdProducto = IdProducto										-- Obtiene el IdProducto asociado con la factura
-----    FROM Ventas.Facturas
-----    WHERE Id = @IdFactura;
+CREATE OR ALTER PROCEDURE CargarNotaDeCredito
+    @IdFactura INT,
+    @IdProducto INT,
+    @Cantidad INT
+AS
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 
+        FROM Ventas.DetalleVentas dv
+        WHERE dv.IdFactura = @IdFactura
+        AND dv.IdProducto = @IdProducto
+        AND dv.Cantidad >= @Cantidad
+    )
+    BEGIN
+        RAISERROR ('No se puede procesar la devolución. Verifique la factura, el producto y la cantidad.', 16, 1);
+        RETURN;
+    END
 
-----    IF @IdProducto IS NOT NULL
-----    BEGIN
-----        INSERT INTO Ventas.NotasCredito (IdFactura, EstaActivo)			-- Crea la nota de crédito, asociándola con la factura y el producto
-----        VALUES (@IdFactura, 1);  
-----    END
-----    ELSE
-----    BEGIN
-----        RAISERROR('No se encontró un producto asociado con la factura proporcionada.', 16, 1);
-----    END
-----END;
-----GO
+    DECLARE @PrecioUnitario DECIMAL(6, 2),
+            @IdCategoria INT;
+
+    SELECT @PrecioUnitario = dv.PrecioUnitario, 
+           @IdCategoria = dv.IdCategoria
+    FROM Ventas.DetalleVentas dv
+    WHERE dv.IdFactura = @IdFactura
+      AND dv.IdProducto = @IdProducto;
+
+    INSERT INTO Ventas.NotasDeCredito (IdProd, IdFactura, EstadoActivo, Cantidad, IdCategoria, Precio)
+    VALUES (@IdProducto, 
+            @IdFactura, 
+            1,								-- Estado activo
+            @Cantidad, 
+            @IdCategoria, 
+            @PrecioUnitario * @Cantidad); 
+
+    PRINT 'Nota de crédito generada con éxito.';
+END;
+GO
 
 CREATE OR ALTER PROCEDURE Procedimientos.EliminarNotaCredito
     @Id INT
