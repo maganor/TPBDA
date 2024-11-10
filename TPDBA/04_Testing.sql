@@ -4,42 +4,42 @@ GO
 EXEC Procedimientos.CargarValorDolar
 GO
 
-DECLARE @PATH VARCHAR(255) = 'C:\Users\santi\ArchivosTPBDA'
+DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
 DECLARE @FullPath VARCHAR(500) = @PATH + '\Informacion_complementaria.xlsx'
 
 --Primero que todo, cargamos la tabla de Clasificacion de Productos con el SP:
-EXEC Procedimientos.CargarClasificacion @direccion = @FullPath
+EXEC Carga.CargarClasificacion @direccion = @FullPath
 									
 --Cargamos las Sucursales con el SP:
-EXEC Procedimientos.CargarSucursales	@direccion = @FullPath	
+EXEC Carga.CargarSucursales	@direccion = @FullPath	
 
 --Cargamos los Empleados con el SP:
-EXEC Procedimientos.CargarEmpleados		@direccion = @FullPath
+EXEC Carga.CargarEmpleados		@direccion = @FullPath
 																										
 --Cargamos el Catalogo con el SP:
 SET @FullPath = @PATH + '\Productos\catalogo.csv'
-EXEC Procedimientos.CargarCatalogo		@direccion = @FullPath,
+EXEC Carga.CargarCatalogo		@direccion = @FullPath,
 										@terminator = ','
 
 --Cargamos los Productos Importados con el SP:
 SET @FULLPATH = @PATH + '\Productos\Productos_importados.xlsx'
-EXEC Procedimientos.CargarImportados	@direccion = @FullPath
+EXEC Carga.CargarImportados	@direccion = @FullPath
 
 --Cargamoslos Accesorios Electronicos con el SP:
 SET @FULLPATH = @PATH + '\Productos\Electronic accessories.xlsx'
-EXEC Procedimientos.CargarElectronic	@direccion = @FullPath
+EXEC Carga.CargarElectronic	@direccion = @FullPath
 																	
 --Cargamos las Ventas Registradas con el SP:
 SET @FULLPATH = @PATH + '\Ventas_registradas.csv'
-EXEC Procedimientos.CargarHistorialTemp	@direccion = @FullPath, 
+EXEC Carga.CargarHistorialTemp	@direccion = @FullPath, 
 										@terminator = ';'
 			   																		
 GO
 
-EXEC Procedimientos.CargarHistorial
+EXEC Carga.CargarHistorial
 GO
 
-EXEC Procedimientos.CargarFacturasDesdeHistorial
+EXEC Carga.CargarFacturasDesdeHistorial
 GO
 
 EXEC Productos.PesificarPrecios
@@ -53,7 +53,7 @@ SELECT * FROM Productos.Catalogo
 GO
 SELECT * FROM ##Historial		
 GO
-SELECT * FROM Complementario.CategoriaDeProds
+SELECT * FROM Complementario.CategoriaDeProds  --ojear x las ddas
 GO
 SELECT * FROM Complementario.Empleados
 GO
@@ -61,22 +61,11 @@ SELECT * FROM Complementario.Sucursales
 GO
 SELECT * FROM Ventas.Facturas
 GO
-SELECT * FROM Ventas.Facturas
-GO
+
 
 DELETE FROM Productos.Catalogo 
 
 --------PRUEBAS
- EXEC Procedimientos.AgregarFactura		@cantidad = 4,
-										@tipoCliente = 'Member',
-										@genero = 'Male',
-										@empleado = '257020',
-										@tipoFactura = 'A',
-										@medioDePago = 'Ewallet',
-										@producto = 'Cerveza Amstel',
-										@ciudad = 'Yangon',
-										@id = '898-04-2719'
-GO
 
 SELECT * FROM Ventas.Facturas as f
 WHERE f.Id = '898-04-2719'
@@ -85,7 +74,7 @@ WHERE f.Id = '898-04-2719'
 --WHERE Id = '898-04-2719'
 
 -------------
-EXEC Procedimientos.AgregarEmpleado		@Nombre = 'Coscu',
+EXEC Empleado.AgregarEmpleado			@Nombre = 'Coscu',
 										@Apellido = 'Army',
 										@DNI = '44485891',
 										@Direccion = 'CumbiaPeposa 1900',
@@ -98,10 +87,10 @@ EXEC Procedimientos.AgregarEmpleado		@Nombre = 'Coscu',
 										@FraseClave = 'AvenidaSiempreViva742'
 GO
 
-EXEC Procedimientos.EliminarEmpleado @Legajo = '257035'
+EXEC Empleado.EliminarEmpleado @Legajo = '257035'
 
 
-EXEC Procedimientos.ActualizarEmpleado	@Legajo = '257035',
+EXEC Empleado.ActualizarEmpleado	@Legajo = '257035',
 										@Direccion = 'enrique segoviano 1944',
 										@EmailPersonal = 'Bombaloca@gmail.com',
 										@Cargo = 'Jefe',
@@ -112,33 +101,33 @@ GO
 
 SELECT * FROM Complementario.Empleados
 -------------
-EXEC Procedimientos.EliminarProductoCatalogo	@nombreProd = 'Aceite de aguacate Ethnos'	
+EXEC Catalogo.EliminarProductoCatalogo	@nombreProd = 'Aceite de aguacate Ethnos'	
 GO
 
 -------------
-EXEC Procedimientos.AgregarMedioDePago @nombreING = 'Debit card',
+EXEC MedioDePago.AgregarMedioDePago @nombreING = 'Debit card',
                                        @nombreESP = 'Tarjeta de debito'
 GO 
 
-EXEC Procedimientos.EliminarMedioDePago @id = '4'
+EXEC MedioDePago.EliminarMedioDePago @id = '4'
 GO
 
 SELECT * FROM Complementario.MediosDePago
 GO
 -------------
-EXEC Procedimientos.AgregarCliente
+EXEC Cliente.AgregarCliente
     @Nombre = 'Juan Fer Perez',
     @TipoCliente = 'VIP',
     @Genero = 'M',
 	@DNI = 43525943;
 GO
 
-EXEC Procedimientos.ModificarCliente
+EXEC Cliente.ModificarCliente
 	@IdCliente = 3,										--revisar uso de id
     @TipoClienteNuevo = 'NORMAL';
 GO
 
-EXEC Procedimientos.ModificarCliente
+EXEC Cliente.ModificarCliente
     @IdCliente = 2,
     @TipoClienteNuevo = 'VIP';
 GO
@@ -146,11 +135,11 @@ GO
 SELECT * FROM Complementario.Clientes
 GO
 
-EXEC Procedimientos.EliminarCliente
+EXEC Cliente.EliminarCliente
     @IdCliente = 3;
 GO
 -------------
-EXEC Procedimientos.AgregarSucursal @Ciudad = 'Pekin',
+EXEC Sucursal.AgregarSucursal @Ciudad = 'Pekin',
                                     @ReemplazarPor = 'Moron',
                                     @Direccion = 'Aguero 1800',
                                     @Horario = 'Lunes a Viernes de 8 am - 9 pm y Sabados y Domingos de 8 am - 8 pm',
@@ -158,16 +147,16 @@ EXEC Procedimientos.AgregarSucursal @Ciudad = 'Pekin',
 GO
 
 
-EXEC Procedimientos.EliminarSucursal @id = '4'
+EXEC Sucusal.EliminarSucursal @id = '4'
 GO
 
 SELECT * FROM Complementario.Sucursales
 GO
 -------------
-EXEC Procedimientos.GenerarNotaCredito @IdFactura = '898-04-2717'
+EXEC NotaCredito.GenerarNotaCredito @IdFactura = '898-04-2717'
 GO
 
-EXEC Procedimientos.EliminarNotaCredito @Id = '1'
+EXEC NotaCredito.EliminarNotaCredito @Id = '1'
 GO
 
 SELECT * FROM Ventas.NotasCredito
@@ -213,7 +202,7 @@ BEGIN TRANSACTION;
 BEGIN TRY
     DECLARE @Error INT;
     
-    EXEC @Error = Procedimientos.CargarFacturas 
+    EXEC @Error = DetalleVenta.CargarFacturas
 		@IdCliente = 123, 
         @IdSucursal = 1, 
         @Empleado = 101, 
@@ -225,15 +214,15 @@ BEGIN TRY
         THROW;		-- Nos vamos
     END;
 
-    EXEC Procedimientos.AgregarProducto @IdProducto = 101;
-    EXEC Procedimientos.AgregarProducto @IdProducto = 102;
+    EXEC DetalleVenta.AgregarProducto @IdProducto = 101;
+    EXEC DetalleVenta.AgregarProducto @IdProducto = 102;
 
-	EXEC Procedimientos.CancelarCompra; 
+	EXEC DetalleVenta.CancelarCompra; 
 
     DECLARE @IdFactura INT;
     SET @IdFactura = (SELECT TOP 1 IdFactura FROM Ventas.Facturas ORDER BY IdFactura DESC); 
 
-    EXEC Procedimientos.FinalizarCompra @IdFactura = @IdFactura;
+    EXEC DetalleVenta.FinalizarCompra @IdFactura = @IdFactura;
 
     COMMIT TRANSACTION;
     PRINT 'Compra finalizada con éxito. Factura generada.';

@@ -138,11 +138,13 @@ GO
 CREATE TABLE Ventas.DetalleVentas(
 	IdDetalle INT IDENTITY(1,1)PRIMARY KEY,         
     IdFactura INT,                              
-    IdProducto INT,														-- Relacion con el producto vendido
+    IdProducto INT,										
+    IdCategoria INT,
     Cantidad INT,                                   
-    PrecioUnitario DECIMAL(6, 2),										-- Precio unitario en el momento de la venta
+    PrecioUnitario DECIMAL(6, 2),										
     CONSTRAINT FK_Detalle_Factura FOREIGN KEY (IdFactura) REFERENCES Ventas.Facturas(IdFactura),
-    CONSTRAINT FK_Detalle_Producto FOREIGN KEY (IdProducto) REFERENCES Productos.Catalogo(Id)
+    CONSTRAINT FK_Detalle_Producto FOREIGN KEY (IdProducto) REFERENCES Productos.Catalogo(Id),
+	CONSTRAINT FK_Detalle_Categoria FOREIGN KEY (IdCategoria) REFERENCES Complementario.CategoriaDeProds(Id)
 )
 GO
 

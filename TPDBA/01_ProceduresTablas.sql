@@ -38,6 +38,10 @@ GO
 CREATE SCHEMA NotaCredito
 GO
 
+DROP SCHEMA IF EXISTS DetalleVenta
+GO
+CREATE SCHEMA DetalleVenta
+GO
 
 -------------SP'S Para Empleados:
 CREATE OR ALTER PROCEDURE Empleado.AgregarEmpleado
@@ -255,7 +259,7 @@ END;
 GO
 
 -------------SP'S Para Clientes:
-CREATE OR ALTER PROCEDURE Procedimientos.AgregarCliente
+CREATE OR ALTER PROCEDURE Cliente.AgregarCliente
     @Nombre VARCHAR(50),
     @TipoCliente CHAR(6),
     @Genero CHAR(6),
@@ -273,7 +277,7 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.ModificarCliente
+CREATE OR ALTER PROCEDURE Cliente.ModificarCliente
 	@IdCliente INT,
 	@TipoClienteNuevo CHAR(6)
 AS
@@ -290,7 +294,7 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.EliminarCliente
+CREATE OR ALTER PROCEDURE Cliente.EliminarCliente
     @IdCliente INT
 AS
 BEGIN
@@ -306,20 +310,19 @@ END;
 GO
 
 -------------SP'S para Detalles de Ventas:
-CREATE OR ALTER PROCEDURE Procedimientos.AgregarProducto
+CREATE OR ALTER PROCEDURE DetalleVenta.AgregarProducto
     @IdProducto INT
 AS
 BEGIN
 	
-	IF NOT EXISTS (SELECT * FROM tempdb.sys.objects WHERE name = '##DetalleVentas')
-	BEGIN
-		CREATE TABLE ##DetalleVentas
-		(
-			IdDetalle INT IDENTITY(1,1) PRIMARY KEY,  -- ID auto incrementable como clave primaria
-			IdProducto INT,                            -- Relación con el producto
-			Cantidad INT                               -- Cantidad de producto
-		);
-	END
+	DROP TABLE IF EXISTS ##DetalleVentas
+
+	CREATE TABLE ##DetalleVentas
+	(
+		IdDetalle INT IDENTITY(1,1) PRIMARY KEY,  -- ID auto incrementable como clave primaria
+		IdProducto INT,                            -- Relación con el producto
+		Cantidad INT                               -- Cantidad de producto
+	);
 
     IF EXISTS (SELECT 1 FROM #DetalleVentas WHERE IdProducto = @IdProducto)
     BEGIN
@@ -335,23 +338,25 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.FinalizarCompra
+CREATE OR ALTER PROCEDURE DetalleVenta.FinalizarCompra
     @IdFactura INT 
 AS
 BEGIN
-    INSERT INTO Ventas.DetalleVentas (IdFactura, IdProducto, Cantidad, Precio)
+    INSERT INTO Ventas.DetalleVentas (IdFactura, IdProducto, IdCategoria, Cantidad, PrecioUnitario)
     SELECT
         @IdFactura,                             
         d.IdProducto,                            
+        p.IdCategoria,                         
         d.Cantidad,                             
-        p.PrecioUnitario                          
-    FROM #DetalleVentas d
+        p.PrecioUnitario
+    FROM ##DetalleVentas d
     JOIN Productos.Catalogo p ON d.IdProducto = p.Id;  
-	DROP TABLE ##DetalleVentas
+
+    DROP TABLE ##DetalleVentas;
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.CancelarCompra
+CREATE OR ALTER PROCEDURE DetalleVenta.CancelarCompra
 AS
 BEGIN
     RAISERROR ('Compra cancelada por el usuario.', 16, 1);
@@ -359,7 +364,7 @@ END;
 GO
 
 
-CREATE OR ALTER PROCEDURE Procedimientos.CargarFacturas
+CREATE OR ALTER PROCEDURE DetalleVenta.CargarFacturas
     @IdCliente INT,
     @IdSucursal INT,
     @Empleado INT,
