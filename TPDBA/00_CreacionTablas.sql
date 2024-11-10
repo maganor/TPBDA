@@ -6,7 +6,7 @@
 --Villegas Brandolini, Lucas      -       44459666
 --Zapata, Santiago                -       44525943
 
----CREACION TABLAS:
+---CREACION DE OBJETOS:
 
 USE master
 GO
@@ -173,3 +173,8 @@ SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
 FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_SCHEMA = 'Ventas'
 GO
+
+--Creacion de Indices para las futuras ejecuciones de los SP:
+CREATE NONCLUSTERED INDEX IX_CategoriaDeProds_Producto_Linea ON Complementario.CategoriaDeProds(Producto,LineadeProducto);
+CREATE NONCLUSTERED INDEX IX_Catalogo_Nombre_Categoria ON Productos.Catalogo(Nombre,IdCategoria);
+CREATE NONCLUSTERED INDEX IX_SucursalesCiudad ON Complementario.Sucursales(Ciudad,ReemplazarPor);

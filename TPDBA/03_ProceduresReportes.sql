@@ -1,5 +1,5 @@
 
-----REPORTES XML (Los nuevos que hay que revisar y probar estan desde la linea 239)
+----REPORTES XML: (Los nuevos que hay que revisar y probar estan desde la linea 239)
 
 USE Com5600G01
 GO
