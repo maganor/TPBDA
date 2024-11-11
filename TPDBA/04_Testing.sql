@@ -4,7 +4,7 @@ GO
 EXEC Procedimientos.CargarValorDolar
 GO
 
-DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
+DECLARE @PATH VARCHAR(255) = 'C:\Users\wixde\Desktop\TP_integrador_Archivos'
 DECLARE @FullPath VARCHAR(500) = @PATH + '\Informacion_complementaria.xlsx'
 
 --Primero que todo, cargamos la tabla de Clasificacion de Productos con el SP:
@@ -82,26 +82,27 @@ EXEC Empleado.AgregarEmpleado			@Nombre = 'Coscu',
 										@EmailEmpresa = 'holaempresa@gmail.com',
 										@CUIL = '11111111112',
 										@Cargo = 'papu',
-										@Sucursal = 'San Justo',
-										@Turno = 'TM',
-										@FraseClave = 'AvenidaSiempreViva742'
+										@Sucursal = 'Yangon',
+										@Turno = 'TM'
 GO
 
 EXEC Empleado.EliminarEmpleado @Legajo = '257035'
 
 
-EXEC Empleado.ActualizarEmpleado	@Legajo = '257035',
-										@Direccion = 'enrique segoviano 1944',
-										@EmailPersonal = 'Bombaloca@gmail.com',
-										@Cargo = 'Jefe',
-										@Sucursal = 'Ramos Mejia',
-										@Turno = 'Jornada completa',
-										@FraseClave = 'AvenidaSiempreViva742'
-GO		
+--EXEC Empleado.ActualizarEmpleado	@Legajo = '257035',
+--										@Direccion = 'enrique segoviano 1944',
+--										@EmailPersonal = 'Bombaloca@gmail.com',
+--										@Cargo = 'Jefe',
+--										@Sucursal = 'Ramos Mejia',
+--										@Turno = 'Jornada completa'
+--GO		
 
 SELECT * FROM Complementario.Empleados
 -------------
-EXEC Catalogo.EliminarProductoCatalogo	@nombreProd = 'Aceite de aguacate Ethnos'	
+SELECT * from Productos.Catalogo WHERE nombre = 'Aceite de aguacate Ethnos'
+EXEC Producto.EliminarProducto @id = 1	
+SELECT * from Productos.Catalogo WHERE nombre = 'Aceite de aguacate Ethnos'
+
 GO
 
 -------------
@@ -117,13 +118,14 @@ GO
 -------------
 EXEC Cliente.AgregarCliente
     @Nombre = 'Juan Fer Perez',
-    @TipoCliente = 'VIP',
     @Genero = 'M',
 	@DNI = 43525943;
 GO
 
+
+SELECT * from Complementario.Clientes
 EXEC Cliente.ModificarCliente
-	@IdCliente = 3,										--revisar uso de id
+	@IdCliente = 2,										--revisar uso de id
     @TipoClienteNuevo = 'NORMAL';
 GO
 
@@ -136,7 +138,7 @@ SELECT * FROM Complementario.Clientes
 GO
 
 EXEC Cliente.EliminarCliente
-    @IdCliente = 3;
+    @IdCliente = 2;
 GO
 -------------
 EXEC Sucursal.AgregarSucursal @Ciudad = 'Pekin',
@@ -147,19 +149,19 @@ EXEC Sucursal.AgregarSucursal @Ciudad = 'Pekin',
 GO
 
 
-EXEC Sucusal.EliminarSucursal @id = '4'
+EXEC Sucursal.EliminarSucursal @id = '4'
 GO
 
 SELECT * FROM Complementario.Sucursales
 GO
 -------------
-EXEC NotaCredito.GenerarNotaCredito @IdFactura = '898-04-2717'
+EXEC NotaCredito.GenerarNotaCredito @IdFactura = 1, @IdProducto = 5, @Cantidad = 2
 GO
 
 EXEC NotaCredito.EliminarNotaCredito @Id = '1'
 GO
 
-SELECT * FROM Ventas.NotasCredito
+SELECT * FROM Ventas.NotasDeCredito
 GO
 
 ----------Ejecución de los Reportes XML
@@ -198,23 +200,21 @@ SELECT @xml AS XMLResultado;
 GO
 --
 
-sp
-
 BEGIN TRANSACTION;  
 
 BEGIN TRY
     DECLARE @Error INT;
     
     EXEC @Error = DetalleVenta.CargarFacturas
-		@IdCliente = NULL, 
+		@IdCliente = 2, 
         @IdSucursal = 1, 
         @Empleado = 101, 
         @TipoFactura = 'A', 
         @IdMedioPago = 5;
-
+	print @error
     IF @Error <> 0		-- Verificar si ocurrió un error en CargarFacturas
     BEGIN
-        THROW;		-- Nos vamos
+        THROW 50000, 'ERRRRROORRRR', 1		-- Nos vamos
     END;
 
     EXEC DetalleVenta.AgregarProducto @IdProducto = 101;

@@ -68,11 +68,14 @@ BEGIN
         RAISERROR ('La sucursal especificada no existe o la ciudad no es válida.', 16, 1);
         RETURN;
     END
+
+	DECLARE @Legajo INT
+	SELECT @Legajo =  MAX(Legajo) + 1 from Complementario.Empleados 
 	   
     INSERT INTO Complementario.Empleados 
-        (Nombre, Apellido, DNI, Direccion, EmailPersonal, EmailEmpresa, CUIL, Cargo, IdSucursal, Turno, EstaActivo)
+        (Legajo, Nombre, Apellido, DNI, Direccion, EmailPersonal, EmailEmpresa, CUIL, Cargo, IdSucursal, Turno, EstaActivo)
     VALUES 
-        (@Nombre, @Apellido, @DNI, @Direccion, @EmailPersonal, @EmailEmpresa, @CUIL, @Cargo, @IdSucursal, @Turno, 1);
+        (@Legajo, @Nombre, @Apellido, @DNI, @Direccion, @EmailPersonal, @EmailEmpresa, @CUIL, @Cargo, @IdSucursal, @Turno, 1);
 END;
 GO
 
@@ -138,7 +141,7 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Producto.EliminarProductoCatalogo
+CREATE OR ALTER PROCEDURE Producto.EliminarProducto
     @Id INT
 AS
 BEGIN
@@ -227,7 +230,7 @@ GO
 
 -------------SP'S Para Notas de Credito:
 
-CREATE OR ALTER PROCEDURE CargarNotaDeCredito
+CREATE OR ALTER PROCEDURE NotaCredito.GenerarNotaCredito
     @IdFactura INT,
     @IdProducto INT,
     @Cantidad INT
@@ -266,11 +269,11 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Procedimientos.EliminarNotaCredito
+CREATE OR ALTER PROCEDURE NotaCredito.EliminarNotaCredito
     @Id INT
 AS
 BEGIN
-    UPDATE Ventas.NotasCredito
+    UPDATE Ventas.NotasDeCredito
     SET EstaActivo = 0
     WHERE Id = @Id;
 END;
@@ -285,12 +288,12 @@ AS
 BEGIN
         IF EXISTS (SELECT 1 FROM Complementario.Clientes WHERE DNI = @DNI) -- Inserta el cliente en la tabla solo si no está su dni ya ingresado
         BEGIN
-            RAISERROR('Ya esiste un cliente con el DNI ingresado.', 16, 1);
+            RAISERROR('Ya existe un cliente con el DNI ingresado.', 16, 1);
             RETURN;
         END
 
         INSERT INTO Complementario.Clientes (Nombre, TipoCliente, Genero, DNI)
-        VALUES (@Nombre, 'Miembro', @Genero, @DNI);
+        VALUES (@Nombre, 'Member', @Genero, @DNI);
 END;
 GO
 
