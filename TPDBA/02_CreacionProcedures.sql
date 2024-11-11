@@ -477,7 +477,7 @@ BEGIN
         DV.Cantidad,
         F.Fecha,                                 
         F.Hora,                                                           
-        MP.NombreING AS MedioDePago,   
+        MP.NombreESP AS MedioDePago,   
         F.Empleado,
         S.ReemplazarPor AS Sucursal              
     FROM

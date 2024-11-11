@@ -39,7 +39,7 @@ GO
 EXEC Carga.CargarHistorial
 GO
 
-EXEC Carga.CargarFacturasDesdeHistorial
+--EXEC Carga.CargarFacturasDesdeHistorial     REVISAR
 GO
 
 EXEC Productos.PesificarPrecios
@@ -215,7 +215,7 @@ BEGIN TRY
     BEGIN
         THROW 50000, 'ERRRRROORRRR', 1		-- Nos vamos
     END;
-    EXEC DetalleVenta.AgregarProducto @IdProducto = 101;  --modificar borrar tambla temp
+    EXEC DetalleVenta.AgregarProducto @IdProducto = 104;  --modificar borrar tambla temp
     --EXEC DetalleVenta.AgregarProducto @IdProducto = 102;
 	--EXEC DetalleVenta.CancelarCompra; 
 
@@ -234,10 +234,16 @@ END CATCH;
 
 select * from ventas.facturas
 
-EXEC CargarNotaDeCredito 
-    @IdFactura = 123,  
+select * from Ventas.DetalleVentas
+
+EXEC NotaCredito.GenerarNotaCredito
+    @IdFactura = 1008,  
     @IdProducto = 101, 
-    @Cantidad = 3;     
+    @Cantidad = 1;     
 
 
-EXEC MostrarReporte;
+select * from ventas.NotasDeCredito
+
+exec NotaCredito.EliminarNotaCredito @Id = 1;
+
+EXEC Procedimientos.MostrarReporte
