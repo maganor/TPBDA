@@ -197,13 +197,16 @@ EXEC Reportes.TotalAcumuladoVentas @Fecha = '2019-03-15', @Sucursal = 'Ramos Mej
 SELECT @xml AS XMLResultado;
 GO
 --
+
+sp
+
 BEGIN TRANSACTION;  
 
 BEGIN TRY
     DECLARE @Error INT;
     
     EXEC @Error = DetalleVenta.CargarFacturas
-		@IdCliente = 123, 
+		@IdCliente = NULL, 
         @IdSucursal = 1, 
         @Empleado = 101, 
         @TipoFactura = 'A', 
@@ -239,3 +242,6 @@ EXEC CargarNotaDeCredito
     @IdFactura = 123,  
     @IdProducto = 101, 
     @Cantidad = 3;     
+
+
+EXEC MostrarReporte;

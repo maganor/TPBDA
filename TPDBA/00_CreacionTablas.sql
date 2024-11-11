@@ -91,12 +91,16 @@ GO
 DROP TABLE IF EXISTS Complementario.Clientes
 GO
 CREATE TABLE Complementario.Clientes(
-	IdCliente INT IDENTITY(1,1) PRIMARY KEY,
-	DNI INT UNIQUE,
-	Nombre VARCHAR(50),
-	TipoCliente CHAR(6),
-	Genero CHAR(6),
+    IdCliente INT IDENTITY(0,1) PRIMARY KEY,  
+    DNI INT UNIQUE,
+    Nombre VARCHAR(50),
+    TipoCliente CHAR(6),
+    Genero CHAR(6)
 )
+GO
+
+INSERT INTO Complementario.Clientes (IdCliente, DNI, Nombre, TipoCliente, Genero)  
+VALUES (0, NULL, 'Consumidor Final', 'Normal', '-');
 GO
 
 INSERT INTO Complementario.MediosDePago(NombreING,NombreESP)

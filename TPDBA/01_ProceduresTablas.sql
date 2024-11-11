@@ -279,7 +279,6 @@ GO
 -------------SP'S Para Clientes:
 CREATE OR ALTER PROCEDURE Cliente.AgregarCliente
     @Nombre VARCHAR(50),
-    @TipoCliente CHAR(6),
     @Genero CHAR(6),
 	@DNI INT
 AS
@@ -291,7 +290,7 @@ BEGIN
         END
 
         INSERT INTO Complementario.Clientes (Nombre, TipoCliente, Genero, DNI)
-        VALUES (@Nombre, @TipoCliente, @Genero, @DNI);
+        VALUES (@Nombre, 'Miembro', @Genero, @DNI);
 END;
 GO
 

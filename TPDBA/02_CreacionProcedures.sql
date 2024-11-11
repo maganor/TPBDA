@@ -461,6 +461,49 @@ BEGIN
 END;
 GO
 
+
+CREATE OR ALTER PROCEDURE Procedimientos.MostrarReporte
+AS
+BEGIN
+    SELECT
+        F.IdFactura,                             
+        F.TipoFactura, 
+        S.Ciudad,
+        C.TipoCliente,
+        C.Genero,
+        CP.LineaDeProducto,
+        P.Nombre AS Producto,
+        DV.PrecioUnitario,
+        DV.Cantidad,
+        F.Fecha,                                 
+        F.Hora,                                                           
+        MP.NombreING AS MedioDePago,   
+        F.Empleado,
+        S.ReemplazarPor AS Sucursal              
+    FROM
+        Ventas.Facturas F
+    JOIN
+        Complementario.Sucursales S
+        ON F.IdSucursal = S.IdSucursal         
+    JOIN
+        Complementario.Clientes C
+        ON F.IdCliente = C.IdCliente         
+    JOIN
+        Ventas.DetalleVentas DV
+        ON F.IdFactura = DV.IdFactura       
+    JOIN
+        Complementario.CategoriaDeProds CP
+        ON DV.IdCategoria = CP.Id   
+    JOIN
+        Productos.Catalogo P
+        ON DV.IdProducto = P.Id      
+    JOIN
+        Complementario.MediosDePago MP
+        ON F.IdMedioPago = MP.IdMDP      
+END;
+GO
+
+
 --Ver procedimientos en esquema 'Procedimientos'
 SELECT SCHEMA_NAME(schema_id) AS Esquema, name AS Procedimiento
 FROM sys.procedures
