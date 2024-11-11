@@ -10,8 +10,7 @@
 
 USE master
 GO
-DROP DATABASE Com5600G01
-GO
+
 CREATE DATABASE Com5600G01
 GO
 
@@ -99,8 +98,8 @@ CREATE TABLE Complementario.Clientes(
 )
 GO
 
-INSERT INTO Complementario.Clientes (IdCliente, DNI, Nombre, TipoCliente, Genero)  
-VALUES (0, NULL, 'Consumidor Final', 'Normal', '-');
+INSERT INTO Complementario.Clientes (DNI, Nombre, TipoCliente, Genero)  
+VALUES (NULL, 'Consumidor Final', 'Normal', '-');
 GO
 
 INSERT INTO Complementario.MediosDePago(NombreING,NombreESP)
@@ -112,7 +111,7 @@ GO
 CREATE TABLE Productos.Catalogo(
 	Id INT IDENTITY (1,1) PRIMARY KEY,
 	Nombre VARCHAR(100),
-	Precio DECIMAL(6,2),
+	Precio DECIMAL(10,2),
 	Proveedor VARCHAR(100),
 	IdCategoria INT,
 	CONSTRAINT FK_Categoria FOREIGN KEY (IdCategoria) REFERENCES Complementario.CategoriaDeProds(Id)

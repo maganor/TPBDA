@@ -4,7 +4,7 @@ GO
 EXEC Procedimientos.CargarValorDolar
 GO
 
-DECLARE @PATH VARCHAR(255) = 'C:\Users\wixde\Desktop\TP_integrador_Archivos'
+DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
 DECLARE @FullPath VARCHAR(500) = @PATH + '\Informacion_complementaria.xlsx'
 
 --Primero que todo, cargamos la tabla de Clasificacion de Productos con el SP:
@@ -206,27 +206,23 @@ BEGIN TRY
     DECLARE @Error INT;
     
     EXEC @Error = DetalleVenta.CargarFacturas
-		@IdCliente = 2, 
+		@IdCliente = 0, 
         @IdSucursal = 1, 
-        @Empleado = 101, 
+        @Empleado = 257020, 
         @TipoFactura = 'A', 
-        @IdMedioPago = 5;
-	print @error
+        @IdMedioPago = 1;
     IF @Error <> 0		-- Verificar si ocurrió un error en CargarFacturas
     BEGIN
         THROW 50000, 'ERRRRROORRRR', 1		-- Nos vamos
     END;
-
-    EXEC DetalleVenta.AgregarProducto @IdProducto = 101;
-    EXEC DetalleVenta.AgregarProducto @IdProducto = 102;
-
-	EXEC DetalleVenta.CancelarCompra; 
+    EXEC DetalleVenta.AgregarProducto @IdProducto = 101;  --modificar borrar tambla temp
+    --EXEC DetalleVenta.AgregarProducto @IdProducto = 102;
+	--EXEC DetalleVenta.CancelarCompra; 
 
     DECLARE @IdFactura INT;
     SET @IdFactura = (SELECT TOP 1 IdFactura FROM Ventas.Facturas ORDER BY IdFactura DESC); 
 
     EXEC DetalleVenta.FinalizarCompra @IdFactura = @IdFactura;
-
     COMMIT TRANSACTION;
     PRINT 'Compra finalizada con éxito. Factura generada.';
     
@@ -236,7 +232,7 @@ BEGIN CATCH
     PRINT 'Error en el proceso de finalización de la compra. Transacción revertida.';
 END CATCH;
 
-
+select * from ventas.facturas
 
 EXEC CargarNotaDeCredito 
     @IdFactura = 123,  

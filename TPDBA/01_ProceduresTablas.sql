@@ -274,7 +274,7 @@ CREATE OR ALTER PROCEDURE NotaCredito.EliminarNotaCredito
 AS
 BEGIN
     UPDATE Ventas.NotasDeCredito
-    SET EstaActivo = 0
+    SET EstadoActivo = 0
     WHERE Id = @Id;
 END;
 GO
@@ -334,25 +334,26 @@ CREATE OR ALTER PROCEDURE DetalleVenta.AgregarProducto
     @IdProducto INT
 AS
 BEGIN
-	
-	DROP TABLE IF EXISTS ##DetalleVentas
 
+	IF NOT EXISTS (SELECT * FROM tempdb.sys.tables WHERE name = '##DetalleVentas')
+	BEGIN
 	CREATE TABLE ##DetalleVentas
 	(
 		IdDetalle INT IDENTITY(1,1) PRIMARY KEY,  -- ID auto incrementable como clave primaria
 		IdProducto INT,                            -- Relación con el producto
 		Cantidad INT                               -- Cantidad de producto
 	);
+	END
 
-    IF EXISTS (SELECT 1 FROM #DetalleVentas WHERE IdProducto = @IdProducto)
+    IF EXISTS (SELECT 1 FROM ##DetalleVentas WHERE IdProducto = @IdProducto)
     BEGIN
-        UPDATE #DetalleVentas
+        UPDATE ##DetalleVentas
         SET Cantidad = Cantidad + 1
         WHERE IdProducto = @IdProducto;
     END
     ELSE
     BEGIN
-        INSERT INTO #DetalleVentas (IdProducto, Cantidad)
+        INSERT INTO ##DetalleVentas (IdProducto, Cantidad)
         VALUES (@IdProducto, 1);
     END
 END;
@@ -368,7 +369,7 @@ BEGIN
         d.IdProducto,                            
         p.IdCategoria,                         
         d.Cantidad,                             
-        p.PrecioUnitario
+        p.Precio
     FROM ##DetalleVentas d
     JOIN Productos.Catalogo p ON d.IdProducto = p.Id;  
 
