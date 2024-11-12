@@ -96,8 +96,8 @@ BEGIN
     FROM ##CatalogoTemp ct
         JOIN Complementario.CategoriaDeProds cp ON cp.Producto = ct.Categoria
 
-    INSERT INTO Productos.Catalogo(Nombre,Precio,Proveedor,IdCategoria)	 --Inserta al catalogo si está el mismo nombre ni la categoria
-    SELECT ct.Nombre,ct.Precio,'-' AS Proveedor,ct.IdCategoria            
+    INSERT INTO Productos.Catalogo(Nombre,Precio,Proveedor,IdCategoria, PrecioRef, UnidadRef)	 --Inserta al catalogo si está el mismo nombre ni la categoria
+    SELECT ct.Nombre, ct.Precio, '-' AS Proveedor, ct.IdCategoria, ct.Precio_Ref, ct.Unidad_Ref
     FROM ##CatalogoTemp ct
     WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo c 
                       WHERE c.Nombre = ct.Nombre AND c.IdCategoria = ct.IdCategoria)

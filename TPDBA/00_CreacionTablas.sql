@@ -112,6 +112,8 @@ CREATE TABLE Productos.Catalogo(
 	Precio DECIMAL(10,2),
 	Proveedor VARCHAR(100),
 	IdCategoria INT,
+	PrecioRef DECIMAL(10,2),
+	UnidadRef CHAR(10),
 	CONSTRAINT FK_Categoria FOREIGN KEY (IdCategoria) REFERENCES Complementario.CategoriaDeProds(Id)
 )
 
