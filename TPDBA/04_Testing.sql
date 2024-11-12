@@ -4,7 +4,7 @@ GO
 EXEC Procedimientos.CargarValorDolar
 GO
 
-DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
+DECLARE @PATH VARCHAR(255) = 'C:\Users\wixde\Desktop\TP_integrador_Archivos'
 DECLARE @FullPath VARCHAR(500) = @PATH + '\Informacion_complementaria.xlsx'
 
 --Primero que todo, cargamos la tabla de Clasificacion de Productos con el SP:
@@ -15,6 +15,8 @@ EXEC Carga.CargarSucursales	@direccion = @FullPath
 
 --Cargamos los Empleados con el SP:
 EXEC Carga.CargarEmpleados		@direccion = @FullPath
+
+EXEC Carga.CargarMediosDePago @direccion = @FullPath
 																										
 --Cargamos el Catalogo con el SP:
 SET @FullPath = @PATH + '\Productos\catalogo.csv'
@@ -52,6 +54,8 @@ GO
 SELECT * FROM Productos.Catalogo
 GO
 SELECT * FROM ##Historial		
+GO
+SELECT * FROM Complementario.MediosDePago
 GO
 SELECT * FROM Complementario.CategoriaDeProds  --ojear x las ddas
 GO

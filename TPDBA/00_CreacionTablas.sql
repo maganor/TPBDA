@@ -102,10 +102,6 @@ INSERT INTO Complementario.Clientes (DNI, Nombre, TipoCliente, Genero)
 VALUES (NULL, 'Consumidor Final', 'Normal', '-');
 GO
 
-INSERT INTO Complementario.MediosDePago(NombreING,NombreESP)
-VALUES ('Credit card','Tarjeta de credito'),('Cash','Efectivo'),('Ewallet','Billetera Electronica')
-GO
-
 DROP TABLE IF EXISTS Productos.Catalogo
 GO
 CREATE TABLE Productos.Catalogo(

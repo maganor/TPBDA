@@ -287,6 +287,44 @@ BEGIN
 END;
 GO
 
+--Archivo Informacion_Complementaria / Medios de pago:
+CREATE OR ALTER PROCEDURE Carga.CargarMediosDePago
+    @direccion VARCHAR(100)       
+AS
+BEGIN
+   
+	DROP TABLE IF EXISTS #MediosDePagoTemp
+	CREATE TABLE #MediosDePagoTemp (
+    NombreING VARCHAR(15),
+    NombreESP VARCHAR(25)
+	);
+
+    DECLARE @sql NVARCHAR(MAX);
+
+    SET @sql = N'
+    INSERT INTO #MediosDePagoTemp (NombreING, NombreESP)
+    SELECT 
+        CAST(F2 AS VARCHAR(15)),
+		CAST(F3 AS VARCHAR(25))
+    FROM OPENROWSET(
+        ''Microsoft.ACE.OLEDB.12.0'',
+        ''Excel 12.0; Database=' + @direccion + ';'', 
+        ''SELECT * FROM [medios de pago$]''
+    );';
+
+    EXEC sp_executesql @sql;
+
+    INSERT INTO Complementario.MediosDePago (NombreING, NombreESP)		--Inserta la categoria a la tabla final si no está
+    SELECT mdpt.NombreING, mdpt.NombreESP
+    FROM #MediosDePagoTemp mdpt
+    WHERE NOT EXISTS (SELECT 1 FROM Complementario.MediosDePago mdp
+                      WHERE mdp.NombreING = mdpt.NombreING AND mdp.NombreESP = mdpt.NombreESP);
+
+    DROP TABLE #MediosDePagoTemp;
+
+END;
+GO
+
 --Archivo Informacion_Complementaria / Clasificacion Productos:
 CREATE OR ALTER PROCEDURE Carga.CargarClasificacion
     @direccion VARCHAR(100)       
