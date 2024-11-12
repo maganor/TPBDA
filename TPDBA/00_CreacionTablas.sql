@@ -99,7 +99,9 @@ CREATE TABLE Complementario.Clientes(
 GO
 
 INSERT INTO Complementario.Clientes (DNI, Nombre, TipoCliente, Genero)  
-VALUES (NULL, 'Consumidor Final', 'Normal', '-');
+VALUES (NULL, 'Consumidor Final', 'Normal', '-'), 
+(0, 'Antiguo', 'Normal', 'Male'), (1, 'Antiguo', 'Normal', 'Female'), 
+(2, 'Antiguo', 'Member', 'Female'), (3, 'Antiguo', 'Member', 'Male')
 GO
 
 DROP TABLE IF EXISTS Productos.Catalogo

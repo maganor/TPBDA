@@ -41,7 +41,7 @@ GO
 EXEC Carga.CargarHistorial
 GO
 
---EXEC Carga.CargarFacturasDesdeHistorial     REVISAR
+EXEC Carga.CargarFacturasDesdeHistorial    
 GO
 
 EXEC Productos.PesificarPrecios

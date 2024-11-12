@@ -426,10 +426,6 @@ CREATE OR ALTER PROCEDURE Procedimientos.CargarValorDolar
 AS
 BEGIN
     SET NOCOUNT ON;
-
-    -- Habilitar Ole Automation Procedures
-    EXEC sp_configure 'Ole Automation Procedures', 1; 
-    RECONFIGURE;
     
     -- Variables para manejar la respuesta de la API
     DECLARE @url NVARCHAR(64) = 'https://dolarapi.com/v1/dolares/blue'; -- URL del API

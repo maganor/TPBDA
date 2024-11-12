@@ -22,18 +22,24 @@ sp_configure 'Ad Hoc Distributed Queries', 1;
 GO
 RECONFIGURE;
 GO
+EXEC sp_configure 'Ole Automation Procedures', 1; 
+RECONFIGURE;
+GO
 
 CREATE OR ALTER FUNCTION Procedimientos.ArreglarLetras(@str NVARCHAR(100)) RETURNS NVARCHAR(100)
 BEGIN
 
-    SET @str = REPLACE(@str, '√', '')
-    SET @str = REPLACE(@str, '°', '·')
-    SET @str = REPLACE(@str, '©', 'È')
-    SET @str = REPLACE(@str, NCHAR(0xAD), 'Ì')
-    SET @str = REPLACE(@str, '≥', 'Û') 
-    SET @str = REPLACE(@str, '∫', '˙')
-    SET @str = REPLACE(@str, '±', 'Ò')
-
+    SET @str = REPLACE(@str, '√°', '·')
+    SET @str = REPLACE(@str, '√©', 'È')
+    SET @str = REPLACE(@str, '√' + NCHAR(0xAD), 'Ì')
+    SET @str = REPLACE(@str, '√≥', 'Û') 
+    SET @str = REPLACE(@str, '√∫', '˙')
+	SET @str = REPLACE(@str, '¬∫', '∫')
+    SET @str = REPLACE(@str, '√±', 'Ò')
+	SET @str = REPLACE(@str, 'Âçò', 'Ò')
+	SET @str = REPLACE(@str, '√ë', 'Ò')
+	SET @str = REPLACE(@str, '√É∫', '˙')
+	SET @str = REPLACE(@str, NCHAR(0xC3) + NCHAR(0x81), '¡')
     return @str;
 END;	
 GO
@@ -79,6 +85,12 @@ BEGIN
 
 	UPDATE ##CatalogoTemp
 	SET Nombre = REPLACE(Nombre, NCHAR(0x5358), 'Ò')				--Corrige errores por la —
+
+	UPDATE ##CatalogoTemp
+	SET Nombre = REPLACE(Nombre, '√∫', '˙')
+	WHERE Nombre LIKE '%√∫%'
+
+
 
     UPDATE ct SET ct.IdCategoria = cp.Id							--AÒade el valor de IdCategoria al Producto
     FROM ##CatalogoTemp ct
@@ -471,18 +483,36 @@ GO
 CREATE OR ALTER PROCEDURE Carga.CargarFacturasDesdeHistorial
 AS
 BEGIN
-    INSERT INTO Ventas.Facturas (IdViejo,TipoFactura,Fecha,Hora,IdMedioPago,Empleado,IdSucursal,IdCliente)
-    SELECT 
-        H.IdFactura AS IdViejo,
-        H.TipoFactura,
-        CAST(H.Fecha AS DATE) AS Fecha, 
-        CAST(H.Hora AS TIME(0)) AS Hora, 
-        M.IdMDP AS IdMedioPago, 
-        CAST(H.Empleado AS INT) AS Empleado,
-        '-' AS IdSucursal, 
-        '-' AS IdCliente 
-    FROM ##Historial H
-		JOIN Complementario.MediosDePago M ON H.MedioPago = M.NombreING; 
+	INSERT INTO Ventas.Facturas(IdViejo, TipoFactura, Fecha, Hora, IdMedioPago, Empleado, IdSucursal, IdCliente)
+	SELECT
+		h.IdFactura,
+		h.TipoFactura,
+		h.Fecha,
+		h.Hora,
+		mdp.IdMDP,
+		h.Empleado,
+		s.IdSucursal,
+		c.IdCliente
+	FROM ##Historial h
+		JOIN Complementario.MediosDePago mdp ON h.MedioPago = mdp.NombreING
+		JOIN Complementario.Sucursales s ON h.Ciudad = s.Ciudad
+		JOIN Complementario.Clientes c on c.Genero = h.Genero AND c.TipoCliente = h.TipoCliente
+
+	INSERT INTO Ventas.DetalleVentas(IdFactura, IdProducto, Cantidad, PrecioUnitario, IdCategoria)
+	SELECT 
+		f.IdFactura, 
+		c.Id, 
+		h.Cantidad, 
+		h.PrecioUni, 
+		C.IdCategoria 
+	FROM ##Historial h
+	JOIN Ventas.Facturas f on f.IdViejo = H.IdFactura
+	CROSS APPLY (
+			SELECT TOP 1 * FROM Productos.Catalogo C 
+			WHERE C.Nombre = h.Producto AND h.PrecioUni = C.Precio
+	) c
+
+
 END;
 GO
 
@@ -537,7 +567,7 @@ BEGIN
         ON DV.IdProducto = P.Id      
     JOIN
         Complementario.MediosDePago MP
-        ON F.IdMedioPago = MP.IdMDP      
+        ON F.IdMedioPago = MP.IdMDP    
 END;
 GO
 
@@ -546,4 +576,10 @@ GO
 SELECT SCHEMA_NAME(schema_id) AS Esquema, name AS Procedimiento
 FROM sys.procedures
 WHERE SCHEMA_NAME(schema_id) = 'Procedimientos';
+GO
+
+--Ver procedimientos en esquema 'Carga'
+SELECT SCHEMA_NAME(schema_id) AS Esquema, name AS Procedimiento
+FROM sys.procedures
+WHERE SCHEMA_NAME(schema_id) = 'Carga';
 GO
