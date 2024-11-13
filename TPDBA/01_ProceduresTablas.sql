@@ -60,8 +60,8 @@ BEGIN
     DECLARE @IdSucursal INT;
 
     SELECT @IdSucursal = IdSucursal
-    FROM Complementario.Sucursales
-    WHERE Ciudad = @Sucursal;
+		FROM Complementario.Sucursales
+		WHERE Ciudad = @Sucursal;
 
     IF @IdSucursal IS NULL
     BEGIN
@@ -102,6 +102,7 @@ BEGIN
         Direccion = COALESCE(@Direccion, Direccion),
         EmailPersonal = COALESCE(@EmailPersonal, EmailPersonal)
     WHERE Legajo = @Legajo;
+	PRINT 'Se actualizo el empleado con legajo ' + @legajo
 END;
 GO
 
@@ -138,6 +139,7 @@ BEGIN
         INSERT INTO Productos.Catalogo (Nombre, Precio, IdCategoria)	-- Si no existe, insertar el nuevo producto
         VALUES (@Nombre, @Precio, @IdCategoria);
     END
+	PRINT 'Se agrego/actualizo el producto ' + @nombre
 END;
 GO
 
@@ -147,6 +149,7 @@ AS
 BEGIN
     DELETE FROM Productos.Catalogo
     WHERE Id = @Id
+
 END;
 GO
 -------------SP'S para Medios de Pago:
@@ -208,8 +211,6 @@ CREATE OR ALTER PROCEDURE Sucursal.ActualizarSucursal
     @Horario VARCHAR(100) = NULL        
 AS
 BEGIN
-    SET NOCOUNT ON;
-
     UPDATE Complementario.Sucursales							-- Actualiza solo los campos que no son NULL
     SET 
         Direccion = COALESCE(@Direccion, Direccion),		

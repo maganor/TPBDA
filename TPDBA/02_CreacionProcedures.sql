@@ -53,6 +53,7 @@ CREATE OR ALTER PROCEDURE Carga.CargarCatalogo
     @terminator CHAR(1)                             -- Delimitador de campo
 AS
 BEGIN
+	PRINT 'Procesando Catalogo de Productos'
     SET NOCOUNT ON;
 
     DROP TABLE IF EXISTS ##CatalogoTemp
@@ -90,8 +91,6 @@ BEGIN
 	SET Nombre = REPLACE(Nombre, 'Ãº', 'ú')
 	WHERE Nombre LIKE '%Ãº%'
 
-
-
     UPDATE ct SET ct.IdCategoria = cp.Id							--Añade el valor de IdCategoria al Producto
     FROM ##CatalogoTemp ct
         JOIN Complementario.CategoriaDeProds cp ON cp.Producto = ct.Categoria
@@ -113,6 +112,7 @@ CREATE OR ALTER PROCEDURE Carga.CargarHistorialTemp
     @terminator CHAR(1)
 AS
 BEGIN
+	PRINT 'Cargando Historial de Facturas'
     DROP TABLE IF EXISTS ##HistorialTemp
     CREATE TABLE ##HistorialTemp (
         IdFactura CHAR(11),
@@ -150,8 +150,8 @@ GO
 CREATE OR ALTER PROCEDURE Carga.CargarHistorial
 AS
 BEGIN
-    SET NOCOUNT ON;
-
+    --SET NOCOUNT ON;
+	PRINT 'Moviendo el historial a una tabla con formato'
     DROP TABLE IF EXISTS ##Historial
     CREATE TABLE ##Historial (
         IdFactura CHAR(11),
@@ -200,6 +200,7 @@ CREATE OR ALTER PROCEDURE Carga.CargarImportados
     @direccion VARCHAR(100)  
 AS
 BEGIN
+	PRINT 'Procesando Productos Importados'
     SET NOCOUNT ON;
 
 	DROP TABLE IF EXISTS #ProductosImportados
@@ -254,6 +255,7 @@ CREATE OR ALTER PROCEDURE Carga.CargarElectronic
     @direccion VARCHAR(100)
 AS
 BEGIN
+	PRINT 'Procesando Accesorios Electronicos'
     SET NOCOUNT ON;
 
 	DROP TABLE IF EXISTS #ElectronicAccessories
@@ -304,7 +306,8 @@ CREATE OR ALTER PROCEDURE Carga.CargarMediosDePago
     @direccion VARCHAR(100)       
 AS
 BEGIN
-   
+	PRINT 'Procesando Medios de Pago'
+	SET NOCOUNT ON
 	DROP TABLE IF EXISTS #MediosDePagoTemp
 	CREATE TABLE #MediosDePagoTemp (
     NombreING VARCHAR(15),
@@ -326,6 +329,8 @@ BEGIN
 
     EXEC sp_executesql @sql;
 
+	SET NOCOUNT OFF
+
     INSERT INTO Complementario.MediosDePago (NombreING, NombreESP)		--Inserta la categoria a la tabla final si no está
     SELECT mdpt.NombreING, mdpt.NombreESP
     FROM #MediosDePagoTemp mdpt
@@ -342,13 +347,14 @@ CREATE OR ALTER PROCEDURE Carga.CargarClasificacion
     @direccion VARCHAR(100)       
 AS
 BEGIN
-    SET NOCOUNT ON;
+	PRINT 'Procesando Clasificacion de Productos'
+    SET NOCOUNT ON
    
 	DROP TABLE IF EXISTS #ClasificacionTemp
 	CREATE TABLE #ClasificacionTemp (
     LineaDeProducto VARCHAR(100),
     Producto VARCHAR(100)
-	);
+	)
 
     DECLARE @sql NVARCHAR(MAX);
 
@@ -363,7 +369,9 @@ BEGIN
         ''SELECT * FROM [Clasificacion productos$]''
     );';
 
-    EXEC sp_executesql @sql;
+    EXEC sp_executesql @sql
+
+	SET NOCOUNT OFF
 
     INSERT INTO Complementario.CategoriaDeProds (LineaDeProducto, Producto)		--Inserta la categoria a la tabla final si no está
     SELECT ct.LineaDeProducto,ct.Producto
@@ -381,6 +389,7 @@ CREATE OR ALTER PROCEDURE Carga.CargarEmpleados
     @direccion VARCHAR(100)       
 AS
 BEGIN
+	PRINT 'Procesando Empleados'
     SET NOCOUNT ON;
 
     DROP TABLE IF EXISTS #EmpleadosTemp
@@ -423,6 +432,8 @@ BEGIN
     );';
 
     EXEC sp_executesql @sql;
+
+	SET NOCOUNT OFF
 	
 	--Inserta el Empleado en la tabla final si no está
     INSERT INTO Complementario.Empleados (Legajo, Nombre, Apellido, DNI, Direccion, EmailPersonal, EmailEmpresa, CUIL, Cargo,IdSucursal, Turno, EstaActivo)
@@ -440,6 +451,7 @@ CREATE OR ALTER PROCEDURE Carga.CargarSucursales
     @direccion VARCHAR(100)
 AS
 BEGIN
+	PRINT 'Procesando Sucursales'
     SET NOCOUNT ON;
 
     DROP TABLE IF EXISTS #SucursalesTemp
@@ -469,6 +481,9 @@ BEGIN
 
     EXEC sp_executesql @sql;
 
+    SET NOCOUNT OFF;
+
+
     INSERT INTO Complementario.Sucursales (Ciudad, ReemplazarPor, Direccion, Horario, Telefono)
     SELECT st.Ciudad, st.ReemplazarPor, st.Direccion, st.Horario, st.Telefono
     FROM #SucursalesTemp st																	--Inserta la sucursal si no está
@@ -483,6 +498,7 @@ GO
 CREATE OR ALTER PROCEDURE Carga.CargarFacturasDesdeHistorial
 AS
 BEGIN
+	PRINT 'Cargando facturas viejas en facturas nuevas'
 	INSERT INTO Ventas.Facturas(IdViejo, TipoFactura, Fecha, Hora, IdMedioPago, Empleado, IdSucursal, IdCliente)
 	SELECT
 		h.IdFactura,
@@ -497,7 +513,8 @@ BEGIN
 		JOIN Complementario.MediosDePago mdp ON h.MedioPago = mdp.NombreING
 		JOIN Complementario.Sucursales s ON h.Ciudad = s.Ciudad
 		JOIN Complementario.Clientes c on c.Genero = h.Genero AND c.TipoCliente = h.TipoCliente
-
+	WHERE h.IdFactura NOT IN (SELECT IdViejo FROM Ventas.Facturas)
+	PRINT 'Cargando detalles de ventas'
 	INSERT INTO Ventas.DetalleVentas(IdFactura, IdProducto, Cantidad, PrecioUnitario, IdCategoria)
 	SELECT 
 		f.IdFactura, 
@@ -511,7 +528,7 @@ BEGIN
 			SELECT TOP 1 * FROM Productos.Catalogo C 
 			WHERE C.Nombre = h.Producto AND h.PrecioUni = C.Precio
 	) c
-
+	WHERE f.IdFactura NOT IN (SELECT IdFactura FROM Ventas.DetalleVentas)
 
 END;
 GO
