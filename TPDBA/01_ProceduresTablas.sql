@@ -1,7 +1,26 @@
----ABM:
+
+--Trabajo Practico Integrador - Bases de Datos Aplicada:
+--Fecha de Entrega: 15/11/2024
+--Comisión: 02-5600
+--Grupo: 01
+--Integrantes:
+--Antola Ortiz, Mauricio Gabriel  -       44613237 
+--Tempra, Francisco               -       44485891
+--Villegas Brandolini, Lucas      -       44459666
+--Zapata, Santiago                -       44525943
+
+--Consignas que se cumplen:
+
+--Entrega 3:
+--Genere store procedures para manejar la inserción, modificado, borrado (si corresponde, también debe decidir si determinadas 
+--entidades solo admitirán borrado lógico) de cada tabla. Los nombres de los store procedures NO deben comenzar con “SP”. 
+
+---SP'S PARA ABM DE LAS TABLAS:
 
 USE Com5600G01
 GO 
+
+---Creacion de esquemas adicionales para ciertos SP:
 
 DROP SCHEMA IF EXISTS MedioDePago
 GO
@@ -485,22 +504,3 @@ BEGIN
     PRINT 'Factura cargada correctamente.';
 END;
 GO
-
---Vista para mostrar la factura como se pide:
-CREATE OR ALTER VIEW Ventas.MostrarReporte
-AS
-	SELECT F.IdFactura,F.TipoFactura,S.Ciudad,C.TipoCliente,C.Genero,CP.LineaDeProducto,P.Nombre AS Producto,DV.PrecioUnitario,
-		   DV.Cantidad,F.Fecha,F.Hora,MP.NombreESP AS MedioDePago,F.Empleado,S.ReemplazarPor AS Sucursal              
-    
-	FROM Ventas.Facturas F
-		JOIN Sucursal.Sucursales S ON F.IdSucursal = S.IdSucursal         
-		JOIN Ventas.Clientes C ON F.IdCliente = C.IdCliente         
-		JOIN Ventas.DetalleVentas DV ON F.IdFactura = DV.IdFactura       
-		JOIN Productos.CategoriaDeProds CP ON DV.IdCategoria = CP.Id   
-		JOIN Productos.Catalogo P ON DV.IdProducto = P.Id      
-		JOIN Complementario.MediosDePago MP ON F.IdMedioPago = MP.IdMDP
-		
-	WHERE DV.Cantidad > 0
-	ORDER BY F.IdFactura ASC
-GO
-

@@ -1,12 +1,26 @@
 
 --Trabajo Practico Integrador - Bases de Datos Aplicada:
+--Fecha de Entrega: 15/11/2024
+--Comisión: 02-5600
+--Grupo: 01
 --Integrantes:
 --Antola Ortiz, Mauricio Gabriel  -       44613237 
 --Tempra, Francisco               -       44485891
 --Villegas Brandolini, Lucas      -       44459666
 --Zapata, Santiago                -       44525943
 
----CREACION DE OBJETOS:
+--Consignas que se cumplen:
+
+--Entrega 3:
+--Cree la base de datos, entidades y relaciones. Incluya restricciones y claves. Deberá entregar un archivo .sql con el script 
+--completo de creación (debe funcionar si se lo ejecuta “tal cual” es entregado). Incluya comentarios para indicar qué hace cada
+--módulo de código.
+
+--Entrega 5:
+--Cuando un cliente reclama la devolución de un producto se genera una nota de crédito por el valor del producto o un producto 
+--del mismo tipo. Tener en cuenta que la nota de crédito debe estar asociada a una Factura con estado pagada
+
+---CREACION DE LOS OBJETOS DE LA BASE DE DATOS:
 
 USE master
 GO
@@ -16,6 +30,8 @@ GO
 
 USE Com5600G01
 GO
+
+--Creacion de los esquemas para cada tabla:
 
 DROP SCHEMA IF EXISTS Sucursal
 GO
@@ -37,6 +53,8 @@ DROP SCHEMA IF EXISTS NotaCredito
 GO
 CREATE SCHEMA NotaCredito
 GO
+
+--Creacion de las tablas:
 
 DROP TABLE IF EXISTS Sucursal.Sucursales
 GO
@@ -106,6 +124,8 @@ CREATE TABLE Ventas.Clientes(
     Genero CHAR(6)
 )
 GO
+
+-- Valores inciales para clientes que serán utiles para los proximos SP:
 
 INSERT INTO Ventas.Clientes (DNI, Nombre, TipoCliente, Genero)  
 VALUES (NULL, 'Consumidor Final', 'Normal', '-'), 
@@ -205,6 +225,24 @@ GO
 SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
 FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_SCHEMA = 'NotaCredito'
+GO
+
+--Vista para mostrar la factura como se pide:
+CREATE OR ALTER VIEW Ventas.MostrarReporte
+AS
+	SELECT F.IdFactura,F.TipoFactura,S.Ciudad,C.TipoCliente,C.Genero,CP.LineaDeProducto,P.Nombre AS Producto,DV.PrecioUnitario,
+		   DV.Cantidad,F.Fecha,F.Hora,MP.NombreESP AS MedioDePago,F.Empleado,S.ReemplazarPor AS Sucursal              
+    
+	FROM Ventas.Facturas F
+		JOIN Sucursal.Sucursales S ON F.IdSucursal = S.IdSucursal         
+		JOIN Ventas.Clientes C ON F.IdCliente = C.IdCliente         
+		JOIN Ventas.DetalleVentas DV ON F.IdFactura = DV.IdFactura       
+		JOIN Productos.CategoriaDeProds CP ON DV.IdCategoria = CP.Id   
+		JOIN Productos.Catalogo P ON DV.IdProducto = P.Id      
+		JOIN Complementario.MediosDePago MP ON F.IdMedioPago = MP.IdMDP
+		
+	WHERE DV.Cantidad > 0
+	ORDER BY F.IdFactura ASC
 GO
 
 --Creacion de Indices para las futuras ejecuciones de los SP:

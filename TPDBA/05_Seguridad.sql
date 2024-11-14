@@ -1,7 +1,24 @@
+
+--Trabajo Practico Integrador - Bases de Datos Aplicada:
+--Fecha de Entrega: 15/11/2024
+--Comisión: 02-5600
+--Grupo: 01
+--Integrantes:
+--Antola Ortiz, Mauricio Gabriel  -       44613237 
+--Tempra, Francisco               -       44485891
+--Villegas Brandolini, Lucas      -       44459666
+--Zapata, Santiago                -       44525943
+
+--Consignas que se cumplen:
+
+--Entrega 5:
+--En el caso de que el cliente solicite la nota de crédito, solo los Supervisores tienen el permiso para generarla. Asigne los roles --correspondientes para poder cumplir con este requisito.--Por otra parte, se requiere que los datos de los empleados se encuentren encriptados, dado que los mismos contienen 
+--información personal.
+
+------------LOGINS, USUARIOS, ROLES Y PERMISOS:
+
 USE Com5600G01	
 GO
-
-------------LOGINS, USUARIOS Y ROLES:
 
 CREATE ROLE Cajero AUTHORIZATION dbo
 CREATE ROLE Supervisor AUTHORIZATION dbo

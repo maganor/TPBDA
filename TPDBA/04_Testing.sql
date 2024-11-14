@@ -1,3 +1,22 @@
+
+--Trabajo Practico Integrador - Bases de Datos Aplicada:
+--Fecha de Entrega: 15/11/2024
+--Comisión: 02-5600
+--Grupo: 01
+--Integrantes:
+--Antola Ortiz, Mauricio Gabriel  -       44613237 
+--Tempra, Francisco               -       44485891
+--Villegas Brandolini, Lucas      -       44459666
+--Zapata, Santiago                -       44525943
+
+--Consignas que se cumplen:
+--Siempre que se entreguen módulos de código fuente deben acompañarse de scripts de testing. Los juegos de prueba deben entregarse 
+--en un archivo separado al script del fuente,aunque se incluya en el mismo proyecto. Todo módulo ejecutable (SP, función), debe ser
+--utilizado en al menos una prueba. Deben utilizarse comentarios para indicar el resultado esperado de cada prueba. Por ejemplo,
+--si un juego de prueba pretende demostrar que un dato se valida y por fallar la validación no se completa la transacción, 
+--el comentario debe indicar la validación, por qué falla y qué evidencia se presenta (mensaje por consola, error, etc.).
+---TESTING:
+
 USE Com5600G01
 GO 
 
@@ -37,9 +56,11 @@ EXEC Carga.CargarHistorialTemp			@direccion = @FullPath,
 			   																		
 GO
 
+--Se pasa el "historial viejo" a la nueva tabla:
 EXEC Carga.CargarFacturasDesdeHistorial    
 GO
 
+--Se pasan a pesos los precios del catalogo:
 EXEC Ajustes.PesificarPrecios
 GO
 
@@ -79,7 +100,7 @@ EXEC Sucursal.AgregarEmpleado			@Nombre = 'Howard',								--Existoso
 										@Turno = 'TM'
 GO
 
-EXEC Sucursal.AgregarEmpleado			@Nombre = 'Howard',								--Error
+EXEC Sucursal.AgregarEmpleado			@Nombre = 'Howard',								--Error por DNI duplicado
 										@Apellido = 'Wolowitz',
 										@DNI = '44485891',
 										@Direccion = 'CumbiaPeposa 1900',
@@ -100,7 +121,7 @@ EXEC Sucursal.ActualizarEmpleado		@Legajo = '257035',								--Exitoso
 										@Turno = 'Jornada completa'
 GO
 
-EXEC Sucursal.ActualizarEmpleado		@Legajo = '257100',								--Error
+EXEC Sucursal.ActualizarEmpleado		@Legajo = '257100',								--Error por no encontrar el legajo
 										@Direccion = 'Florencio Varela 1903',
 										@EmailPersonal = 'estoesunemailfalso@gmail.com',
 										@Cargo = 'Supervisor',
@@ -112,7 +133,7 @@ GO
 EXEC Sucursal.EliminarEmpleado @Legajo = '257035'										--Exitoso
 GO
 
-EXEC Sucursal.EliminarEmpleado @Legajo = '257200'										--Error
+EXEC Sucursal.EliminarEmpleado @Legajo = '257200'										--Error por no encontrar el legajo
 GO
 --------Mostrar Empleados--------
 SELECT * FROM Sucursal.Empleados
@@ -123,7 +144,7 @@ EXEC MedioDePago.AgregarMedioDePago		@nombreING = 'Debit card',						--Exitoso
 										@nombreESP = 'Tarjeta de debito'
 GO 
 
-EXEC MedioDePago.AgregarMedioDePago		@nombreING = 'Credit card',						--Error
+EXEC MedioDePago.AgregarMedioDePago		@nombreING = 'Credit card',						--Error por Medio de pago duplicado
 										@nombreESP = 'Tarjeta de credito'
 GO
 
@@ -131,7 +152,7 @@ GO
 EXEC MedioDePago.EliminarMedioDePago	@id = '4'										--Exitoso
 GO
 
-EXEC MedioDePago.EliminarMedioDePago	@id = '10'										--Error
+EXEC MedioDePago.EliminarMedioDePago	@id = '10'										--Error por no encontrar el ID del Medio de pago
 GO
 
 --------Mostrar Medios de Pago--------
@@ -145,7 +166,7 @@ EXEC Ventas.AgregarCliente				@Nombre = 'Juan Fernando Quintero',				--Exitoso
 								
 GO
 
-EXEC Ventas.AgregarCliente				@Nombre = 'Celia Fernandez',					--Error
+EXEC Ventas.AgregarCliente				@Nombre = 'Celia Fernandez',					--Error	por DNI duplicado
 										@Genero = 'Mujer',
 										@DNI = 43525943;
 								
@@ -153,10 +174,10 @@ GO
 
 --------Tests Modificar Clientes--------
 EXEC Ventas.ModificarCliente			@IdCliente = 5,									--Exitoso
-										@TipoClienteNuevo = 'VIP';						--Con idea de agregar mas tipos de cliente a futuro										
+										@TipoClienteNuevo = 'VIP';						--(Con idea de agregar mas tipos de cliente a futuro)										
 GO
 
-EXEC Ventas.ModificarCliente			@IdCliente = 11,								--Error
+EXEC Ventas.ModificarCliente			@IdCliente = 11,								--Error por no encontrar el ID del cliente
 										@TipoClienteNuevo = 'VIP';  										
 GO
 
@@ -164,7 +185,7 @@ GO
 EXEC Ventas.EliminarCliente			@IdCliente = 5;										--Exitoso   
 GO
 
-EXEC Ventas.EliminarCliente			@IdCliente = 15;									--Error  
+EXEC Ventas.EliminarCliente			@IdCliente = 15;									--Error por no encontrar el ID del cliente 
 GO
 
 --------Mostrar Clientes--------
@@ -179,7 +200,7 @@ EXEC Sucursal.AgregarSucursal			@Ciudad = 'Pekin',								--Exitoso
 										@Telefono = '0912-1831'									
 GO
 
-EXEC Sucursal.AgregarSucursal			@Ciudad = 'Yangon',								--Error
+EXEC Sucursal.AgregarSucursal			@Ciudad = 'Yangon',								--Error por ya existir esa sucursal en ese lugar
 										@ReemplazarPor = 'San Justo',
 										@Direccion = 'Av. Brig. Gral. Juan Manuel de Rosas 3634, B1754 San Justo, Provincia de Buenos Aires',
 										@Horario = 'L a V 8?a. m.–9?p. m. S y D 9 a. m.-8?p. m.',
@@ -190,7 +211,7 @@ GO
 EXEC Sucursal.EliminarSucursal			@id = '4'										--Exitoso
 GO
 
-EXEC Sucursal.EliminarSucursal			@id = '25'										--Error
+EXEC Sucursal.EliminarSucursal			@id = '25'										--Error porque no existe dicha sucursal
 GO
 
 --------Mostrar Sucursales--------
@@ -254,7 +275,7 @@ EXEC NotaCredito.GenerarNotaCredito
     @IdProducto = 104, 
     @Cantidad = 1; 
 
---------Test Nota de credito Fallida--------
+--------Test Nota de credito Fallida--------		No existe ese ID de Factura
 EXEC NotaCredito.GenerarNotaCredito
     @IdFactura = 1020,  
     @IdProducto = 104, 
@@ -283,7 +304,7 @@ EXEC Productos.AgregarCategoria		@NombreLinea = 'Almacen',						--Exitoso
 									@NombreProd = 'galletitas_dulces'
 GO
 
-EXEC Productos.AgregarCategoria		@NombreLinea = 'Almacen',						--Error
+EXEC Productos.AgregarCategoria		@NombreLinea = 'Almacen',						--Error por ya existir
 									@NombreProd = 'aceitunas_y_encurtidos'
 GO
 
@@ -294,7 +315,7 @@ EXEC Productos.EliminarCategoria	@NombreLinea = 'Almacen',						--Exitoso
 
 GO
 
-EXEC Productos.EliminarCategoria	@NombreLinea = 'Almacen',						--Error
+EXEC Productos.EliminarCategoria	@NombreLinea = 'Almacen',						--Error	porque no existe
 									@NombreProd = 'galletitas_de_agua'
 
 GO

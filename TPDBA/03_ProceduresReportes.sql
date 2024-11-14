@@ -1,4 +1,25 @@
 
+--Trabajo Practico Integrador - Bases de Datos Aplicada:
+--Fecha de Entrega: 15/11/2024
+--Comisión: 02-5600
+--Grupo: 01
+--Integrantes:
+--Antola Ortiz, Mauricio Gabriel  -       44613237 
+--Tempra, Francisco               -       44485891
+--Villegas Brandolini, Lucas      -       44459666
+--Zapata, Santiago                -       44525943
+
+--Consignas que se cumplen:
+--El sistema debe ofrecer los siguientes reportes en xml:
+--Mensual: ingresando un mes y año determinado mostrar el total facturado por días de la semana, incluyendo sábado y domingo.
+--Trimestral: mostrar el total facturado por turnos de trabajo por mes.
+--Por rango de fechas: ingresando un rango de fechas a demanda, debe poder mostrar la cantidad de productos vendidos en ese rango, 
+--ordenado de mayor a menor.
+--Por rango de fechas: ingresando un rango de fechas a demanda, debe poder mostrar la cantidad de productos vendidos en ese rango 
+--por sucursal, ordenado de mayor a menor.
+--Mostrar los 5 productos más vendidos en un mes, por semana
+--Mostrar los 5 productos menos vendidos en el mes.
+--Mostrar total acumulado de ventas (o sea tambien mostrar el detalle) para una fecha y sucursal particulares
 ----REPORTES XML:
 
 USE Com5600G01

@@ -1,4 +1,28 @@
 
+--Trabajo Practico Integrador - Bases de Datos Aplicada:
+--Fecha de Entrega: 15/11/2024
+--Comisión: 02-5600
+--Grupo: 01
+--Integrantes:
+--Antola Ortiz, Mauricio Gabriel  -       44613237 
+--Tempra, Francisco               -       44485891
+--Villegas Brandolini, Lucas      -       44459666
+--Zapata, Santiago                -       44525943
+
+--Consignas que se cumplen:
+
+--Entrega 4:
+--Se requiere que importe toda la información antes mencionada a la base de datos:
+--• Genere los objetos necesarios (store procedures, funciones, etc.) para importar los archivos antes mencionados. Tenga en cuenta 
+--que cada mes se recibirán archivos de novedades con la misma estructura, pero datos nuevos para agregar a cada maestro.
+--• Considere este comportamiento al generar el código. Debe admitir la importación de novedades periódicamente.
+--• Cada maestro debe importarse con un SP distinto. No se aceptarán scripts que realicen tareas por fuera de un SP.
+--• La estructura/esquema de las tablas a generar será decisión suya. Puede que deba realizar procesos de transformación sobre los 
+--maestros recibidos para adaptarlos a la estructura requerida.
+--Los archivos CSV/JSON no deben modificarse. En caso de que haya datos mal cargados, incompletos, erróneos, etc., deberá contemplarlo
+--y realizar las correcciones en el fuente SQL. (Sería una excepción si el archivo está malformado y no es posible interpretarlo como 
+--JSON o CSV). 
+
 ---IMPORTACION DE ARCHIVOS .CSV Y .XLSX:
 
 USE Com5600G01
@@ -9,10 +33,6 @@ GO
 --Se busca services.msc, dentro de ese programa se busca SQL SERVER(SQLEXPRESS), 
 --click derecho propiedades, pestania inicio sesion y seleccionar Cuenta del sistema local(o algo parecido)
 --Antes, para que funcione este SP:
-DROP SCHEMA IF EXISTS Carga
-GO
-CREATE SCHEMA Carga
-GO
 
 sp_configure 'show advanced options', 1;
 GO
@@ -24,6 +44,11 @@ RECONFIGURE;
 GO
 EXEC sp_configure 'Ole Automation Procedures', 1; 
 RECONFIGURE;
+GO
+
+DROP SCHEMA IF EXISTS Carga
+GO
+CREATE SCHEMA Carga
 GO
 
 CREATE OR ALTER FUNCTION Ajustes.ArreglarLetras(@str NVARCHAR(100)) RETURNS NVARCHAR(100)
@@ -564,16 +589,4 @@ BEGIN
     UPDATE Productos.Catalogo
     SET Precio = Precio * @PrecioDolar;
 END;
-GO
-
---Ver procedimientos en esquema 'Carga'
-SELECT SCHEMA_NAME(schema_id) AS Esquema, name AS Procedimiento
-FROM sys.procedures
-WHERE SCHEMA_NAME(schema_id) = 'Carga';
-GO
-
---Ver procedimientos en esquema 'Ajustes'
-SELECT SCHEMA_NAME(schema_id) AS Esquema, name AS Procedimiento
-FROM sys.procedures
-WHERE SCHEMA_NAME(schema_id) = 'Ajustes';
 GO
