@@ -57,14 +57,17 @@ Se descarga un .zip directo desde la pagina de GitHub.
 - Al momento de la carga de los datasets se tiene que modificar la variable @PATH, con la ubicacion respectiva, asegurarse que el servicio de la base de datos tenga los permisos necesarios para acceder a ellos.
 
 ## Politicas de Backup
-**Replicación de tabla Facturas y procedimientos de reportes XML**: 
-Dado que la información de ventas diarias es fundamental, se establece una réplica de la tabla Facturas y de los procedimientos almacenados que generan los reportes XML. Esta replicación no solo asegura disponibilidad ante fallos de hardware o corrupción de datos, sino que permite un acceso continuo a los datos críticos sin implementar una infraestructura de alta disponibilidad en toda la base de datos.
+**Backup Completo Semanal**:
+Cada domingo al finalizar el último turno para generar un respaldo completo de los datos al cierre de cada semana, por lo tanto, se mantendría la consistencia de datos y se reduciría el tiempo de restauración en caso de un fallo mayor y no se cuenta con un respaldo tan reciente. Además, en ese horario elegido suelen generarse menos movimientos o ninguno, dado que es el momento de cierre del negocio, lo que ayudaría cuando se tienen que asignar los recursos para generar el respaldo completo, dado que solo se destinarían para dicha accion que al ser un backup full tiene un costo mayor en cuanto a recursos, tiempo y espacio a comparación de otros dado que se guarda toda la base de datos por completo.
 
-**Backup completo semanal**:
-Cada domingo al finalizar los turnos para generar un respaldo completo de los datos al cierre de cada semana, manteniendo la consistencia y reduciendo el tiempo de restauración en caso de un fallo mayor. En dicho momento suelen generarse menos movimientos, lo que ayudaría en la asignación de recursos para la generación del respaldo completo.
+**Backup Diferencial Diario**:
+Cada día al finalizar los turnos para optimizar y agilizar el tiempo de restauración de los respaldos y la asignación de los recursos para llevar adelante dicho respaldo. Al igual que el caso anterior, la elección del horario es por la misma razón, se realizan pocos o ningun movimiento por lo tanto agiliza el proceso y, como ya se contaría con un backup full al comenzar la semana, solo se guarda la diferencia por día que a su vez se la asume tambien como base para el respaldo del siguiente día, ahorrandose así tiempo y espacio de almacenamiento.
 
-**Backup diferencial diario**:
-Cada día al finalizar los turnos para optimizar y agilizar el tiempo de restauración de los respaldos y la asignación de los recursos para llevar adelante dicho respaldo.
+**Backup del Log de Transacciones**:
+Todos los días a cada hora, dado que es el menos costoso en tiempo y espacio comparado con los anteriores, se podría realizar a cada hora un respaldo del log de transacciones para guardar los moviemientos y cambios que se van generando en la base de datos a cada hora para que, en caso de tener que volver atrás por alguna falla, se pueda retornar lo mas actual posible gracias al uso del ultimo backup full, diferencial y dicho respaldo del log. 
+
+**Adicional: Replicación de tablas Facturas y DetalleVentas**: 
+Dado que la información de ventas diarias es fundamental, en caso de ser necesario y a modo de mayor protección, ademas se podría establecer una politica de restauracaión a través de las réplicas de la tablas "Facturas" y "DetalleVentas". Esto aseguraría la disponibilidad y acceso a ambas tablas que son vitales para el negocio ante fallos de hardware o perdida de datos.
 
 ## DER
 ![image](https://github.com/user-attachments/assets/8cda65d4-216c-4ecc-a924-1b82b0d62112)
