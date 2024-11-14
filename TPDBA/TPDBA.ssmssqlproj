@@ -63,29 +63,29 @@
     </LogicalFolder>
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
-        <FileNode Name="00_CreacionTablas.sql">
+        <FileNode Name="00_CreacionObjetos.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LUKYBRANDO-PC\SQLEXPRESS:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>LUKYBRANDO-PC\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>00_CreacionTablas.sql</FullPath>
+          <FullPath>00_CreacionObjetos.sql</FullPath>
         </FileNode>
-        <FileNode Name="01_ProceduresTablas.sql">
+        <FileNode Name="01_ABMTablas.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LUKYBRANDO-PC\SQLEXPRESS:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>LUKYBRANDO-PC\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>01_ProceduresTablas.sql</FullPath>
+          <FullPath>01_ABMTablas.sql</FullPath>
         </FileNode>
-        <FileNode Name="02_CreacionProcedures.sql">
+        <FileNode Name="02_ImportacionArchivos.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LUKYBRANDO-PC\SQLEXPRESS:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>LUKYBRANDO-PC\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>02_CreacionProcedures.sql</FullPath>
+          <FullPath>02_ImportacionArchivos.sql</FullPath>
         </FileNode>
-        <FileNode Name="03_ProceduresReportes.sql">
+        <FileNode Name="03_ReportesXML.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LUKYBRANDO-PC\SQLEXPRESS:True</AssociatedConnectionMoniker>
           <AssociatedConnSrvName>LUKYBRANDO-PC\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
-          <FullPath>03_ProceduresReportes.sql</FullPath>
+          <FullPath>03_ReportesXML.sql</FullPath>
         </FileNode>
         <FileNode Name="04_Testing.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:LUKYBRANDO-PC\SQLEXPRESS:True</AssociatedConnectionMoniker>

@@ -14,7 +14,8 @@
 --en un archivo separado al script del fuente,aunque se incluya en el mismo proyecto. Todo módulo ejecutable (SP, función), debe ser
 --utilizado en al menos una prueba. Deben utilizarse comentarios para indicar el resultado esperado de cada prueba. Por ejemplo,
 --si un juego de prueba pretende demostrar que un dato se valida y por fallar la validación no se completa la transacción, 
---el comentario debe indicar la validación, por qué falla y qué evidencia se presenta (mensaje por consola, error, etc.).
+--el comentario debe indicar la validación, por qué falla y qué evidencia se presenta (mensaje por consola, error, etc.).
+
 ---TESTING:
 
 USE Com5600G01
