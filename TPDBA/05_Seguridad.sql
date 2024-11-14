@@ -10,11 +10,11 @@ CREATE ROLE GerenteDeSucursal AUTHORIZATION dbo
 GRANT CONTROL ON SCHEMA::Productos TO Cajero,Supervisor,GerenteDeSucursal;
 GRANT CONTROL ON SCHEMA::Ventas TO Cajero,Supervisor,GerenteDeSucursal;
 GRANT CONTROL ON SCHEMA::Complementario TO Supervisor,GerenteDeSucursal;
-GRANT CONTROL ON SCHEMA::Sucursal TO Supervisor,GerenteDeSucursal;
 GRANT CONTROL ON SCHEMA::MedioDePago TO Supervisor,GerenteDeSucursal;
 GRANT CONTROL ON SCHEMA::Ajustes TO Supervisor,GerenteDeSucursal;
 GRANT CONTROL ON SCHEMA::NotaCredito TO Supervisor
 GRANT CONTROL ON SCHEMA::Reportes TO Supervisor
+GRANT CONTROL ON SCHEMA::Sucursal TO GerenteDeSucursal;
 
 GO
 

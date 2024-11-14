@@ -40,15 +40,13 @@ GO
 EXEC Carga.CargarFacturasDesdeHistorial    
 GO
 
-EXEC Productos.PesificarPrecios
+EXEC Ajustes.PesificarPrecios
 GO
 
 --Para verificar la carga:
 SELECT * FROM Complementario.ValorDolar
 GO
 SELECT * FROM Productos.Catalogo
-GO
-SELECT * FROM Productos.Catalogo WHERE nombre='Té Dharamsala'
 GO
 SELECT * FROM Complementario.MediosDePago
 GO
@@ -69,7 +67,7 @@ GO
 
 
 --------Test Agregar Empleado--------
-EXEC Sucursal.AgregarEmpleado			@Nombre = 'Howard',
+EXEC Sucursal.AgregarEmpleado			@Nombre = 'Howard',								--Existoso
 										@Apellido = 'Wolowitz',
 										@DNI = '44485891',
 										@Direccion = 'CumbiaPeposa 1900',
@@ -81,30 +79,59 @@ EXEC Sucursal.AgregarEmpleado			@Nombre = 'Howard',
 										@Turno = 'TM'
 GO
 
+EXEC Sucursal.AgregarEmpleado			@Nombre = 'Howard',								--Error
+										@Apellido = 'Wolowitz',
+										@DNI = '44485891',
+										@Direccion = 'CumbiaPeposa 1900',
+										@EmailPersonal = 'holamundo@gmail.com',   
+										@EmailEmpresa = 'holaempresa@gmail.com',
+										@CUIL = '20-44485891-2',
+										@Cargo = 'Supervisor',
+										@Sucursal = 'Ramos Mejia',
+										@Turno = 'TM'
+GO
+
 --------Test Actualizar Empleado--------
-EXEC Sucursal.ActualizarEmpleado		@Legajo = '257035',
+EXEC Sucursal.ActualizarEmpleado		@Legajo = '257035',								--Exitoso
 										@Direccion = 'enrique segoviano 1944',
 										@EmailPersonal = 'Bombaloca@gmail.com',
 										@Cargo = 'Gerente de sucursal',
 										@Sucursal = 'San Justo',
 										@Turno = 'Jornada completa'
-GO	
-
---------Test Eliminar Empleado--------
-EXEC Sucursal.EliminarEmpleado @Legajo = '257035'
 GO
 
+EXEC Sucursal.ActualizarEmpleado		@Legajo = '257100',								--Error
+										@Direccion = 'Florencio Varela 1903',
+										@EmailPersonal = 'estoesunemailfalso@gmail.com',
+										@Cargo = 'Supervisor',
+										@Sucursal = 'Lomas del Mirador',
+										@Turno = 'Jornada completa'
+GO
+
+--------Test Eliminar Empleado--------
+EXEC Sucursal.EliminarEmpleado @Legajo = '257035'										--Exitoso
+GO
+
+EXEC Sucursal.EliminarEmpleado @Legajo = '257200'										--Error
+GO
 --------Mostrar Empleados--------
 SELECT * FROM Sucursal.Empleados
 GO
 
 --------Test Agregar Medio de Pago--------
-EXEC MedioDePago.AgregarMedioDePago		@nombreING = 'Debit card',
+EXEC MedioDePago.AgregarMedioDePago		@nombreING = 'Debit card',						--Exitoso
 										@nombreESP = 'Tarjeta de debito'
 GO 
 
+EXEC MedioDePago.AgregarMedioDePago		@nombreING = 'Credit card',						--Error
+										@nombreESP = 'Tarjeta de credito'
+GO
+
 --------Test Eliminar Medio de Pago--------
-EXEC MedioDePago.EliminarMedioDePago	@id = '4'
+EXEC MedioDePago.EliminarMedioDePago	@id = '4'										--Exitoso
+GO
+
+EXEC MedioDePago.EliminarMedioDePago	@id = '10'										--Error
 GO
 
 --------Mostrar Medios de Pago--------
@@ -112,19 +139,32 @@ SELECT * FROM Complementario.MediosDePago
 GO
 
 --------Test Agregar Cliente--------
-EXEC Ventas.AgregarCliente				@Nombre = 'Juan Fernando Quintero',
-										@Genero = 'M',
+EXEC Ventas.AgregarCliente				@Nombre = 'Juan Fernando Quintero',				--Exitoso
+										@Genero = 'Hombre',
+										@DNI = 43525943;
+								
+GO
+
+EXEC Ventas.AgregarCliente				@Nombre = 'Celia Fernandez',					--Error
+										@Genero = 'Mujer',
 										@DNI = 43525943;
 								
 GO
 
 --------Tests Modificar Clientes--------
-EXEC Ventas.ModificarCliente			@IdCliente = 5,
-										@TipoClienteNuevo = 'VIP';  --Con idea de agregar mas tipos de cliente a futuro										
+EXEC Ventas.ModificarCliente			@IdCliente = 5,									--Exitoso
+										@TipoClienteNuevo = 'VIP';						--Con idea de agregar mas tipos de cliente a futuro										
+GO
+
+EXEC Ventas.ModificarCliente			@IdCliente = 11,								--Error
+										@TipoClienteNuevo = 'VIP';  										
 GO
 
 --------Test Eliminar Cliente--------
-EXEC Ventas.EliminarCliente			@IdCliente = 5;   
+EXEC Ventas.EliminarCliente			@IdCliente = 5;										--Exitoso   
+GO
+
+EXEC Ventas.EliminarCliente			@IdCliente = 15;									--Error  
 GO
 
 --------Mostrar Clientes--------
@@ -132,15 +172,25 @@ SELECT * FROM Ventas.Clientes
 GO
 
 --------Test Agregar Sucursal--------
-EXEC Sucursal.AgregarSucursal			@Ciudad = 'Pekin',
+EXEC Sucursal.AgregarSucursal			@Ciudad = 'Pekin',								--Exitoso
 										@ReemplazarPor = 'Moron',
 										@Direccion = 'Aguero 1800',
 										@Horario = 'Lunes a Viernes de 8 am - 9 pm y Sabados y Domingos de 8 am - 8 pm',
 										@Telefono = '0912-1831'									
 GO
 
+EXEC Sucursal.AgregarSucursal			@Ciudad = 'Yangon',								--Error
+										@ReemplazarPor = 'San Justo',
+										@Direccion = 'Av. Brig. Gral. Juan Manuel de Rosas 3634, B1754 San Justo, Provincia de Buenos Aires',
+										@Horario = 'L a V 8?a. m.–9?p. m. S y D 9 a. m.-8?p. m.',
+										@Telefono = '5555-5551'									
+GO
+
 --------Test Eliminar Sucursal--------
-EXEC Sucursal.EliminarSucursal			@id = '4'		
+EXEC Sucursal.EliminarSucursal			@id = '4'										--Exitoso
+GO
+
+EXEC Sucursal.EliminarSucursal			@id = '25'										--Error
 GO
 
 --------Mostrar Sucursales--------
