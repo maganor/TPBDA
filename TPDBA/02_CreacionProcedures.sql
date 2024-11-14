@@ -95,11 +95,17 @@ BEGIN
     FROM ##CatalogoTemp ct
         JOIN Complementario.CategoriaDeProds cp ON cp.Producto = ct.Categoria
 
-    INSERT INTO Productos.Catalogo(Nombre,Precio,Proveedor,IdCategoria, PrecioRef, UnidadRef)	 --Inserta al catalogo si está el mismo nombre ni la categoria
+    INSERT INTO Productos.Catalogo(Nombre,Precio,Proveedor,IdCategoria, PrecioRef, UnidadRef)	 --Inserta al catalogo si no está el mismo nombre ni la categoria
     SELECT ct.Nombre, ct.Precio, '-' AS Proveedor, ct.IdCategoria, ct.Precio_Ref, ct.Unidad_Ref
     FROM ##CatalogoTemp ct
     WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo c 
                       WHERE c.Nombre = ct.Nombre AND c.IdCategoria = ct.IdCategoria)
+
+	PRINT 'Actualizando precios de catalogo'
+	UPDATE Productos.Catalogo
+	SET c.Precio = ct.Precio
+	FROM Productos.Catalogo	c
+	JOIN ##CatalogoTemp ct on c.Nombre = ct.Nombre AND c.Precio <> ct.Precio
 
     DROP TABLE ##CatalogoTemp
 
@@ -152,37 +158,29 @@ AS
 BEGIN
 	UPDATE ##HistorialTemp
 	SET Producto = Procedimientos.ArreglarLetras(Producto)
+
 	PRINT 'Cargando facturas viejas en facturas nuevas'
+	
 	INSERT INTO Ventas.Facturas(IdViejo, TipoFactura, Fecha, Hora, IdMedioPago, Empleado, IdSucursal, IdCliente)
-	SELECT
-		h.IdFactura,
-		h.TipoFactura,
-		h.Fecha,
-		h.Hora,
-		mdp.IdMDP,
-		CAST(h.Empleado AS INT),
-		s.IdSucursal,
-		c.IdCliente
+	SELECT h.IdFactura,h.TipoFactura,h.Fecha,h.Hora,mdp.IdMDP,CAST(h.Empleado AS INT),s.IdSucursal,c.IdCliente
 	FROM ##HistorialTemp h
 		JOIN Complementario.MediosDePago mdp ON h.MedioPago = mdp.NombreING
 		JOIN Complementario.Sucursales s ON h.Ciudad = s.Ciudad
 		JOIN Complementario.Clientes c ON c.Genero = h.Genero AND c.TipoCliente = h.TipoCliente
+
 	WHERE h.IdFactura NOT IN (SELECT IdViejo FROM Ventas.Facturas)
 
 	PRINT 'Cargando detalles de ventas'
+	
 	INSERT INTO Ventas.DetalleVentas(IdFactura, IdProducto, Cantidad, PrecioUnitario, IdCategoria)
-	SELECT 
-		f.IdFactura, 
-		c.Id, 
-		CAST(h.Cantidad AS INT), 
-		CAST(h.PrecioUni AS DECIMAL(10, 2)), 
-		C.IdCategoria 
+	SELECT f.IdFactura,c.Id,CAST(h.Cantidad AS INT),CAST(h.PrecioUni AS DECIMAL(10, 2)),C.IdCategoria 
 	FROM ##HistorialTemp h
-	JOIN Ventas.Facturas f on f.IdViejo = h.IdFactura
-	CROSS APPLY (
-			SELECT TOP 1 * FROM Productos.Catalogo C 
-			WHERE C.Nombre = h.Producto AND CAST(h.PrecioUni AS DECIMAL(10, 2)) = C.Precio
-	) c
+		JOIN Ventas.Facturas f on f.IdViejo = h.IdFactura
+		CROSS APPLY (
+				SELECT TOP 1 * FROM Productos.Catalogo C 
+				WHERE C.Nombre = h.Producto AND CAST(h.PrecioUni AS DECIMAL(10, 2)) = C.Precio
+		) c
+	
 	WHERE f.IdFactura NOT IN (SELECT IdFactura FROM Ventas.DetalleVentas)
 
 END;
@@ -518,52 +516,22 @@ BEGIN
 END;
 GO
 
-
-CREATE OR ALTER PROCEDURE Procedimientos.MostrarReporte
+CREATE OR ALTER VIEW Ventas.MostrarReporte
 AS
-BEGIN
-    SELECT
-        F.IdFactura,                             
-        F.TipoFactura, 
-        S.Ciudad,
-        C.TipoCliente,
-        C.Genero,
-        CP.LineaDeProducto,
-        P.Nombre AS Producto,
-        DV.PrecioUnitario,
-        DV.Cantidad,
-        F.Fecha,                                 
-        F.Hora,                                                           
-        MP.NombreESP AS MedioDePago,   
-        F.Empleado,
-        S.ReemplazarPor AS Sucursal              
-    FROM
-        Ventas.Facturas F
-    JOIN
-        Complementario.Sucursales S
-        ON F.IdSucursal = S.IdSucursal         
-    JOIN
-        Complementario.Clientes C
-        ON F.IdCliente = C.IdCliente         
-    JOIN
-        Ventas.DetalleVentas DV
-        ON F.IdFactura = DV.IdFactura       
-    JOIN
-        Complementario.CategoriaDeProds CP
-        ON DV.IdCategoria = CP.Id   
-    JOIN
-        Productos.Catalogo P
-        ON DV.IdProducto = P.Id      
-    JOIN
-        Complementario.MediosDePago MP
-        ON F.IdMedioPago = MP.IdMDP
-	WHERE
-			DV.Cantidad > 0
-	ORDER BY
-			F.IdFactura ASC
-END;
+	SELECT F.IdFactura,F.TipoFactura,S.Ciudad,C.TipoCliente,C.Genero,CP.LineaDeProducto,P.Nombre AS Producto,DV.PrecioUnitario,
+		   DV.Cantidad,F.Fecha,F.Hora,MP.NombreESP AS MedioDePago,F.Empleado,S.ReemplazarPor AS Sucursal              
+    
+	FROM Ventas.Facturas F
+		JOIN Complementario.Sucursales S ON F.IdSucursal = S.IdSucursal         
+		JOIN Complementario.Clientes C ON F.IdCliente = C.IdCliente         
+		JOIN Ventas.DetalleVentas DV ON F.IdFactura = DV.IdFactura       
+		JOIN Complementario.CategoriaDeProds CP ON DV.IdCategoria = CP.Id   
+		JOIN Productos.Catalogo P ON DV.IdProducto = P.Id      
+		JOIN Complementario.MediosDePago MP ON F.IdMedioPago = MP.IdMDP
+		
+	WHERE DV.Cantidad > 0
+	ORDER BY F.IdFactura ASC
 GO
-
 
 --Ver procedimientos en esquema 'Procedimientos'
 SELECT SCHEMA_NAME(schema_id) AS Esquema, name AS Procedimiento

@@ -52,7 +52,7 @@ CREATE TABLE Complementario.Empleados(
     Direccion VARCHAR(200),
     EmailPersonal VARCHAR(100),
     EmailEmpresa VARCHAR(100),
-    CUIL VARCHAR(11),
+    CUIL VARCHAR(14),
     Cargo VARCHAR(50),
     IdSucursal INT,
     Turno VARCHAR(25),

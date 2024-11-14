@@ -60,7 +60,7 @@ BEGIN
     -- Verifica si el DNI ya existe y si esta inactivo
     IF EXISTS (SELECT 1 FROM Complementario.Empleados WHERE DNI = @DNI AND EstaActivo = 0)
     BEGIN
-        -- Si el empleado esta inactivo, actualizarlo a activo
+        -- Si el empleado esta inactivo, lo pasa a activo
         UPDATE Complementario.Empleados
         SET Nombre = @Nombre,
             Apellido = @Apellido,
@@ -77,7 +77,7 @@ BEGIN
         RETURN;
     END
 
-    -- Si el DNI ya esta activo, genera error
+    -- Si el DNI ya esta activo, retorna error
     IF EXISTS (SELECT 1 FROM Complementario.Empleados WHERE DNI = @DNI AND EstaActivo = 1)
     BEGIN
         RAISERROR('DNI ya existente', 16, 1);
@@ -91,7 +91,7 @@ BEGIN
     FROM Complementario.Sucursales
     WHERE ReemplazarPor = @Sucursal;
 
-    -- Si no se encuentra la sucursal, genera error
+    -- Si no se encuentra la sucursal, retorna error
     IF @IdSucursal IS NULL
     BEGIN
         RAISERROR ('La sucursal especificada no existe o la ciudad no es válida.', 16, 1);
@@ -175,7 +175,7 @@ BEGIN
     END
     ELSE
     BEGIN
-        INSERT INTO Productos.Catalogo (Nombre, Precio, IdCategoria)	-- Si no existe, insertar el nuevo producto
+        INSERT INTO Productos.Catalogo (Nombre, Precio, IdCategoria)	-- Si no existe, inserta el nuevo producto
         VALUES (@Nombre, @Precio, @IdCategoria);
     END
 	PRINT 'Se agrego/actualizo el producto ' + @nombre
@@ -279,15 +279,15 @@ BEGIN
             @IdCategoria INT,
             @CantidadRestante INT;
 
-    -- Obtener precio unitario, categoría y cantidad disponible en la factura
+    -- Obtiene precio unitario, categoría y cantidad disponible en la factura
     SELECT @PrecioUnitario = dv.PrecioUnitario, 
            @IdCategoria = dv.IdCategoria,
-           @CantidadRestante = dv.Cantidad  -- Obtener la cantidad actual en DetalleVentas
+           @CantidadRestante = dv.Cantidad  -- Obtiene la cantidad actual en DetalleVentas
     FROM Ventas.DetalleVentas dv
     WHERE dv.IdFactura = @IdFactura
       AND dv.IdProducto = @IdProducto;
 
-    -- Verificar que exista el producto en la factura y que la cantidad sea suficiente
+    -- Verifica que exista el producto en la factura y que la cantidad sea suficiente
     IF NOT EXISTS (
         SELECT 1 
         FROM Ventas.DetalleVentas dv
@@ -443,7 +443,6 @@ BEGIN
 END;
 GO
 
-
 CREATE OR ALTER PROCEDURE DetalleVenta.CargarFacturas
     @IdCliente INT,
     @IdSucursal INT,
@@ -454,13 +453,13 @@ AS
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM Complementario.MediosDePago WHERE IdMDP = @IdMedioPago)
     BEGIN
-        RAISERROR ('El medio de pago no existe.', 16, 1); -- Código de error 16
+        RAISERROR ('El medio de pago no existe.', 16, 1);
         RETURN;
     END
 
     IF @TipoFactura NOT IN ('A', 'B', 'C')
     BEGIN
-        RAISERROR ('El tipo de factura no es válido. Debe ser A, B o C.', 16, 1); -- Código de error 16
+        RAISERROR ('El tipo de factura no es válido. Debe ser A, B o C.', 16, 1);
         RETURN;
     END
 
@@ -493,34 +492,34 @@ BEGIN
     DECLARE @respuesta NVARCHAR(MAX); -- Variable para almacenar el JSON de la respuesta
     DECLARE @Venta DECIMAL(6,2); -- Variable para almacenar el valor de venta del dólar
 
-    -- Crear el objeto para la llamada HTTP
+    -- Crea el objeto para la llamada HTTP
     EXEC sp_OACreate 'MSXML2.XMLHTTP', @Object OUT;
 
-    -- Realizar la solicitud GET al API
+    -- Realiza la solicitud GET al API
     EXEC sp_OAMethod @Object, 'OPEN', NULL, 'GET', @url, 'FALSE';
     EXEC sp_OAMethod @Object, 'SEND';
     EXEC sp_OAMethod @Object, 'RESPONSETEXT', @respuesta OUTPUT;
 
-    -- Insertar la respuesta del JSON en la tabla temporal
+    -- Inserta la respuesta del JSON en la tabla temporal
     INSERT INTO @json
     EXEC sp_OAGetProperty @Object, 'RESPONSETEXT';
 
     -- Extraer el valor de "venta" del JSON
     SELECT @Venta = JSON_VALUE(DATA, '$.venta') FROM @json;
 
-    -- Intentar actualizar el valor del dólar en la tabla
+    -- Actualiza el valor del dólar en la tabla
     UPDATE Complementario.ValorDolar
     SET PrecioAR = @Venta, FechaHora = SYSDATETIME()
     WHERE FechaHora = (SELECT MAX(FechaHora) FROM Complementario.ValorDolar);
 
-    -- Si no se actualizó ninguna fila, insertar un nuevo registro
+    -- Si no se actualizó ninguna fila, inserta un nuevo registro
     IF @@ROWCOUNT = 0
     BEGIN
         INSERT INTO Complementario.ValorDolar (PrecioAR, FechaHora)
         VALUES (@Venta, SYSDATETIME());
     END
 
-    -- Limpiar el objeto COM
+    -- Limpia el objeto COM
     EXEC sp_OADestroy @Object;
 
 END;

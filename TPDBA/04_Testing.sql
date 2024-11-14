@@ -7,37 +7,34 @@ GO
 DECLARE @PATH VARCHAR(255) = 'C:\Users\wixde\Desktop\TP_integrador_Archivos'
 DECLARE @FullPath VARCHAR(500) = @PATH + '\Informacion_complementaria.xlsx'
 
-----Primero que todo, cargamos la tabla de Clasificacion de Productos con el SP:
---EXEC Carga.CargarClasificacion @direccion = @FullPath
+--Primero que todo, cargamos la tabla de Clasificacion de Productos con el SP:
+EXEC Carga.CargarClasificacion			@direccion = @FullPath
 									
-----Cargamos las Sucursales con el SP:
---EXEC Carga.CargarSucursales	@direccion = @FullPath	
+--Cargamos las Sucursales con el SP:
+EXEC Carga.CargarSucursales				@direccion = @FullPath	
 
-----Cargamos los Empleados con el SP:
---EXEC Carga.CargarEmpleados		@direccion = @FullPath
+--Cargamos los Empleados con el SP:
+EXEC Carga.CargarEmpleados				@direccion = @FullPath
 
---EXEC Carga.CargarMediosDePago @direccion = @FullPath
+EXEC Carga.CargarMediosDePago			@direccion = @FullPath
 																										
-----Cargamos el Catalogo con el SP:
---SET @FullPath = @PATH + '\Productos\catalogo.csv'
---EXEC Carga.CargarCatalogo		@direccion = @FullPath,
---										@terminator = ','
+--Cargamos el Catalogo con el SP:
+SET @FullPath = @PATH + '\Productos\catalogo.csv'
+EXEC Carga.CargarCatalogo				@direccion = @FullPath,
+										@terminator = ','
 
 SET @FULLPATH = @PATH + '\Productos\Productos_importados.xlsx'
-EXEC Carga.CargarImportados	@direccion = @FullPath
+EXEC Carga.CargarImportados				@direccion = @FullPath
 
 --Cargamoslos Accesorios Electronicos con el SP:
 SET @FULLPATH = @PATH + '\Productos\Electronic accessories.xlsx'
-EXEC Carga.CargarElectronic	@direccion = @FullPath
+EXEC Carga.CargarElectronic				@direccion = @FullPath
 																	
 --Cargamos las Ventas Registradas con el SP:
 SET @FULLPATH = @PATH + '\Ventas_registradas.csv'
-EXEC Carga.CargarHistorialTemp	@direccion = @FullPath, 
+EXEC Carga.CargarHistorialTemp			@direccion = @FullPath, 
 										@terminator = ';'
 			   																		
-GO
-
-EXEC Carga.CargarHistorial
 GO
 
 EXEC Carga.CargarFacturasDesdeHistorial    
@@ -46,15 +43,12 @@ GO
 EXEC Productos.PesificarPrecios
 GO
 
-
 --Para verificar la carga:
 SELECT * FROM Complementario.ValorDolar
 GO
 SELECT * FROM Productos.Catalogo
-SELECT * FROM Productos.Catalogo WHERE nombre='Té Dharamsala'
-
 GO
-SELECT * FROM ##Historial		
+SELECT * FROM Productos.Catalogo WHERE nombre='Té Dharamsala'
 GO
 SELECT * FROM Complementario.MediosDePago
 GO
@@ -81,7 +75,7 @@ EXEC Empleado.AgregarEmpleado			@Nombre = 'Howard',
 										@Direccion = 'CumbiaPeposa 1900',
 										@EmailPersonal = 'holamundo@gmail.com',   
 										@EmailEmpresa = 'holaempresa@gmail.com',
-										@CUIL = '11111111112',
+										@CUIL = '20-44485891-2',
 										@Cargo = 'Cajero',
 										@Sucursal = 'Ramos Mejia',
 										@Turno = 'TM'
@@ -98,6 +92,7 @@ GO
 
 --------Test Eliminar Empleado--------
 EXEC Empleado.EliminarEmpleado @Legajo = '257035'
+GO
 
 --------Mostrar Empleados--------
 SELECT * FROM Complementario.Empleados
@@ -174,7 +169,7 @@ EXEC Reportes.Top5ProductosPorSemana @Mes = 3, @Anio = 2019, @XMLResultado = @xm
 GO
 
 DECLARE @xml XML;
-EXEC Reportes.Menor5ProductosPorMes @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
+EXEC Reportes.MenosVendidosPorMes @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
 GO
 
 DECLARE @xml XML;
@@ -193,13 +188,13 @@ BEGIN TRY
         @Empleado = 257020, 
         @TipoFactura = 'A', 
         @IdMedioPago = 1;
-    IF @Error <> 0		-- Verificar si ocurrió un error en CargarFacturas
+    IF @Error <> 0		-- Verifica si ocurrió un error en CargarFacturas
     BEGIN
-        THROW 50000, 'ERRRRROORRRR', 1		-- Nos vamos
+        THROW 50000, 'ERROR', 1	
     END;
 	
 	--------Test Productos que SI Estan--------
-    EXEC DetalleVenta.AgregarProducto @IdProducto = 104;  --modificar borrar tambla temp
+    EXEC DetalleVenta.AgregarProducto @IdProducto = 104;  
 	EXEC DetalleVenta.AgregarProducto @IdProducto = 105;
 	EXEC DetalleVenta.AgregarProducto @IdProducto = 10;
 	EXEC DetalleVenta.AgregarProducto @IdProducto = 18;
@@ -227,10 +222,10 @@ BEGIN CATCH
 END CATCH;
 
 --------Mostrar Facturas--------
-select * from ventas.facturas
+SELECT * FROM Ventas.facturas
 
 --------Mostrar Detalle Ventas--------
-select * from Ventas.DetalleVentas
+SELECT * FROM Ventas.DetalleVentas
 
 --------Test nota de credito Exitosa--------
 EXEC NotaCredito.GenerarNotaCredito
@@ -248,15 +243,15 @@ EXEC NotaCredito.GenerarNotaCredito
 EXEC NotaCredito.EliminarNotaCredito @Id = 1;
 
 --------Mostrar Notas de Credito--------
-select * from ventas.NotasDeCredito
+SELECT * FROM Ventas.NotasDeCredito
 
 --------Test Mostrar Reporte--------
-EXEC Procedimientos.MostrarReporte
+SELECT * FROM Ventas.MostrarReporte
 
 --------Test Eliminar Producto--------
-SELECT * from Productos.Catalogo WHERE nombre = 'Aceite de aguacate Ethnos'
+SELECT * FROM Productos.Catalogo WHERE nombre = 'Aceite de aguacate Ethnos'
 GO
 EXEC Producto.EliminarProducto @id = 847
 GO
-SELECT * from Productos.Catalogo WHERE nombre = 'Aceite de aguacate Ethnos'
+SELECT * FROM Productos.Catalogo WHERE nombre = 'Aceite de aguacate Ethnos'
 GO

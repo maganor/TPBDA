@@ -17,7 +17,7 @@ CREATE OR ALTER PROCEDURE Procedimientos.TransferirEmpleadosCifrados
 	@FraseClave NVARCHAR(128)
 AS
 BEGIN
-	--Se hace el pasaje de la tabla sin cifrar a la que esta cifrada (solo algunos campos "sensibles")
+	--Se hace el pasaje de los campos sin cifrar a los cifrados (solo algunos campos "sensibles")
     UPDATE Complementario.Empleados
     SET 
         DNICifrado = EncryptByPassPhrase(@FraseClave, CAST(DNI AS VARCHAR(12)), 1, NULL),
@@ -49,7 +49,7 @@ AS
 BEGIN
     DECLARE @IdSucursal INT;
 
-    -- Obtener el IdSucursal para la sucursal especificada
+    -- Obtiene el IdSucursal para la sucursal especificada
     SELECT @IdSucursal = IdSucursal
     FROM Complementario.Sucursales
     WHERE ReemplazarPor = @Sucursal;
@@ -58,7 +58,7 @@ BEGIN
     SELECT @Legajo = MAX(Legajo) + 1
     FROM Complementario.Empleados;
 
-    -- Si no se encuentra la sucursal, generar error
+    -- Si no se encuentra la sucursal, retorna error
     IF @IdSucursal IS NULL
     BEGIN
         RAISERROR ('La sucursal especificada no existe o la ciudad no es válida.', 16, 1);
@@ -68,7 +68,7 @@ BEGIN
     -- Verificar si el DNI ya existe y está inactivo
     IF EXISTS (SELECT 1 FROM Complementario.Empleados WHERE DecryptByPassPhrase(@FraseClave, CAST(@DNI AS VARCHAR(12))) = @DNI AND EstaActivo = 0)
     BEGIN
-        -- Si el empleado está inactivo, actualizarlo a activo
+        -- Si el empleado está inactivo, lo pasa a activo
         UPDATE Complementario.Empleados
         SET Nombre = @Nombre,
             Apellido = @Apellido,
@@ -87,14 +87,14 @@ BEGIN
         RETURN;
     END
 
-    -- Si el DNI ya está activo, generar el error
+    -- Si el DNI ya está activo, retorna el error
     IF EXISTS (SELECT 1 FROM Complementario.Empleados WHERE DecryptByPassPhrase(@FraseClave, CAST(@DNI AS VARCHAR(12))) = @DNI AND EstaActivo = 1)
     BEGIN
         RAISERROR('DNI ya existente', 16, 1);
         RETURN;
     END
 
-    -- Insertar el nuevo empleado
+    -- Inserta el nuevo empleado
     INSERT INTO Complementario.Empleados (Legajo, Nombre, Apellido, DNICifrado, DireccionCifrada, EmailPersonalCifrado, EmailEmpresa,
                                           CUILCifrado, Cargo, IdSucursal, Turno, EstaActivo)
     VALUES 
