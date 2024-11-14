@@ -67,4 +67,5 @@ Cada domingo al finalizar los turnos para generar un respaldo completo de los da
 Cada día al finalizar los turnos para optimizar y agilizar el tiempo de restauración de los respaldos y la asignación de los recursos para llevar adelante dicho respaldo.
 
 ## DER
-![image](https://github.com/user-attachments/assets/7b991786-0fcb-4170-91c9-ebfc5083680c)
+![image](https://github.com/user-attachments/assets/8cda65d4-216c-4ecc-a924-1b82b0d62112)
+
