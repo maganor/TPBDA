@@ -57,11 +57,16 @@ CREATE OR ALTER PROCEDURE Empleado.AgregarEmpleado
     @Turno VARCHAR(25)
 AS
 BEGIN
+	IF @DNI IN (SELECT DNI FROM Complementario.Empleados)
+	BEGIN 
+		RAISERROR('DNI ya existente', 16, 1);
+		RETURN;
+	END
     DECLARE @IdSucursal INT;
 
     SELECT @IdSucursal = IdSucursal
 		FROM Complementario.Sucursales
-		WHERE Ciudad = @Sucursal;
+		WHERE ReemplazarPor = @Sucursal;
 
     IF @IdSucursal IS NULL
     BEGIN
@@ -84,14 +89,26 @@ CREATE OR ALTER PROCEDURE Empleado.ActualizarEmpleado
     @Direccion VARCHAR(200) = NULL,
     @EmailPersonal VARCHAR(100) = NULL,
     @Cargo VARCHAR(50) = NULL,
-    @IdSucursal INT = NULL,  
+    @Sucursal VARCHAR(50) = NULL,  
     @Turno VARCHAR(25) = NULL
 AS
 BEGIN
+	DECLARE @IdSucursal INT;
+	
     SET NOCOUNT ON;
 	IF @IdSucursal IS NOT NULL AND NOT EXISTS (SELECT 1 FROM Complementario.Sucursales WHERE IdSucursal = @IdSucursal)
     BEGIN
         RAISERROR('El ID de Sucursal proporcionado no existe.', 16, 1);
+        RETURN;
+    END
+
+    SELECT @IdSucursal = IdSucursal
+		FROM Complementario.Sucursales
+		WHERE ReemplazarPor = @Sucursal;
+
+    IF @IdSucursal IS NULL
+    BEGIN
+        RAISERROR ('La sucursal especificada no existe o la ciudad no es válida.', 16, 1);
         RETURN;
     END
     UPDATE Complementario.Empleados										
@@ -102,7 +119,7 @@ BEGIN
         Direccion = COALESCE(@Direccion, Direccion),
         EmailPersonal = COALESCE(@EmailPersonal, EmailPersonal)
     WHERE Legajo = @Legajo;
-	PRINT 'Se actualizo el empleado con legajo ' + @legajo
+	PRINT 'Se actualizo el empleado con legajo ' + CAST(@legajo AS CHAR)
 END;
 GO
 
@@ -231,12 +248,64 @@ GO
 
 -------------SP'S Para Notas de Credito:
 
+--CREATE OR ALTER PROCEDURE NotaCredito.GenerarNotaCredito
+--    @IdFactura INT,
+--    @IdProducto INT,
+--    @Cantidad INT
+--AS
+--BEGIN
+--    IF NOT EXISTS (
+--        SELECT 1 
+--        FROM Ventas.DetalleVentas dv
+--        WHERE dv.IdFactura = @IdFactura
+--        AND dv.IdProducto = @IdProducto
+--        AND dv.Cantidad >= @Cantidad
+--    )
+--    BEGIN
+--        RAISERROR ('No se puede procesar la devolución. Verifique la factura, el producto y la cantidad.', 16, 1);
+--        RETURN;
+--    END
+
+--    DECLARE @PrecioUnitario DECIMAL(6, 2),
+--            @IdCategoria INT;
+
+--    SELECT @PrecioUnitario = dv.PrecioUnitario, 
+--           @IdCategoria = dv.IdCategoria
+--    FROM Ventas.DetalleVentas dv
+--    WHERE dv.IdFactura = @IdFactura
+--      AND dv.IdProducto = @IdProducto;
+
+--    INSERT INTO Ventas.NotasDeCredito (IdProd, IdFactura, EstadoActivo, Cantidad, IdCategoria, Precio)
+--    VALUES (@IdProducto, 
+--            @IdFactura, 
+--            1,								-- Estado activo
+--            @Cantidad, 
+--            @IdCategoria, 
+--            @PrecioUnitario * @Cantidad); 
+
+--    PRINT 'Nota de crédito generada con éxito.';
+--END;
+--GO
+
 CREATE OR ALTER PROCEDURE NotaCredito.GenerarNotaCredito
     @IdFactura INT,
     @IdProducto INT,
     @Cantidad INT
 AS
 BEGIN
+    DECLARE @PrecioUnitario DECIMAL(6, 2),
+            @IdCategoria INT,
+            @CantidadRestante INT;
+
+    -- Obtener precio unitario, categoría y cantidad disponible en la factura
+    SELECT @PrecioUnitario = dv.PrecioUnitario, 
+           @IdCategoria = dv.IdCategoria,
+           @CantidadRestante = dv.Cantidad  -- Obtener la cantidad actual en DetalleVentas
+    FROM Ventas.DetalleVentas dv
+    WHERE dv.IdFactura = @IdFactura
+      AND dv.IdProducto = @IdProducto;
+
+    -- Verificar que exista el producto en la factura y que la cantidad sea suficiente
     IF NOT EXISTS (
         SELECT 1 
         FROM Ventas.DetalleVentas dv
@@ -249,26 +318,23 @@ BEGIN
         RETURN;
     END
 
-    DECLARE @PrecioUnitario DECIMAL(6, 2),
-            @IdCategoria INT;
-
-    SELECT @PrecioUnitario = dv.PrecioUnitario, 
-           @IdCategoria = dv.IdCategoria
-    FROM Ventas.DetalleVentas dv
-    WHERE dv.IdFactura = @IdFactura
-      AND dv.IdProducto = @IdProducto;
-
     INSERT INTO Ventas.NotasDeCredito (IdProd, IdFactura, EstadoActivo, Cantidad, IdCategoria, Precio)
     VALUES (@IdProducto, 
             @IdFactura, 
-            1,								-- Estado activo
+            1,									-- Estado activo
             @Cantidad, 
             @IdCategoria, 
             @PrecioUnitario * @Cantidad); 
 
+    UPDATE Ventas.DetalleVentas
+    SET Cantidad = Cantidad - @Cantidad
+    WHERE IdFactura = @IdFactura
+      AND IdProducto = @IdProducto;
+
     PRINT 'Nota de crédito generada con éxito.';
 END;
 GO
+
 
 CREATE OR ALTER PROCEDURE NotaCredito.EliminarNotaCredito
     @Id INT
@@ -335,28 +401,38 @@ CREATE OR ALTER PROCEDURE DetalleVenta.AgregarProducto
     @IdProducto INT
 AS
 BEGIN
+    BEGIN TRY
+        IF NOT EXISTS (SELECT 1 FROM Productos.Catalogo WHERE Id = @IdProducto)
+        BEGIN
+            -- Lanza una excepcion para que la transaccion haga ROLLBACK
+            THROW 50001, 'El producto no existe en el catálogo.', 1;
+        END;
 
-	IF NOT EXISTS (SELECT * FROM tempdb.sys.tables WHERE name = '##DetalleVentas')
-	BEGIN
-	CREATE TABLE ##DetalleVentas
-	(
-		IdDetalle INT IDENTITY(1,1) PRIMARY KEY,  -- ID auto incrementable como clave primaria
-		IdProducto INT,                            -- Relación con el producto
-		Cantidad INT                               -- Cantidad de producto
-	);
-	END
+        IF NOT EXISTS (SELECT * FROM tempdb.sys.tables WHERE name = '##DetalleVentas')
+        BEGIN
+            CREATE TABLE ##DetalleVentas
+            (
+                IdDetalle INT IDENTITY(1,1) PRIMARY KEY,  -- ID auto incrementable como clave primaria
+                IdProducto INT,                            -- Relación con el producto
+                Cantidad INT                               -- Cantidad de producto
+            );
+        END;
 
-    IF EXISTS (SELECT 1 FROM ##DetalleVentas WHERE IdProducto = @IdProducto)
-    BEGIN
-        UPDATE ##DetalleVentas
-        SET Cantidad = Cantidad + 1
-        WHERE IdProducto = @IdProducto;
-    END
-    ELSE
-    BEGIN
-        INSERT INTO ##DetalleVentas (IdProducto, Cantidad)
-        VALUES (@IdProducto, 1);
-    END
+        IF EXISTS (SELECT 1 FROM ##DetalleVentas WHERE IdProducto = @IdProducto)
+        BEGIN
+            UPDATE ##DetalleVentas
+            SET Cantidad = Cantidad + 1
+            WHERE IdProducto = @IdProducto;
+        END
+        ELSE
+        BEGIN
+            INSERT INTO ##DetalleVentas (IdProducto, Cantidad)
+            VALUES (@IdProducto, 1);
+        END;
+    END TRY
+    BEGIN CATCH
+        THROW; -- Lanza la excepcion para que el bloque de transaccion externo haga el ROLLBACK
+    END CATCH
 END;
 GO
 

@@ -3,7 +3,7 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
-        <ConnectionNode Name="DESKTOP-7M26LCC:mauri\mauri">
+        <ConnectionNode Name="DESKTOP-7M26LCC:DESKTOP-7M26LCC\kerse">
           <Created>2024-11-05T20:39:51.4517247-03:00</Created>
           <Type>SQL</Type>
           <Server>DESKTOP-7M26LCC</Server>
@@ -17,7 +17,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="DESKTOP-85DGSED\SQLEXPRESS:mauri\mauri">
+        <ConnectionNode Name="DESKTOP-85DGSED\SQLEXPRESS:DESKTOP-7M26LCC\kerse">
           <Created>2024-11-08T23:06:24.0281515-03:00</Created>
           <Type>SQL</Type>
           <Server>DESKTOP-85DGSED\SQLEXPRESS</Server>
@@ -31,7 +31,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="LUKYBRANDO-PC\SQLEXPRESS:mauri\mauri">
+        <ConnectionNode Name="LUKYBRANDO-PC\SQLEXPRESS:DESKTOP-7M26LCC\kerse">
           <Created>2024-11-05T15:12:26.037036-03:00</Created>
           <Type>SQL</Type>
           <Server>LUKYBRANDO-PC\SQLEXPRESS</Server>
@@ -45,7 +45,7 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="MAURI\SQLEXPRESS:mauri\mauri">
+        <ConnectionNode Name="MAURI\SQLEXPRESS:DESKTOP-7M26LCC\kerse">
           <Created>2024-11-01T17:53:56.9449462-03:00</Created>
           <Type>SQL</Type>
           <Server>MAURI\SQLEXPRESS</Server>
@@ -64,44 +64,44 @@
     <LogicalFolder Name="Queries" Type="0" Sorted="true">
       <Items>
         <FileNode Name="00_CreacionTablas.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:MAURI\SQLEXPRESS:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>MAURI\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-7M26LCC:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-7M26LCC</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>00_CreacionTablas.sql</FullPath>
         </FileNode>
         <FileNode Name="01_ProceduresTablas.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:MAURI\SQLEXPRESS:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>MAURI\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-7M26LCC:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-7M26LCC</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>01_ProceduresTablas.sql</FullPath>
         </FileNode>
         <FileNode Name="02_CreacionProcedures.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:MAURI\SQLEXPRESS:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>MAURI\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-7M26LCC:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-7M26LCC</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>02_CreacionProcedures.sql</FullPath>
         </FileNode>
         <FileNode Name="03_ProceduresReportes.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:MAURI\SQLEXPRESS:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>MAURI\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-7M26LCC:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-7M26LCC</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>03_ProceduresReportes.sql</FullPath>
         </FileNode>
         <FileNode Name="04_Testing.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:MAURI\SQLEXPRESS:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>MAURI\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-7M26LCC:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-7M26LCC</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>04_Testing.sql</FullPath>
         </FileNode>
         <FileNode Name="05_Seguridad.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:MAURI\SQLEXPRESS:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>MAURI\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-7M26LCC:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-7M26LCC</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>05_Seguridad.sql</FullPath>
         </FileNode>
         <FileNode Name="06_SegTesting.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:MAURI\SQLEXPRESS:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>MAURI\SQLEXPRESS</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-7M26LCC:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-7M26LCC</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>06_SegTesting.sql</FullPath>
         </FileNode>
