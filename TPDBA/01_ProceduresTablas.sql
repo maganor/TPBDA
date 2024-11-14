@@ -123,13 +123,6 @@ CREATE OR ALTER PROCEDURE Empleado.ActualizarEmpleado
 AS
 BEGIN
 	DECLARE @IdSucursal INT;
-	
-    SET NOCOUNT ON;
-	IF @IdSucursal IS NOT NULL AND NOT EXISTS (SELECT 1 FROM Complementario.Sucursales WHERE IdSucursal = @IdSucursal)
-    BEGIN
-        RAISERROR('El ID de Sucursal proporcionado no existe.', 16, 1);
-        RETURN;
-    END
 
     SELECT @IdSucursal = IdSucursal
 		FROM Complementario.Sucursales

@@ -147,49 +147,43 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Carga.CargarHistorial
+CREATE OR ALTER PROCEDURE Carga.CargarFacturasDesdeHistorial
 AS
 BEGIN
-    --SET NOCOUNT ON;
-	PRINT 'Moviendo el historial a una tabla con formato'
-    DROP TABLE IF EXISTS ##Historial
-    CREATE TABLE ##Historial (
-        IdFactura CHAR(11),
-        TipoFactura CHAR(1),
-        Ciudad VARCHAR(100),
-        TipoCliente VARCHAR(10),
-        Genero VARCHAR(6),
-        Producto VARCHAR(100),
-        PrecioUni DECIMAL(10,2),
-        Cantidad INT,
-        Fecha DATE,
-        Hora TIME(0),
-        MedioPago VARCHAR(30),
-        Empleado INT,
-        IdPago VARCHAR(30)
-    );
-
-    INSERT INTO ##Historial(IdFactura,TipoFactura,Ciudad,TipoCliente,Genero,Producto,PrecioUni,Cantidad,Fecha,Hora,MedioPago,Empleado,IdPago)
-    SELECT
-		IdFactura,
-		TipoFactura,
-		Ciudad,
-		TipoCliente,
-		Genero,
-		Producto,
-		CAST(PrecioUni AS DECIMAL(10, 2)),
-		CAST(Cantidad AS INT),
-		TRY_CONVERT(DATE, Fecha, 101),
-		CAST(Hora AS TIME(0)),
-		MedioPago,
-		CAST(Empleado AS INT) AS Empleado,
-		IdPago
-	FROM ##HistorialTemp;
-
-    DROP TABLE ##HistorialTemp;
-
-	UPDATE ##Historial
+	UPDATE ##HistorialTemp
 	SET Producto = Procedimientos.ArreglarLetras(Producto)
+	PRINT 'Cargando facturas viejas en facturas nuevas'
+	INSERT INTO Ventas.Facturas(IdViejo, TipoFactura, Fecha, Hora, IdMedioPago, Empleado, IdSucursal, IdCliente)
+	SELECT
+		h.IdFactura,
+		h.TipoFactura,
+		h.Fecha,
+		h.Hora,
+		mdp.IdMDP,
+		CAST(h.Empleado AS INT),
+		s.IdSucursal,
+		c.IdCliente
+	FROM ##HistorialTemp h
+		JOIN Complementario.MediosDePago mdp ON h.MedioPago = mdp.NombreING
+		JOIN Complementario.Sucursales s ON h.Ciudad = s.Ciudad
+		JOIN Complementario.Clientes c ON c.Genero = h.Genero AND c.TipoCliente = h.TipoCliente
+	WHERE h.IdFactura NOT IN (SELECT IdViejo FROM Ventas.Facturas)
+
+	PRINT 'Cargando detalles de ventas'
+	INSERT INTO Ventas.DetalleVentas(IdFactura, IdProducto, Cantidad, PrecioUnitario, IdCategoria)
+	SELECT 
+		f.IdFactura, 
+		c.Id, 
+		CAST(h.Cantidad AS INT), 
+		CAST(h.PrecioUni AS DECIMAL(10, 2)), 
+		C.IdCategoria 
+	FROM ##HistorialTemp h
+	JOIN Ventas.Facturas f on f.IdViejo = h.IdFactura
+	CROSS APPLY (
+			SELECT TOP 1 * FROM Productos.Catalogo C 
+			WHERE C.Nombre = h.Producto AND CAST(h.PrecioUni AS DECIMAL(10, 2)) = C.Precio
+	) c
+	WHERE f.IdFactura NOT IN (SELECT IdFactura FROM Ventas.DetalleVentas)
 
 END;
 GO
@@ -231,19 +225,26 @@ BEGIN
     ) AS a;';
 
     EXEC sp_executesql @sql;
-
+	SET NOCOUNT OFF
+	PRINT 'Agregando categorias de productos importados'
     INSERT INTO Complementario.CategoriaDeProds(LineaDeProducto, Producto)	--Inserta la Categoria del archivo en el tabla de Categorias
     SELECT DISTINCT i.Categoria, i.Nombre
     FROM #ProductosImportados i
     WHERE NOT EXISTS (SELECT 1 FROM Complementario.CategoriaDeProds c 
 					  WHERE c.LineaDeProducto = i.Categoria AND c.Producto = i.Nombre);
-
+	PRINT 'Agregando productos importados al catalogo'
     INSERT INTO Productos.Catalogo(Nombre, Precio, Proveedor, IdCategoria)	--Inserta en el Catalogo si no tiene el mismo nombre ni IdCategoria
     SELECT i.Nombre,i.PrecioUnidad,i.Proveedor,cp.Id
     FROM #ProductosImportados i 
 		JOIN Complementario.CategoriaDeProds cp ON cp.LineaDeProducto = i.Categoria AND cp.Producto = i.Nombre
     WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo c
 					  WHERE c.Nombre = i.Nombre AND c.IdCategoria = cp.Id);
+
+	PRINT 'Actualizando precios productos importados'
+	UPDATE Productos.Catalogo
+	SET Precio = p.PrecioUnidad
+	FROM Productos.Catalogo	c
+	JOIN #ProductosImportados p on c.Nombre = p.Nombre AND c.Precio <> p.PrecioUnidad
 
     DROP TABLE #ProductosImportados;
 
@@ -278,9 +279,11 @@ BEGIN
     ) AS a;';
 
     EXEC sp_executesql @sql;
+	SET NOCOUNT OFF
 
     IF NOT EXISTS (SELECT 1 FROM Complementario.CategoriaDeProds WHERE LineaDeProducto = 'Accesorios Electronicos')
     BEGIN
+		PRINT 'Agregando Categoria de accesorios electronicos'
         INSERT INTO Complementario.CategoriaDeProds (LineaDeProducto, Producto)		--Agrega la Categoria a la tabla de Categorias
         VALUES ('Accesorios Electronicos', 'Accesorios Electronicos');
     END;
@@ -289,12 +292,19 @@ BEGIN
     SELECT @IdCategoria = c.Id 
 		FROM Complementario.CategoriaDeProds c
 		WHERE c.LineaDeProducto = 'Accesorios Electronicos';
-
+	PRINT 'Insertando accesorios electronicos al catalogo'
     INSERT INTO Productos.Catalogo(Nombre, Precio, Proveedor, IdCategoria)			--Inserta en el catalogo si no está
     SELECT ea.Nombre,ea.PrecioUSD,'-' AS Proveedor,@IdCategoria
     FROM #ElectronicAccessories ea
 	WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo C 
 					  WHERE C.Nombre = ea.Nombre);
+
+	PRINT 'Actualizando precios Accesorios Electronicos'
+	UPDATE Productos.Catalogo
+	SET Precio = ea.PrecioUSD
+	FROM Productos.Catalogo	c
+	JOIN #ElectronicAccessories ea on c.Nombre = ea.Nombre AND c.Precio <> ea.PrecioUSD
+
     
 	DROP TABLE #ElectronicAccessories;
 
@@ -492,44 +502,6 @@ BEGIN
 					  AND s.Direccion = st.Direccion);
 
     DROP TABLE #SucursalesTemp;
-END;
-GO
-
-CREATE OR ALTER PROCEDURE Carga.CargarFacturasDesdeHistorial
-AS
-BEGIN
-	PRINT 'Cargando facturas viejas en facturas nuevas'
-	INSERT INTO Ventas.Facturas(IdViejo, TipoFactura, Fecha, Hora, IdMedioPago, Empleado, IdSucursal, IdCliente)
-	SELECT
-		h.IdFactura,
-		h.TipoFactura,
-		h.Fecha,
-		h.Hora,
-		mdp.IdMDP,
-		h.Empleado,
-		s.IdSucursal,
-		c.IdCliente
-	FROM ##Historial h
-		JOIN Complementario.MediosDePago mdp ON h.MedioPago = mdp.NombreING
-		JOIN Complementario.Sucursales s ON h.Ciudad = s.Ciudad
-		JOIN Complementario.Clientes c on c.Genero = h.Genero AND c.TipoCliente = h.TipoCliente
-	WHERE h.IdFactura NOT IN (SELECT IdViejo FROM Ventas.Facturas)
-	PRINT 'Cargando detalles de ventas'
-	INSERT INTO Ventas.DetalleVentas(IdFactura, IdProducto, Cantidad, PrecioUnitario, IdCategoria)
-	SELECT 
-		f.IdFactura, 
-		c.Id, 
-		h.Cantidad, 
-		h.PrecioUni, 
-		C.IdCategoria 
-	FROM ##Historial h
-	JOIN Ventas.Facturas f on f.IdViejo = H.IdFactura
-	CROSS APPLY (
-			SELECT TOP 1 * FROM Productos.Catalogo C 
-			WHERE C.Nombre = h.Producto AND h.PrecioUni = C.Precio
-	) c
-	WHERE f.IdFactura NOT IN (SELECT IdFactura FROM Ventas.DetalleVentas)
-
 END;
 GO
 

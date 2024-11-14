@@ -33,9 +33,6 @@ BEGIN
 END;
 GO
 
-DECLARE @FraseClave NVARCHAR(128);
-GO
-
 CREATE OR ALTER PROCEDURE Procedimientos.AgregarEmpleado
     @Nombre VARCHAR(50),
     @Apellido VARCHAR(50),
@@ -55,7 +52,11 @@ BEGIN
     -- Obtener el IdSucursal para la sucursal especificada
     SELECT @IdSucursal = IdSucursal
     FROM Complementario.Sucursales
-    WHERE Ciudad = @Sucursal;
+    WHERE ReemplazarPor = @Sucursal;
+
+	DECLARE @Legajo INT
+    SELECT @Legajo = MAX(Legajo) + 1
+    FROM Complementario.Empleados;
 
     -- Si no se encuentra la sucursal, generar error
     IF @IdSucursal IS NULL
@@ -65,7 +66,7 @@ BEGIN
     END
 
     -- Verificar si el DNI ya existe y está inactivo
-    IF EXISTS (SELECT 1 FROM Complementario.Empleados WHERE DNI = @DNI AND EstaActivo = 0)
+    IF EXISTS (SELECT 1 FROM Complementario.Empleados WHERE DecryptByPassPhrase(@FraseClave, CAST(@DNI AS VARCHAR(12))) = @DNI AND EstaActivo = 0)
     BEGIN
         -- Si el empleado está inactivo, actualizarlo a activo
         UPDATE Complementario.Empleados
@@ -80,24 +81,24 @@ BEGIN
             IdSucursal = @IdSucursal,
             Turno = @Turno,
             EstaActivo = 1
-        WHERE DNI = @DNI;
+        WHERE DecryptByPassPhrase(@FraseClave, CAST(@DNI AS VARCHAR(12))) = @DNI;
 
         PRINT 'Empleado reactivado con éxito.';
         RETURN;
     END
 
     -- Si el DNI ya está activo, generar el error
-    IF EXISTS (SELECT 1 FROM Complementario.Empleados WHERE DNI = @DNI AND EstaActivo = 1)
+    IF EXISTS (SELECT 1 FROM Complementario.Empleados WHERE DecryptByPassPhrase(@FraseClave, CAST(@DNI AS VARCHAR(12))) = @DNI AND EstaActivo = 1)
     BEGIN
         RAISERROR('DNI ya existente', 16, 1);
         RETURN;
     END
 
     -- Insertar el nuevo empleado
-    INSERT INTO Complementario.Empleados (Nombre, Apellido, DNICifrado, DireccionCifrada, EmailPersonalCifrado, EmailEmpresa,
+    INSERT INTO Complementario.Empleados (Legajo, Nombre, Apellido, DNICifrado, DireccionCifrada, EmailPersonalCifrado, EmailEmpresa,
                                           CUILCifrado, Cargo, IdSucursal, Turno, EstaActivo)
     VALUES 
-        (@Nombre, @Apellido, 
+        (@Legajo, @Nombre, @Apellido, 
         EncryptByPassPhrase(@FraseClave, CAST(@DNI AS VARCHAR(12)), 1, NULL),  -- Cifrado de DNI
         EncryptByPassPhrase(@FraseClave, @Direccion, 1, NULL),                -- Cifrado de Dirección
         EncryptByPassPhrase(@FraseClave, @EmailPersonal, 1, NULL),            -- Cifrado de Email Personal
@@ -114,16 +115,20 @@ CREATE OR ALTER PROCEDURE Procedimientos.ActualizarEmpleado
     @Direccion VARCHAR(200) = NULL,
     @EmailPersonal VARCHAR(100) = NULL,
     @Cargo VARCHAR(50) = NULL,
-    @IdSucursal INT = NULL,  
+    @Sucursal VARCHAR(50) = NULL,  
     @Turno VARCHAR(25) = NULL,
     @FraseClave NVARCHAR(128)  -- Frase clave para cifrar los datos
 AS
 BEGIN
-    SET NOCOUNT ON;
-    
-    IF @IdSucursal IS NOT NULL AND NOT EXISTS (SELECT 1 FROM Complementario.Sucursales WHERE IdSucursal = @IdSucursal)
+	DECLARE @IdSucursal INT;
+
+    SELECT @IdSucursal = IdSucursal
+		FROM Complementario.Sucursales
+		WHERE ReemplazarPor = @Sucursal;
+
+    IF @IdSucursal IS NULL
     BEGIN
-        RAISERROR('El ID de Sucursal proporcionado no existe.', 16, 1);
+        RAISERROR ('La sucursal especificada no existe o la ciudad no es válida.', 16, 1);
         RETURN;
     END
 
