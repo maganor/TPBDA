@@ -3,48 +3,17 @@
 USE Com5600G01
 GO 
 
-DROP SCHEMA IF EXISTS Procedimientos
-GO
-CREATE SCHEMA Procedimientos 
-GO
-
-DROP SCHEMA IF EXISTS Empleado
-GO
-CREATE SCHEMA Empleado
-GO
-
-DROP SCHEMA IF EXISTS Cliente
-GO
-CREATE SCHEMA Cliente
-GO
-
-DROP SCHEMA IF EXISTS Producto
-GO
-CREATE SCHEMA Producto
-GO
-
 DROP SCHEMA IF EXISTS MedioDePago
 GO
 CREATE SCHEMA MedioDePago
 GO
-
-DROP SCHEMA IF EXISTS Sucursal
+DROP SCHEMA IF EXISTS Ajustes
 GO
-CREATE SCHEMA Sucursal
-GO
-
-DROP SCHEMA IF EXISTS NotaCredito
-GO
-CREATE SCHEMA NotaCredito
-GO
-
-DROP SCHEMA IF EXISTS DetalleVenta
-GO
-CREATE SCHEMA DetalleVenta
+CREATE SCHEMA Ajustes
 GO
 
 -------------SP'S Para Empleados:
-CREATE OR ALTER PROCEDURE Empleado.AgregarEmpleado
+CREATE OR ALTER PROCEDURE Sucursal.AgregarEmpleado
     @Nombre VARCHAR(50),
     @Apellido VARCHAR(50),
     @DNI INT,
@@ -58,10 +27,10 @@ CREATE OR ALTER PROCEDURE Empleado.AgregarEmpleado
 AS
 BEGIN
     -- Verifica si el DNI ya existe y si esta inactivo
-    IF EXISTS (SELECT 1 FROM Complementario.Empleados WHERE DNI = @DNI AND EstaActivo = 0)
+    IF EXISTS (SELECT 1 FROM Sucursal.Empleados WHERE DNI = @DNI AND EstaActivo = 0)
     BEGIN
         -- Si el empleado esta inactivo, lo pasa a activo
-        UPDATE Complementario.Empleados
+        UPDATE Sucursal.Empleados
         SET Nombre = @Nombre,
             Apellido = @Apellido,
             Direccion = @Direccion,
@@ -78,7 +47,7 @@ BEGIN
     END
 
     -- Si el DNI ya esta activo, retorna error
-    IF EXISTS (SELECT 1 FROM Complementario.Empleados WHERE DNI = @DNI AND EstaActivo = 1)
+    IF EXISTS (SELECT 1 FROM Sucursal.Empleados WHERE DNI = @DNI AND EstaActivo = 1)
     BEGIN
         RAISERROR('DNI ya existente', 16, 1);
         RETURN;
@@ -88,7 +57,7 @@ BEGIN
 
     -- Obtiene el ID sucursal
     SELECT @IdSucursal = IdSucursal
-    FROM Complementario.Sucursales
+    FROM Sucursal.Sucursales
     WHERE ReemplazarPor = @Sucursal;
 
     -- Si no se encuentra la sucursal, retorna error
@@ -101,10 +70,10 @@ BEGIN
     -- Obtiene proximo legajo
     DECLARE @Legajo INT
     SELECT @Legajo = MAX(Legajo) + 1
-    FROM Complementario.Empleados;
+    FROM Sucursal.Empleados;
 
     -- Inserta nuevo empleado
-    INSERT INTO Complementario.Empleados
+    INSERT INTO Sucursal.Empleados
         (Legajo, Nombre, Apellido, DNI, Direccion, EmailPersonal, EmailEmpresa, CUIL, Cargo, IdSucursal, Turno, EstaActivo)
     VALUES
         (@Legajo, @Nombre, @Apellido, @DNI, @Direccion, @EmailPersonal, @EmailEmpresa, @CUIL, @Cargo, @IdSucursal, @Turno, 1);
@@ -113,7 +82,7 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Empleado.ActualizarEmpleado
+CREATE OR ALTER PROCEDURE Sucursal.ActualizarEmpleado
     @Legajo INT,
     @Direccion VARCHAR(200) = NULL,
     @EmailPersonal VARCHAR(100) = NULL,
@@ -125,15 +94,15 @@ BEGIN
 	DECLARE @IdSucursal INT;
 
     SELECT @IdSucursal = IdSucursal
-		FROM Complementario.Sucursales
-		WHERE ReemplazarPor = @Sucursal;
+	FROM Sucursal.Sucursales
+	WHERE ReemplazarPor = @Sucursal;
 
     IF @IdSucursal IS NULL
     BEGIN
         RAISERROR ('La sucursal especificada no existe o la ciudad no es válida.', 16, 1);
         RETURN;
     END
-    UPDATE Complementario.Empleados										
+    UPDATE Sucursal.Empleados										
     SET 
         Cargo = COALESCE(@Cargo, Cargo),
         IdSucursal = COALESCE(@IdSucursal, IdSucursal),						
@@ -145,18 +114,55 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Empleado.EliminarEmpleado
+CREATE OR ALTER PROCEDURE Sucursal.EliminarEmpleado
 	@Legajo INT
 AS 
 BEGIN
-	UPDATE Complementario.Empleados
+	UPDATE Sucursal.Empleados
 	SET EstaActivo = 0
 	WHERE Legajo = @Legajo
 END;
 GO
 
+-------------SP'S para Categoria de Productos:
+CREATE OR ALTER PROCEDURE Productos.AgregarCategoria
+	@NombreLinea VARCHAR(100),
+	@NombreProd	VARCHAR(100)
+AS
+BEGIN
+		IF EXISTS (SELECT 1 FROM Productos.CategoriaDeProds c WHERE c.LineaDeProducto = @NombreLinea AND c.Producto = @NombreProd)
+		BEGIN
+			RAISERROR ('Esa Categoria YA existe',16,1);
+			RETURN;
+		END
+
+		INSERT INTO Productos.CategoriaDeProds(LineaDeProducto,Producto)
+		VALUES(@NombreLinea,@NombreProd)
+
+END;
+GO
+
+CREATE OR ALTER PROCEDURE Productos.EliminarCategoria
+	@NombreLinea VARCHAR(100),
+	@NombreProd	VARCHAR(100)
+AS
+BEGIN
+	DECLARE @IdCat INT
+	SELECT @IdCat = c.Id FROM Productos.CategoriaDeProds c WHERE c.LineaDeProducto = @NombreLinea AND c.Producto = @NombreProd
+	IF @IdCat IS NULL 
+		BEGIN
+			RAISERROR ('Esa Categoria NO existe',16,1);
+			RETURN;
+		END
+	
+	DELETE FROM Productos.CategoriaDeProds
+	WHERE Id = @IdCat
+
+END;
+GO
+
 -------------SP'S para Productos:
-CREATE OR ALTER PROCEDURE Producto.AgregarOActualizarProductoCatalogo
+CREATE OR ALTER PROCEDURE Productos.AgregarOActualizarProductoCatalogo
     @Nombre VARCHAR(100),
     @Precio DECIMAL(6,2),
     @IdCategoria INT
@@ -182,7 +188,7 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Producto.EliminarProducto
+CREATE OR ALTER PROCEDURE Productos.EliminarProducto
     @Id INT
 AS
 BEGIN
@@ -191,6 +197,7 @@ BEGIN
 
 END;
 GO
+
 -------------SP'S para Medios de Pago:
 CREATE OR ALTER PROCEDURE MedioDePago.AgregarMedioDePago
     @nombreING VARCHAR(15),
@@ -220,6 +227,7 @@ BEGIN
 	WHERE IdMDP = @id
 END;
 GO
+
 -------------SP'S Para Sucursales:
 CREATE OR ALTER PROCEDURE Sucursal.AgregarSucursal
     @Ciudad VARCHAR(100),
@@ -231,14 +239,14 @@ AS
 BEGIN
     IF EXISTS (														-- Comprueba si ya existe una sucursal en la misma ciudad y dirección
         SELECT 1
-        FROM Complementario.Sucursales
+        FROM Sucursal.Sucursales
         WHERE Ciudad = @Ciudad AND Direccion = @Direccion AND ReemplazarPor = @ReemplazarPor
     )
     BEGIN
         RAISERROR ('Ya existe esa sucursal', 16, 1);
         RETURN;
     END
-    INSERT INTO Complementario.Sucursales (Ciudad, ReemplazarPor, Direccion, Horario, Telefono)	-- Inserta la nueva sucursal si no existe
+    INSERT INTO Sucursal.Sucursales (Ciudad, ReemplazarPor, Direccion, Horario, Telefono)	-- Inserta la nueva sucursal si no existe
     VALUES (@Ciudad, @ReemplazarPor, @Direccion, @Horario, @Telefono);
 END;
 GO
@@ -250,7 +258,7 @@ CREATE OR ALTER PROCEDURE Sucursal.ActualizarSucursal
     @Horario VARCHAR(100) = NULL        
 AS
 BEGIN
-    UPDATE Complementario.Sucursales							-- Actualiza solo los campos que no son NULL
+    UPDATE Sucursal.Sucursales							-- Actualiza solo los campos que no son NULL
     SET 
         Direccion = COALESCE(@Direccion, Direccion),		
         Telefono = COALESCE(@Telefono, Telefono),			
@@ -263,7 +271,7 @@ CREATE OR ALTER PROCEDURE Sucursal.EliminarSucursal
 	@id int
 AS
 BEGIN
-	DELETE FROM Complementario.Sucursales
+	DELETE FROM Sucursal.Sucursales
 	WHERE IdSucursal = @id
 END;
 GO
@@ -300,7 +308,7 @@ BEGIN
         RETURN;
     END
 
-    INSERT INTO Ventas.NotasDeCredito (IdProd, IdFactura, EstadoActivo, Cantidad, IdCategoria, Precio)
+    INSERT INTO NotaCredito.NotasDeCredito (IdProd, IdFactura, EstadoActivo, Cantidad, IdCategoria, Precio)
     VALUES (@IdProducto, 
             @IdFactura, 
             1,									-- Estado activo
@@ -317,69 +325,68 @@ BEGIN
 END;
 GO
 
-
 CREATE OR ALTER PROCEDURE NotaCredito.EliminarNotaCredito
     @Id INT
 AS
 BEGIN
-    UPDATE Ventas.NotasDeCredito
+    UPDATE NotaCredito.NotasDeCredito
     SET EstadoActivo = 0
     WHERE Id = @Id;
 END;
 GO
 
 -------------SP'S Para Clientes:
-CREATE OR ALTER PROCEDURE Cliente.AgregarCliente
+CREATE OR ALTER PROCEDURE Ventas.AgregarCliente
     @Nombre VARCHAR(50),
     @Genero CHAR(6),
 	@DNI INT
 AS
 BEGIN
-        IF EXISTS (SELECT 1 FROM Complementario.Clientes WHERE DNI = @DNI) -- Inserta el cliente en la tabla solo si no está su dni ya ingresado
+        IF EXISTS (SELECT 1 FROM Ventas.Clientes WHERE DNI = @DNI) -- Inserta el cliente en la tabla solo si no está su dni ya ingresado
         BEGIN
             RAISERROR('Ya existe un cliente con el DNI ingresado.', 16, 1);
             RETURN;
         END
 
-        INSERT INTO Complementario.Clientes (Nombre, TipoCliente, Genero, DNI)
+        INSERT INTO Ventas.Clientes (Nombre, TipoCliente, Genero, DNI)
         VALUES (@Nombre, 'Member', @Genero, @DNI);
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Cliente.ModificarCliente
+CREATE OR ALTER PROCEDURE Ventas.ModificarCliente
 	@IdCliente INT,
 	@TipoClienteNuevo CHAR(6)
 AS
 BEGIN
-      IF NOT EXISTS (SELECT 1 FROM Complementario.Clientes WHERE IdCliente = @IdCliente)
+      IF NOT EXISTS (SELECT 1 FROM Ventas.Clientes WHERE IdCliente = @IdCliente)
       BEGIN
            RAISERROR('No existe un cliente con el ID ingresado.', 16, 1);
 		   RETURN;
       END
       
-	  UPDATE Complementario.Clientes
+	  UPDATE Ventas.Clientes
       SET TipoCliente = @TipoClienteNuevo
       WHERE IdCliente = @IdCliente;
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Cliente.EliminarCliente
+CREATE OR ALTER PROCEDURE Ventas.EliminarCliente
     @IdCliente INT
 AS
 BEGIN
-       IF NOT EXISTS (SELECT 1 FROM Complementario.Clientes WHERE IdCliente = @IdCliente)
+       IF NOT EXISTS (SELECT 1 FROM Ventas.Clientes WHERE IdCliente = @IdCliente)
        BEGIN
             RAISERROR('No existe un cliente con el ID ingresado.', 16, 1);
             RETURN;
        END
 
-       DELETE FROM Complementario.Clientes
+       DELETE FROM Ventas.Clientes
        WHERE IdCliente = @IdCliente;   
 END;
 GO
 
 -------------SP'S para Detalles de Ventas:
-CREATE OR ALTER PROCEDURE DetalleVenta.AgregarProducto
+CREATE OR ALTER PROCEDURE Ventas.AgregarProducto
     @IdProducto INT
 AS
 BEGIN
@@ -418,7 +425,7 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE DetalleVenta.FinalizarCompra
+CREATE OR ALTER PROCEDURE Ventas.FinalizarCompra
     @IdFactura INT 
 AS
 BEGIN
@@ -436,14 +443,14 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE DetalleVenta.CancelarCompra
+CREATE OR ALTER PROCEDURE Ventas.CancelarCompra
 AS
 BEGIN
     RAISERROR ('Compra cancelada por el usuario.', 16, 1);
 END;
 GO
 
-CREATE OR ALTER PROCEDURE DetalleVenta.CargarFacturas
+CREATE OR ALTER PROCEDURE Ventas.CargarFacturas
     @IdCliente INT,
     @IdSucursal INT,
     @Empleado INT,
@@ -479,48 +486,21 @@ BEGIN
 END;
 GO
 
--------------SP'S para el Valor Actual del Dolar:
-CREATE OR ALTER PROCEDURE Procedimientos.CargarValorDolar
+--Vista para mostrar la factura como se pide:
+CREATE OR ALTER VIEW Ventas.MostrarReporte
 AS
-BEGIN
-    SET NOCOUNT ON;
+	SELECT F.IdFactura,F.TipoFactura,S.Ciudad,C.TipoCliente,C.Genero,CP.LineaDeProducto,P.Nombre AS Producto,DV.PrecioUnitario,
+		   DV.Cantidad,F.Fecha,F.Hora,MP.NombreESP AS MedioDePago,F.Empleado,S.ReemplazarPor AS Sucursal              
     
-    -- Variables para manejar la respuesta de la API
-    DECLARE @url NVARCHAR(64) = 'https://dolarapi.com/v1/dolares/blue'; -- URL del API
-    DECLARE @Object INT; -- Objeto para la llamada HTTP
-    DECLARE @json TABLE(DATA NVARCHAR(MAX)); -- Tabla para almacenar la respuesta
-    DECLARE @respuesta NVARCHAR(MAX); -- Variable para almacenar el JSON de la respuesta
-    DECLARE @Venta DECIMAL(6,2); -- Variable para almacenar el valor de venta del dólar
-
-    -- Crea el objeto para la llamada HTTP
-    EXEC sp_OACreate 'MSXML2.XMLHTTP', @Object OUT;
-
-    -- Realiza la solicitud GET al API
-    EXEC sp_OAMethod @Object, 'OPEN', NULL, 'GET', @url, 'FALSE';
-    EXEC sp_OAMethod @Object, 'SEND';
-    EXEC sp_OAMethod @Object, 'RESPONSETEXT', @respuesta OUTPUT;
-
-    -- Inserta la respuesta del JSON en la tabla temporal
-    INSERT INTO @json
-    EXEC sp_OAGetProperty @Object, 'RESPONSETEXT';
-
-    -- Extraer el valor de "venta" del JSON
-    SELECT @Venta = JSON_VALUE(DATA, '$.venta') FROM @json;
-
-    -- Actualiza el valor del dólar en la tabla
-    UPDATE Complementario.ValorDolar
-    SET PrecioAR = @Venta, FechaHora = SYSDATETIME()
-    WHERE FechaHora = (SELECT MAX(FechaHora) FROM Complementario.ValorDolar);
-
-    -- Si no se actualizó ninguna fila, inserta un nuevo registro
-    IF @@ROWCOUNT = 0
-    BEGIN
-        INSERT INTO Complementario.ValorDolar (PrecioAR, FechaHora)
-        VALUES (@Venta, SYSDATETIME());
-    END
-
-    -- Limpia el objeto COM
-    EXEC sp_OADestroy @Object;
-
-END;
+	FROM Ventas.Facturas F
+		JOIN Sucursal.Sucursales S ON F.IdSucursal = S.IdSucursal         
+		JOIN Ventas.Clientes C ON F.IdCliente = C.IdCliente         
+		JOIN Ventas.DetalleVentas DV ON F.IdFactura = DV.IdFactura       
+		JOIN Productos.CategoriaDeProds CP ON DV.IdCategoria = CP.Id   
+		JOIN Productos.Catalogo P ON DV.IdProducto = P.Id      
+		JOIN Complementario.MediosDePago MP ON F.IdMedioPago = MP.IdMDP
+		
+	WHERE DV.Cantidad > 0
+	ORDER BY F.IdFactura ASC
 GO
+

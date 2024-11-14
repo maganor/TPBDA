@@ -98,7 +98,7 @@ BEGIN
     SELECT s.reemplazarpor AS Sucursal, c.Nombre AS Producto,SUM(dv.Cantidad) AS CantidadVendida
     FROM Ventas.Facturas F
 		JOIN Ventas.DetalleVentas dv ON F.IdFactura = dv.IdFactura		-- Unión para obtener las cantidades vendidas
-		JOIN Complementario.Sucursales s ON F.IdSucursal = s.IdSucursal	-- Unión para obtener el nombre de la sucursal
+		JOIN Sucursal.Sucursales s ON F.IdSucursal = s.IdSucursal	-- Unión para obtener el nombre de la sucursal
 		JOIN Productos.Catalogo c ON dv.IdProducto = c.Id				-- Unión para obtener el nombre del producto
 
     WHERE F.Fecha >= @FechaInicio AND F.Fecha <= @FechaFin				-- Filtrado por las fechas recibidas
@@ -173,7 +173,7 @@ BEGIN
     FROM Ventas.Facturas F
 		JOIN Ventas.DetalleVentas dv ON F.IdFactura = dv.IdFactura			-- Se obtiene la cantidad y el precio
 		JOIN Productos.Catalogo c ON dv.IdProducto = c.Id					-- Se obtiene el nombre del producto
-		JOIN Complementario.Sucursales s ON F.IdSucursal = s.IdSucursal		-- Se obtiene la sucursal
+		JOIN Sucursal.Sucursales s ON F.IdSucursal = s.IdSucursal		-- Se obtiene la sucursal
 		
 	WHERE F.Fecha = @Fecha AND s.reemplazarpor = @Sucursal					-- Filtrado por fecha y sucursal recibida
 

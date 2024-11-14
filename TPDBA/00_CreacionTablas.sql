@@ -17,6 +17,10 @@ GO
 USE Com5600G01
 GO
 
+DROP SCHEMA IF EXISTS Sucursal
+GO
+CREATE SCHEMA Sucursal
+GO
 DROP SCHEMA IF EXISTS Productos
 GO
 CREATE SCHEMA Productos
@@ -29,22 +33,26 @@ DROP SCHEMA IF EXISTS Ventas
 GO
 CREATE SCHEMA Ventas
 GO
-
-DROP TABLE IF EXISTS Complementario.Sucursales
+DROP SCHEMA IF EXISTS NotaCredito
 GO
-CREATE TABLE Complementario.Sucursales(
+CREATE SCHEMA NotaCredito
+GO
+
+DROP TABLE IF EXISTS Sucursal.Sucursales
+GO
+CREATE TABLE Sucursal.Sucursales(
 		IdSucursal INT IDENTITY(1,1) PRIMARY KEY,
-        Ciudad VARCHAR(100),				--Ciudad
-        ReemplazarPor VARCHAR(100),			--Sucursal donde trabaja
+        Ciudad VARCHAR(100),							--Ciudad
+        ReemplazarPor VARCHAR(100),						--Sucursal donde trabaja
         Direccion VARCHAR(200),
         Horario VARCHAR(100),
         Telefono VARCHAR(20)
 )
 GO
 
-DROP TABLE IF EXISTS Complementario.Empleados
+DROP TABLE IF EXISTS Sucursal.Empleados
 GO
-CREATE TABLE Complementario.Empleados(
+CREATE TABLE Sucursal.Empleados(
     Legajo INT PRIMARY KEY,
     Nombre VARCHAR(50),
     Apellido VARCHAR(50),
@@ -57,12 +65,13 @@ CREATE TABLE Complementario.Empleados(
     IdSucursal INT,
     Turno VARCHAR(25),
 	EstaActivo BIT NOT NULL DEFAULT 1,
-	CONSTRAINT FK_Sucursal FOREIGN KEY (IdSucursal) REFERENCES Complementario.Sucursales(IdSucursal)
+	CONSTRAINT FK_Sucursal FOREIGN KEY (IdSucursal) REFERENCES Sucursal.Sucursales(IdSucursal)
 )
 GO
 
-DROP TABLE IF EXISTS Complementario.CategoriaDeProds
-CREATE TABLE Complementario.CategoriaDeProds(
+DROP TABLE IF EXISTS Productos.CategoriaDeProds
+GO
+CREATE TABLE Productos.CategoriaDeProds(
 	Id INT IDENTITY(1,1) PRIMARY KEY,
     LineaDeProducto VARCHAR(100),
     Producto VARCHAR(100)
@@ -87,9 +96,9 @@ CREATE TABLE Complementario.MediosDePago(
 )
 GO
 
-DROP TABLE IF EXISTS Complementario.Clientes
+DROP TABLE IF EXISTS Ventas.Clientes
 GO
-CREATE TABLE Complementario.Clientes(
+CREATE TABLE Ventas.Clientes(
     IdCliente INT IDENTITY(0,1) PRIMARY KEY,  
     DNI INT UNIQUE,
     Nombre VARCHAR(50),
@@ -98,7 +107,7 @@ CREATE TABLE Complementario.Clientes(
 )
 GO
 
-INSERT INTO Complementario.Clientes (DNI, Nombre, TipoCliente, Genero)  
+INSERT INTO Ventas.Clientes (DNI, Nombre, TipoCliente, Genero)  
 VALUES (NULL, 'Consumidor Final', 'Normal', '-'), 
 (0, 'Antiguo', 'Normal', 'Male'), (1, 'Antiguo', 'Normal', 'Female'), 
 (2, 'Antiguo', 'Member', 'Female'), (3, 'Antiguo', 'Member', 'Male')
@@ -114,8 +123,9 @@ CREATE TABLE Productos.Catalogo(
 	IdCategoria INT,
 	PrecioRef DECIMAL(10,2),
 	UnidadRef CHAR(10),
-	CONSTRAINT FK_Categoria FOREIGN KEY (IdCategoria) REFERENCES Complementario.CategoriaDeProds(Id)
+	CONSTRAINT FK_Categoria FOREIGN KEY (IdCategoria) REFERENCES Productos.CategoriaDeProds(Id)
 )
+GO
 
 DROP TABLE IF EXISTS Ventas.Facturas
 GO
@@ -130,9 +140,9 @@ CREATE TABLE Ventas.Facturas(
 	IdSucursal INT,
 	IdCliente INT,
 	CONSTRAINT FK_MedioDePago FOREIGN KEY (IdMedioPago) REFERENCES Complementario.MediosDePago(IdMDP),
-	CONSTRAINT FK_Legajo FOREIGN KEY (Empleado) REFERENCES Complementario.Empleados(Legajo),
-	CONSTRAINT FK_Sucursal FOREIGN KEY (IdSucursal) REFERENCES Complementario.Sucursales(IdSucursal),
-	CONSTRAINT FK_Cliente FOREIGN KEY (IdCliente) REFERENCES Complementario.Clientes(IdCliente)
+	CONSTRAINT FK_Legajo FOREIGN KEY (Empleado) REFERENCES Sucursal.Empleados(Legajo),
+	CONSTRAINT FK_Sucursal FOREIGN KEY (IdSucursal) REFERENCES Sucursal.Sucursales(IdSucursal),
+	CONSTRAINT FK_Cliente FOREIGN KEY (IdCliente) REFERENCES Ventas.Clientes(IdCliente)
 )
 GO
 
@@ -147,11 +157,13 @@ CREATE TABLE Ventas.DetalleVentas(
     PrecioUnitario DECIMAL(6, 2),										
     CONSTRAINT FK_Detalle_Factura FOREIGN KEY (IdFactura) REFERENCES Ventas.Facturas(IdFactura),
     CONSTRAINT FK_Detalle_Producto FOREIGN KEY (IdProducto) REFERENCES Productos.Catalogo(Id),
-	CONSTRAINT FK_Detalle_Categoria FOREIGN KEY (IdCategoria) REFERENCES Complementario.CategoriaDeProds(Id)
+	CONSTRAINT FK_Detalle_Categoria FOREIGN KEY (IdCategoria) REFERENCES Productos.CategoriaDeProds(Id)
 )
 GO
 
-CREATE TABLE Ventas.NotasDeCredito (
+DROP TABLE IF EXISTS NotaCredito.NotasDeCredito
+GO
+CREATE TABLE NotaCredito.NotasDeCredito(
     Id INT IDENTITY(1,1) PRIMARY KEY,       
     IdProd INT,                            
     IdFactura INT,                    
@@ -161,9 +173,15 @@ CREATE TABLE Ventas.NotasDeCredito (
     Precio DECIMAL(6, 2),                 
     CONSTRAINT FK_Nota_Factura FOREIGN KEY (IdFactura) REFERENCES Ventas.Facturas(IdFactura),
     CONSTRAINT FK_Nota_Producto FOREIGN KEY (IdProd) REFERENCES Productos.Catalogo(Id),
-    CONSTRAINT FK_Nota_Categoria FOREIGN KEY (IdCategoria) REFERENCES Complementario.CategoriaDeProds(Id)
-);
+    CONSTRAINT FK_Nota_Categoria FOREIGN KEY (IdCategoria) REFERENCES Productos.CategoriaDeProds(Id)
+)
+GO
 
+--Para ver que las tablas pertenezcan al esquema 'Sucursal'
+SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = 'Sucursal'
+GO
 
 --Para ver que las tablas pertenezcan al esquema 'Productos'
 SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
@@ -183,7 +201,13 @@ FROM INFORMATION_SCHEMA.TABLES
 WHERE TABLE_SCHEMA = 'Ventas'
 GO
 
+--Para ver que las tablas pertenezcan al esquema 'NotaCredito'
+SELECT TABLE_SCHEMA as Esquema, TABLE_NAME as Tabla
+FROM INFORMATION_SCHEMA.TABLES
+WHERE TABLE_SCHEMA = 'NotaCredito'
+GO
+
 --Creacion de Indices para las futuras ejecuciones de los SP:
-CREATE NONCLUSTERED INDEX IX_CategoriaDeProds_Producto_Linea ON Complementario.CategoriaDeProds(Producto,LineadeProducto);
+CREATE NONCLUSTERED INDEX IX_CategoriaDeProds_Producto_Linea ON Productos.CategoriaDeProds(Producto,LineadeProducto);
 CREATE NONCLUSTERED INDEX IX_Catalogo_Nombre_Categoria ON Productos.Catalogo(Nombre,IdCategoria);
-CREATE NONCLUSTERED INDEX IX_SucursalesCiudad ON Complementario.Sucursales(Ciudad,ReemplazarPor);
+CREATE NONCLUSTERED INDEX IX_SucursalesCiudad ON Sucursal.Sucursales(Ciudad,ReemplazarPor);

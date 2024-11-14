@@ -1,7 +1,7 @@
 USE Com5600G01
 GO 
 
-EXEC Procedimientos.CargarValorDolar
+EXEC Ajustes.CargarValorDolar
 GO
 
 DECLARE @PATH VARCHAR(255) = 'C:\Users\wixde\Desktop\TP_integrador_Archivos'
@@ -52,11 +52,11 @@ SELECT * FROM Productos.Catalogo WHERE nombre='Té Dharamsala'
 GO
 SELECT * FROM Complementario.MediosDePago
 GO
-SELECT * FROM Complementario.CategoriaDeProds  
+SELECT * FROM Productos.CategoriaDeProds  
 GO
-SELECT * FROM Complementario.Empleados
+SELECT * FROM Sucursal.Empleados
 GO
-SELECT * FROM Complementario.Sucursales
+SELECT * FROM Sucursal.Sucursales
 GO
 SELECT * FROM Ventas.Facturas
 GO
@@ -69,7 +69,7 @@ GO
 
 
 --------Test Agregar Empleado--------
-EXEC Empleado.AgregarEmpleado			@Nombre = 'Howard',
+EXEC Sucursal.AgregarEmpleado			@Nombre = 'Howard',
 										@Apellido = 'Wolowitz',
 										@DNI = '44485891',
 										@Direccion = 'CumbiaPeposa 1900',
@@ -82,7 +82,7 @@ EXEC Empleado.AgregarEmpleado			@Nombre = 'Howard',
 GO
 
 --------Test Actualizar Empleado--------
-EXEC Empleado.ActualizarEmpleado		@Legajo = '257035',
+EXEC Sucursal.ActualizarEmpleado		@Legajo = '257035',
 										@Direccion = 'enrique segoviano 1944',
 										@EmailPersonal = 'Bombaloca@gmail.com',
 										@Cargo = 'Gerente de sucursal',
@@ -91,11 +91,11 @@ EXEC Empleado.ActualizarEmpleado		@Legajo = '257035',
 GO	
 
 --------Test Eliminar Empleado--------
-EXEC Empleado.EliminarEmpleado @Legajo = '257035'
+EXEC Sucursal.EliminarEmpleado @Legajo = '257035'
 GO
 
 --------Mostrar Empleados--------
-SELECT * FROM Complementario.Empleados
+SELECT * FROM Sucursal.Empleados
 GO
 
 --------Test Agregar Medio de Pago--------
@@ -112,23 +112,23 @@ SELECT * FROM Complementario.MediosDePago
 GO
 
 --------Test Agregar Cliente--------
-EXEC Cliente.AgregarCliente				@Nombre = 'Juan Fernando Quintero',
+EXEC Ventas.AgregarCliente				@Nombre = 'Juan Fernando Quintero',
 										@Genero = 'M',
 										@DNI = 43525943;
 								
 GO
 
 --------Tests Modificar Clientes--------
-EXEC Cliente.ModificarCliente			@IdCliente = 5,
+EXEC Ventas.ModificarCliente			@IdCliente = 5,
 										@TipoClienteNuevo = 'VIP';  --Con idea de agregar mas tipos de cliente a futuro										
 GO
 
 --------Test Eliminar Cliente--------
-EXEC Cliente.EliminarCliente			@IdCliente = 5;   
+EXEC Ventas.EliminarCliente			@IdCliente = 5;   
 GO
 
 --------Mostrar Clientes--------
-SELECT * FROM Complementario.Clientes
+SELECT * FROM Ventas.Clientes
 GO
 
 --------Test Agregar Sucursal--------
@@ -144,36 +144,7 @@ EXEC Sucursal.EliminarSucursal			@id = '4'
 GO
 
 --------Mostrar Sucursales--------
-SELECT * FROM Complementario.Sucursales
-GO
-
-----------Ejecución de los Reportes XML---------------
-DECLARE @xml XML;
-EXEC Reportes.GenerarReporteMensual @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
-GO
-
-DECLARE @xml XML;
-EXEC Reportes.GenerarReporteTrimestral @XMLResultado = @xml OUTPUT
-GO
-
-DECLARE @xml XML;
-EXEC Reportes.GenerarReportePorRangoFechas @FechaInicio = '2019-01-01', @FechaFin = '2019-03-31', @XMLResultado = @xml OUTPUT;
-GO
-
-DECLARE @xml XML;
-EXEC Reportes.GenerarReportePorRangoFechasSucursal @FechaInicio = '2019-01-01', @FechaFin = '2019-03-31', @XMLResultado = @xml OUTPUT;
-GO
-
-DECLARE @xml XML;
-EXEC Reportes.Top5ProductosPorSemana @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
-GO
-
-DECLARE @xml XML;
-EXEC Reportes.MenosVendidosPorMes @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
-GO
-
-DECLARE @xml XML;
-EXEC Reportes.TotalAcumuladoVentas @Fecha = '2024-11-15', @Sucursal = 'San Justo', @XMLResultado = @xml OUTPUT; --escribir fecha de hoy
+SELECT * FROM Sucursal.Sucursales
 GO
 
 ----------------Test Transaccion Compra----------------
@@ -182,7 +153,7 @@ BEGIN TRANSACTION;
 BEGIN TRY
     DECLARE @Error INT;
     
-    EXEC @Error = DetalleVenta.CargarFacturas
+    EXEC @Error = Ventas.CargarFacturas
 		@IdCliente = 0, 
         @IdSucursal = 1, 
         @Empleado = 257020, 
@@ -194,24 +165,24 @@ BEGIN TRY
     END;
 	
 	--------Test Productos que SI Estan--------
-    EXEC DetalleVenta.AgregarProducto @IdProducto = 104;  
-	EXEC DetalleVenta.AgregarProducto @IdProducto = 105;
-	EXEC DetalleVenta.AgregarProducto @IdProducto = 10;
-	EXEC DetalleVenta.AgregarProducto @IdProducto = 18;
-	EXEC DetalleVenta.AgregarProducto @IdProducto = 18;
-	EXEC DetalleVenta.AgregarProducto @IdProducto = 18;
-	EXEC DetalleVenta.AgregarProducto @IdProducto = 18;
+    EXEC Ventas.AgregarProducto @IdProducto = 104;  
+	EXEC Ventas.AgregarProducto @IdProducto = 105;
+	EXEC Ventas.AgregarProducto @IdProducto = 10;
+	EXEC Ventas.AgregarProducto @IdProducto = 18;
+	EXEC Ventas.AgregarProducto @IdProducto = 18;
+	EXEC Ventas.AgregarProducto @IdProducto = 18;
+	EXEC Ventas.AgregarProducto @IdProducto = 18;
 
 	--------Test Producto que NO Esta--------
-	--EXEC DetalleVenta.AgregarProducto @IdProducto = 7000;
+	--EXEC Ventas.AgregarProducto @IdProducto = 7000;
 
 	--------Test Cancelar Compra--------
-	--EXEC DetalleVenta.CancelarCompra; 
+	--EXEC Ventas.CancelarCompra; 
 
     DECLARE @IdFactura INT;
     SET @IdFactura = (SELECT TOP 1 IdFactura FROM Ventas.Facturas ORDER BY IdFactura DESC);
 
-    EXEC DetalleVenta.FinalizarCompra @IdFactura = @IdFactura;
+    EXEC Ventas.FinalizarCompra @IdFactura = @IdFactura;
     COMMIT TRANSACTION;
     PRINT 'Compra finalizada con éxito. Factura generada.';
     
@@ -243,7 +214,7 @@ EXEC NotaCredito.GenerarNotaCredito
 EXEC NotaCredito.EliminarNotaCredito @Id = 1;
 
 --------Mostrar Notas de Credito--------
-SELECT * FROM Ventas.NotasDeCredito
+SELECT * FROM NotaCredito.NotasDeCredito
 
 --------Test Mostrar Reporte--------
 SELECT * FROM Ventas.MostrarReporte
@@ -251,7 +222,60 @@ SELECT * FROM Ventas.MostrarReporte
 --------Test Eliminar Producto--------
 SELECT * FROM Productos.Catalogo WHERE nombre = 'Aceite de aguacate Ethnos'
 GO
-EXEC Producto.EliminarProducto @id = 847
+
+EXEC Productos.EliminarProducto		@id = 847
 GO
+
 SELECT * FROM Productos.Catalogo WHERE nombre = 'Aceite de aguacate Ethnos'
+GO
+--------Test Agregar Categoria--------
+EXEC Productos.AgregarCategoria		@NombreLinea = 'Almacen',						--Exitoso
+									@NombreProd = 'galletitas_dulces'
+GO
+
+EXEC Productos.AgregarCategoria		@NombreLinea = 'Almacen',						--Error
+									@NombreProd = 'aceitunas_y_encurtidos'
+GO
+
+SELECT * FROM Productos.CategoriaDeProds
+--------Test Eliminar Categoria--------
+EXEC Productos.EliminarCategoria	@NombreLinea = 'Almacen',						--Exitoso
+									@NombreProd = 'galletitas_dulces'
+
+GO
+
+EXEC Productos.EliminarCategoria	@NombreLinea = 'Almacen',						--Error
+									@NombreProd = 'galletitas_de_agua'
+
+GO
+
+SELECT * FROM Productos.CategoriaDeProds
+
+----------Ejecución de los Reportes XML---------------
+DECLARE @xml XML;
+EXEC Reportes.GenerarReporteMensual @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
+GO
+
+DECLARE @xml XML;
+EXEC Reportes.GenerarReporteTrimestral @XMLResultado = @xml OUTPUT
+GO
+
+DECLARE @xml XML;
+EXEC Reportes.GenerarReportePorRangoFechas @FechaInicio = '2019-01-01', @FechaFin = '2019-03-31', @XMLResultado = @xml OUTPUT;
+GO
+
+DECLARE @xml XML;
+EXEC Reportes.GenerarReportePorRangoFechasSucursal @FechaInicio = '2019-01-01', @FechaFin = '2019-03-31', @XMLResultado = @xml OUTPUT;
+GO
+
+DECLARE @xml XML;
+EXEC Reportes.Top5ProductosPorSemana @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
+GO
+
+DECLARE @xml XML;
+EXEC Reportes.MenosVendidosPorMes @Mes = 3, @Anio = 2019, @XMLResultado = @xml OUTPUT;
+GO
+
+DECLARE @xml XML;
+EXEC Reportes.TotalAcumuladoVentas @Fecha = '2024-11-15', @Sucursal = 'San Justo', @XMLResultado = @xml OUTPUT; --escribir fecha de hoy
 GO

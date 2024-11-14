@@ -26,7 +26,7 @@ EXEC sp_configure 'Ole Automation Procedures', 1;
 RECONFIGURE;
 GO
 
-CREATE OR ALTER FUNCTION Procedimientos.ArreglarLetras(@str NVARCHAR(100)) RETURNS NVARCHAR(100)
+CREATE OR ALTER FUNCTION Ajustes.ArreglarLetras(@str NVARCHAR(100)) RETURNS NVARCHAR(100)
 BEGIN
 
     SET @str = REPLACE(@str, 'Ã¡', 'á')
@@ -93,7 +93,7 @@ BEGIN
 
     UPDATE ct SET ct.IdCategoria = cp.Id							--Añade el valor de IdCategoria al Producto
     FROM ##CatalogoTemp ct
-        JOIN Complementario.CategoriaDeProds cp ON cp.Producto = ct.Categoria
+        JOIN Productos.CategoriaDeProds cp ON cp.Producto = ct.Categoria
 
     INSERT INTO Productos.Catalogo(Nombre,Precio,Proveedor,IdCategoria, PrecioRef, UnidadRef)	 --Inserta al catalogo si no está el mismo nombre ni la categoria
     SELECT ct.Nombre, ct.Precio, '-' AS Proveedor, ct.IdCategoria, ct.Precio_Ref, ct.Unidad_Ref
@@ -157,7 +157,7 @@ CREATE OR ALTER PROCEDURE Carga.CargarFacturasDesdeHistorial
 AS
 BEGIN
 	UPDATE ##HistorialTemp
-	SET Producto = Procedimientos.ArreglarLetras(Producto)
+	SET Producto = Ajustes.ArreglarLetras(Producto)
 
 	PRINT 'Cargando facturas viejas en facturas nuevas'
 	
@@ -165,20 +165,23 @@ BEGIN
 	SELECT h.IdFactura,h.TipoFactura,h.Fecha,h.Hora,mdp.IdMDP,CAST(h.Empleado AS INT),s.IdSucursal,c.IdCliente
 	FROM ##HistorialTemp h
 		JOIN Complementario.MediosDePago mdp ON h.MedioPago = mdp.NombreING
-		JOIN Complementario.Sucursales s ON h.Ciudad = s.Ciudad
-		JOIN Complementario.Clientes c ON c.Genero = h.Genero AND c.TipoCliente = h.TipoCliente
+		JOIN Sucursal.Sucursales s ON h.Ciudad = s.Ciudad
+		JOIN Ventas.Clientes c ON c.Genero = h.Genero AND c.TipoCliente = h.TipoCliente
 
 	WHERE h.IdFactura NOT IN (SELECT IdViejo FROM Ventas.Facturas)
 
 	PRINT 'Cargando detalles de ventas'
+
+	DECLARE @ValorDolar DECIMAL(6,2)
+	SELECT @ValorDolar = d.PrecioAR FROM Complementario.ValorDolar d
 	
 	INSERT INTO Ventas.DetalleVentas(IdFactura, IdProducto, Cantidad, PrecioUnitario, IdCategoria)
-	SELECT f.IdFactura,c.Id,CAST(h.Cantidad AS INT),CAST(h.PrecioUni AS DECIMAL(10, 2)),C.IdCategoria 
+	SELECT f.IdFactura,c.Id,CAST(h.Cantidad AS INT),CAST(h.PrecioUni * @ValorDolar AS DECIMAL(10, 2)),C.IdCategoria 
 	FROM ##HistorialTemp h
 		JOIN Ventas.Facturas f on f.IdViejo = h.IdFactura
 		CROSS APPLY (
 				SELECT TOP 1 * FROM Productos.Catalogo C 
-				WHERE C.Nombre = h.Producto AND CAST(h.PrecioUni AS DECIMAL(10, 2)) = C.Precio
+				WHERE C.Nombre = h.Producto AND CAST(h.PrecioUni * @ValorDolar AS DECIMAL(10, 2)) = C.Precio
 		) c
 	
 	WHERE f.IdFactura NOT IN (SELECT IdFactura FROM Ventas.DetalleVentas)
@@ -225,16 +228,16 @@ BEGIN
     EXEC sp_executesql @sql;
 	SET NOCOUNT OFF
 	PRINT 'Agregando categorias de productos importados'
-    INSERT INTO Complementario.CategoriaDeProds(LineaDeProducto, Producto)	--Inserta la Categoria del archivo en el tabla de Categorias
+    INSERT INTO Productos.CategoriaDeProds(LineaDeProducto, Producto)	--Inserta la Categoria del archivo en el tabla de Categorias
     SELECT DISTINCT i.Categoria, i.Nombre
     FROM #ProductosImportados i
-    WHERE NOT EXISTS (SELECT 1 FROM Complementario.CategoriaDeProds c 
+    WHERE NOT EXISTS (SELECT 1 FROM Productos.CategoriaDeProds c 
 					  WHERE c.LineaDeProducto = i.Categoria AND c.Producto = i.Nombre);
 	PRINT 'Agregando productos importados al catalogo'
     INSERT INTO Productos.Catalogo(Nombre, Precio, Proveedor, IdCategoria)	--Inserta en el Catalogo si no tiene el mismo nombre ni IdCategoria
     SELECT i.Nombre,i.PrecioUnidad,i.Proveedor,cp.Id
     FROM #ProductosImportados i 
-		JOIN Complementario.CategoriaDeProds cp ON cp.LineaDeProducto = i.Categoria AND cp.Producto = i.Nombre
+		JOIN Productos.CategoriaDeProds cp ON cp.LineaDeProducto = i.Categoria AND cp.Producto = i.Nombre
     WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo c
 					  WHERE c.Nombre = i.Nombre AND c.IdCategoria = cp.Id);
 
@@ -279,16 +282,16 @@ BEGIN
     EXEC sp_executesql @sql;
 	SET NOCOUNT OFF
 
-    IF NOT EXISTS (SELECT 1 FROM Complementario.CategoriaDeProds WHERE LineaDeProducto = 'Accesorios Electronicos')
+    IF NOT EXISTS (SELECT 1 FROM Productos.CategoriaDeProds WHERE LineaDeProducto = 'Accesorios Electronicos')
     BEGIN
 		PRINT 'Agregando Categoria de accesorios electronicos'
-        INSERT INTO Complementario.CategoriaDeProds (LineaDeProducto, Producto)		--Agrega la Categoria a la tabla de Categorias
+        INSERT INTO Productos.CategoriaDeProds (LineaDeProducto, Producto)		--Agrega la Categoria a la tabla de Categorias
         VALUES ('Accesorios Electronicos', 'Accesorios Electronicos');
     END;
 
     DECLARE @IdCategoria INT;														--Obtiene el Id de la categoria
     SELECT @IdCategoria = c.Id 
-		FROM Complementario.CategoriaDeProds c
+		FROM Productos.CategoriaDeProds c
 		WHERE c.LineaDeProducto = 'Accesorios Electronicos';
 	PRINT 'Insertando accesorios electronicos al catalogo'
     INSERT INTO Productos.Catalogo(Nombre, Precio, Proveedor, IdCategoria)			--Inserta en el catalogo si no está
@@ -303,7 +306,6 @@ BEGIN
 	FROM Productos.Catalogo	c
 	JOIN #ElectronicAccessories ea on c.Nombre = ea.Nombre AND c.Precio <> ea.PrecioUSD
 
-    
 	DROP TABLE #ElectronicAccessories;
 
 END;
@@ -381,10 +383,10 @@ BEGIN
 
 	SET NOCOUNT OFF
 
-    INSERT INTO Complementario.CategoriaDeProds (LineaDeProducto, Producto)		--Inserta la categoria a la tabla final si no está
+    INSERT INTO Productos.CategoriaDeProds (LineaDeProducto, Producto)		--Inserta la categoria a la tabla final si no está
     SELECT ct.LineaDeProducto,ct.Producto
     FROM #ClasificacionTemp ct
-    WHERE NOT EXISTS (SELECT 1 FROM Complementario.CategoriaDeProds c
+    WHERE NOT EXISTS (SELECT 1 FROM Productos.CategoriaDeProds c
                       WHERE c.LineaDeProducto = ct.LineaDeProducto AND c.Producto = ct.Producto);
 
     DROP TABLE #ClasificacionTemp;
@@ -444,11 +446,11 @@ BEGIN
 	SET NOCOUNT OFF
 	
 	--Inserta el Empleado en la tabla final si no está
-    INSERT INTO Complementario.Empleados (Legajo, Nombre, Apellido, DNI, Direccion, EmailPersonal, EmailEmpresa, CUIL, Cargo,IdSucursal, Turno, EstaActivo)
+    INSERT INTO Sucursal.Empleados (Legajo, Nombre, Apellido, DNI, Direccion, EmailPersonal, EmailEmpresa, CUIL, Cargo,IdSucursal, Turno, EstaActivo)
     SELECT e.Legajo,e.Nombre,e.Apellido,e.DNI,e.Direccion,e.EmailPersonal,e.EmailEmpresa,e.CUIL,e.Cargo,s.IdSucursal,e.Turno,e.EstaActivo
     FROM #EmpleadosTemp e
-		JOIN Complementario.Sucursales s on s.ReemplazarPor = e.Sucursal
-    WHERE NOT EXISTS (SELECT 1 FROM Complementario.Empleados c WHERE c.Legajo = e.Legajo);
+		JOIN Sucursal.Sucursales s on s.ReemplazarPor = e.Sucursal
+    WHERE NOT EXISTS (SELECT 1 FROM Sucursal.Empleados c WHERE c.Legajo = e.Legajo);
 
     DROP TABLE #EmpleadosTemp;
 
@@ -492,10 +494,10 @@ BEGIN
     SET NOCOUNT OFF;
 
 
-    INSERT INTO Complementario.Sucursales (Ciudad, ReemplazarPor, Direccion, Horario, Telefono)
+    INSERT INTO Sucursal.Sucursales (Ciudad, ReemplazarPor, Direccion, Horario, Telefono)
     SELECT st.Ciudad, st.ReemplazarPor, st.Direccion, st.Horario, st.Telefono
     FROM #SucursalesTemp st																	--Inserta la sucursal si no está
-    WHERE NOT EXISTS (SELECT 1 FROM Complementario.Sucursales s
+    WHERE NOT EXISTS (SELECT 1 FROM Sucursal.Sucursales s
 					  WHERE s.Ciudad = st.Ciudad AND s.ReemplazarPor = st.ReemplazarPor
 					  AND s.Direccion = st.Direccion);
 
@@ -503,7 +505,55 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE Productos.PesificarPrecios
+-------------SP'S para el Valor Actual del Dolar:
+CREATE OR ALTER PROCEDURE Ajustes.CargarValorDolar
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    -- Variables para manejar la respuesta de la API
+    DECLARE @url NVARCHAR(64) = 'https://dolarapi.com/v1/dolares/blue'; -- URL del API
+    DECLARE @Object INT; -- Objeto para la llamada HTTP
+    DECLARE @json TABLE(DATA NVARCHAR(MAX)); -- Tabla para almacenar la respuesta
+    DECLARE @respuesta NVARCHAR(MAX); -- Variable para almacenar el JSON de la respuesta
+    DECLARE @Venta DECIMAL(6,2); -- Variable para almacenar el valor de venta del dólar
+
+    -- Crea el objeto para la llamada HTTP
+    EXEC sp_OACreate 'MSXML2.XMLHTTP', @Object OUT;
+
+    -- Realiza la solicitud GET al API
+    EXEC sp_OAMethod @Object, 'OPEN', NULL, 'GET', @url, 'FALSE';
+    EXEC sp_OAMethod @Object, 'SEND';
+    EXEC sp_OAMethod @Object, 'RESPONSETEXT', @respuesta OUTPUT;
+
+    -- Inserta la respuesta del JSON en la tabla temporal
+    INSERT INTO @json
+    EXEC sp_OAGetProperty @Object, 'RESPONSETEXT';
+
+    -- Extraer el valor de "venta" del JSON
+    SELECT @Venta = JSON_VALUE(DATA, '$.venta') FROM @json;
+
+    -- Actualiza el valor del dólar en la tabla
+    UPDATE Complementario.ValorDolar
+    SET PrecioAR = @Venta, FechaHora = SYSDATETIME()
+    WHERE FechaHora = (SELECT MAX(FechaHora) FROM Complementario.ValorDolar);
+
+    -- Si no se actualizó ninguna fila, inserta un nuevo registro
+    IF @@ROWCOUNT = 0
+    BEGIN
+        INSERT INTO Complementario.ValorDolar (PrecioAR, FechaHora)
+        VALUES (@Venta, SYSDATETIME());
+    END
+
+    -- Limpia el objeto COM
+    EXEC sp_OADestroy @Object;
+
+END;
+GO
+
+-------------SP para pasar a pesos los precios:
+
+CREATE OR ALTER PROCEDURE Ajustes.PesificarPrecios
 AS
 BEGIN
     DECLARE @PrecioDolar DECIMAL(6,2);
@@ -516,31 +566,14 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER VIEW Ventas.MostrarReporte
-AS
-	SELECT F.IdFactura,F.TipoFactura,S.Ciudad,C.TipoCliente,C.Genero,CP.LineaDeProducto,P.Nombre AS Producto,DV.PrecioUnitario,
-		   DV.Cantidad,F.Fecha,F.Hora,MP.NombreESP AS MedioDePago,F.Empleado,S.ReemplazarPor AS Sucursal              
-    
-	FROM Ventas.Facturas F
-		JOIN Complementario.Sucursales S ON F.IdSucursal = S.IdSucursal         
-		JOIN Complementario.Clientes C ON F.IdCliente = C.IdCliente         
-		JOIN Ventas.DetalleVentas DV ON F.IdFactura = DV.IdFactura       
-		JOIN Complementario.CategoriaDeProds CP ON DV.IdCategoria = CP.Id   
-		JOIN Productos.Catalogo P ON DV.IdProducto = P.Id      
-		JOIN Complementario.MediosDePago MP ON F.IdMedioPago = MP.IdMDP
-		
-	WHERE DV.Cantidad > 0
-	ORDER BY F.IdFactura ASC
-GO
-
---Ver procedimientos en esquema 'Procedimientos'
-SELECT SCHEMA_NAME(schema_id) AS Esquema, name AS Procedimiento
-FROM sys.procedures
-WHERE SCHEMA_NAME(schema_id) = 'Procedimientos';
-GO
-
 --Ver procedimientos en esquema 'Carga'
 SELECT SCHEMA_NAME(schema_id) AS Esquema, name AS Procedimiento
 FROM sys.procedures
 WHERE SCHEMA_NAME(schema_id) = 'Carga';
+GO
+
+--Ver procedimientos en esquema 'Ajustes'
+SELECT SCHEMA_NAME(schema_id) AS Esquema, name AS Procedimiento
+FROM sys.procedures
+WHERE SCHEMA_NAME(schema_id) = 'Ajustes';
 GO
