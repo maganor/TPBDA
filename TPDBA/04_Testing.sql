@@ -57,7 +57,7 @@ SELECT * FROM ##Historial
 GO
 SELECT * FROM Complementario.MediosDePago
 GO
-SELECT * FROM Complementario.CategoriaDeProds  --ojear x las ddas
+SELECT * FROM Complementario.CategoriaDeProds  
 GO
 SELECT * FROM Complementario.Empleados
 GO
@@ -78,36 +78,28 @@ EXEC Empleado.AgregarEmpleado			@Nombre = 'Howard',
 										@Apellido = 'Wolowitz',
 										@DNI = '44485891',
 										@Direccion = 'CumbiaPeposa 1900',
-										@EmailPersonal = 'holamundo@gmail.com',
+										@EmailPersonal = 'holamundo@gmail.com',   
 										@EmailEmpresa = 'holaempresa@gmail.com',
 										@CUIL = '11111111112',
-										@Cargo = 'papu',
-										@Sucursal = 'Yangon',
+										@Cargo = 'Cajero',
+										@Sucursal = 'Ramos Mejia',
 										@Turno = 'TM'
 GO
-
---------Test Eliminar Empleado--------
-EXEC Empleado.EliminarEmpleado @Legajo = '257035'
 
 --------Test Actualizar Empleado--------
 EXEC Empleado.ActualizarEmpleado		@Legajo = '257035',
 										@Direccion = 'enrique segoviano 1944',
 										@EmailPersonal = 'Bombaloca@gmail.com',
-										@Cargo = 'Jefe',
-										@Sucursal = 'Ramos Mejia',
+										@Cargo = 'Gerente de sucursal',
+										@Sucursal = 'San Justo',
 										@Turno = 'Jornada completa'
-GO		
+GO	
+
+--------Test Eliminar Empleado--------
+EXEC Empleado.EliminarEmpleado @Legajo = '257035'
 
 --------Mostrar Empleados--------
 SELECT * FROM Complementario.Empleados
-GO
-
---------Test Eliminar Producto--------
-SELECT * from Productos.Catalogo WHERE nombre = 'Aceite de aguacate Ethnos'
-GO
-EXEC Producto.EliminarProducto @id = 847
-GO
-SELECT * from Productos.Catalogo WHERE nombre = 'Aceite de aguacate Ethnos'
 GO
 
 --------Test Agregar Medio de Pago--------
@@ -116,7 +108,7 @@ EXEC MedioDePago.AgregarMedioDePago		@nombreING = 'Debit card',
 GO 
 
 --------Test Eliminar Medio de Pago--------
-EXEC MedioDePago.EliminarMedioDePago @id = '4'
+EXEC MedioDePago.EliminarMedioDePago	@id = '4'
 GO
 
 --------Mostrar Medios de Pago--------
@@ -124,21 +116,19 @@ SELECT * FROM Complementario.MediosDePago
 GO
 
 --------Test Agregar Cliente--------
-EXEC Cliente.AgregarCliente
-								@Nombre = 'Juan Fer Perez',
-								@Genero = 'M',
-								@DNI = 43525943;
+EXEC Cliente.AgregarCliente				@Nombre = 'Juan Fernando Quintero',
+										@Genero = 'M',
+										@DNI = 43525943;
+								
 GO
 
 --------Tests Modificar Clientes--------
-EXEC Cliente.ModificarCliente
-								@IdCliente = 5,
-								@TipoClienteNuevo = 'VIP';  --Con idea de agregar mas tipos de cliente a futuro
+EXEC Cliente.ModificarCliente			@IdCliente = 5,
+										@TipoClienteNuevo = 'VIP';  --Con idea de agregar mas tipos de cliente a futuro										
 GO
 
 --------Test Eliminar Cliente--------
-EXEC Cliente.EliminarCliente
-								@IdCliente = 5;
+EXEC Cliente.EliminarCliente			@IdCliente = 5;   
 GO
 
 --------Mostrar Clientes--------
@@ -146,17 +136,18 @@ SELECT * FROM Complementario.Clientes
 GO
 
 --------Test Agregar Sucursal--------
-EXEC Sucursal.AgregarSucursal @Ciudad = 'Pekin',
-                                    @ReemplazarPor = 'Moron',
-                                    @Direccion = 'Aguero 1800',
-                                    @Horario = 'Lunes a Viernes de 8 am - 9 pm y Sabados y Domingos de 8 am - 8 pm',
-                                    @Telefono = '0912-1831'									
+EXEC Sucursal.AgregarSucursal			@Ciudad = 'Pekin',
+										@ReemplazarPor = 'Moron',
+										@Direccion = 'Aguero 1800',
+										@Horario = 'Lunes a Viernes de 8 am - 9 pm y Sabados y Domingos de 8 am - 8 pm',
+										@Telefono = '0912-1831'									
 GO
 
 --------Test Eliminar Sucursal--------
-EXEC Sucursal.EliminarSucursal @id = '4'
+EXEC Sucursal.EliminarSucursal			@id = '4'		
 GO
 
+--------Mostrar Sucursales--------
 SELECT * FROM Complementario.Sucursales
 GO
 
@@ -186,7 +177,7 @@ EXEC Reportes.Menor5ProductosPorMes @Mes = 3, @Anio = 2019, @XMLResultado = @xml
 GO
 
 DECLARE @xml XML;
-EXEC Reportes.TotalAcumuladoVentas @Fecha = '2019-03-14', @Sucursal = 'Ramos Mejia', @XMLResultado = @xml OUTPUT;
+EXEC Reportes.TotalAcumuladoVentas @Fecha = '2024-11-15', @Sucursal = 'San Justo', @XMLResultado = @xml OUTPUT; --escribir fecha de hoy
 GO
 
 ----------------Test Transaccion Compra----------------
@@ -261,19 +252,10 @@ select * from ventas.NotasDeCredito
 --------Test Mostrar Reporte--------
 EXEC Procedimientos.MostrarReporte
 
-
-
-
------------------------------------------------------------------
-------------para debatir con el grupo----------------------------nuevo generar nota de credito
-
-EXEC NotaCredito.GenerarNotaCredito
-    @IdFactura = 1011,  
-    @IdProducto = 18, 
-    @Cantidad = 1; 
-
---------Mostrar Facturas--------
-select * from ventas.facturas
-
---------Mostrar Detalle Ventas--------
-select * from Ventas.DetalleVentas
+--------Test Eliminar Producto--------
+SELECT * from Productos.Catalogo WHERE nombre = 'Aceite de aguacate Ethnos'
+GO
+EXEC Producto.EliminarProducto @id = 847
+GO
+SELECT * from Productos.Catalogo WHERE nombre = 'Aceite de aguacate Ethnos'
+GO

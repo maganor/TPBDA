@@ -584,7 +584,11 @@ BEGIN
         ON DV.IdProducto = P.Id      
     JOIN
         Complementario.MediosDePago MP
-        ON F.IdMedioPago = MP.IdMDP    
+        ON F.IdMedioPago = MP.IdMDP
+	WHERE
+			DV.Cantidad > 0
+	ORDER BY
+			F.IdFactura ASC
 END;
 GO
 

@@ -15,16 +15,13 @@ CREATE OR ALTER PROCEDURE Reportes.GenerarReporteMensual
     @XMLResultado XML OUTPUT
 AS
 BEGIN
-    DECLARE @ValorDolar DECIMAL(6,2); 
-    SELECT @ValorDolar = PrecioAR FROM Complementario.ValorDolar;
-
     SET DATEFIRST 1;
 
     SELECT 
         @Mes AS Mes,
         @Anio AS Año,
         (
-            SELECT DATENAME(WEEKDAY, f.Fecha) AS Nombre,SUM(dv.PrecioUnitario * dv.Cantidad * @ValorDolar) AS Total
+            SELECT DATENAME(WEEKDAY, f.Fecha) AS Nombre,SUM(dv.PrecioUnitario * dv.Cantidad) AS Total
             FROM Ventas.Facturas AS f
 				JOIN Ventas.DetalleVentas AS dv ON f.IdFactura = dv.IdFactura
             WHERE YEAR(f.Fecha) = @Anio AND MONTH(f.Fecha) = @Mes
@@ -44,9 +41,6 @@ CREATE OR ALTER PROCEDURE Reportes.GenerarReporteTrimestral
     @XMLResultado XML OUTPUT
 AS
 BEGIN
-    DECLARE @ValorDolar DECIMAL(6,2);
-    SELECT @ValorDolar = PrecioAR FROM Complementario.ValorDolar;
-
     DECLARE @TempXML XML;
 
     SELECT 
@@ -55,7 +49,7 @@ BEGIN
             WHEN DATEPART(HOUR, F.Hora) >= 8 AND DATEPART(HOUR, F.Hora) < 14 THEN 'Mañana'
             WHEN DATEPART(HOUR, F.Hora) >= 14 AND DATEPART(HOUR, F.Hora) <= 21 THEN 'Tarde'
         END AS Turno,
-        SUM(dv.PrecioUnitario * dv.Cantidad * @ValorDolar) AS TotalFacturado
+        SUM(dv.PrecioUnitario * dv.Cantidad) AS TotalFacturado
     
 	FROM Ventas.Facturas F
 		JOIN Ventas.DetalleVentas dv ON F.IdFactura = dv.IdFactura
@@ -174,10 +168,7 @@ CREATE OR ALTER PROCEDURE Reportes.TotalAcumuladoVentas
     @XMLResultado XML OUTPUT
 AS
 BEGIN
-    DECLARE @ValorDolar DECIMAL(6,2);
-	SELECT @ValorDolar = PrecioAR FROM Complementario.ValorDolar;
-
-    SELECT c.Nombre AS Producto, SUM(dv.Cantidad * dv.PrecioUnitario * @ValorDolar) AS TotalVentas
+    SELECT c.Nombre AS Producto, SUM(dv.Cantidad * dv.PrecioUnitario) AS TotalVentas
     FROM Ventas.Facturas F
 		JOIN Ventas.DetalleVentas dv ON F.IdFactura = dv.IdFactura
 		JOIN Productos.Catalogo c ON dv.IdProducto = c.Id

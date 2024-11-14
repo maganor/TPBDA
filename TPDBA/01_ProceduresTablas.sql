@@ -57,30 +57,59 @@ CREATE OR ALTER PROCEDURE Empleado.AgregarEmpleado
     @Turno VARCHAR(25)
 AS
 BEGIN
-	IF @DNI IN (SELECT DNI FROM Complementario.Empleados)
-	BEGIN 
-		RAISERROR('DNI ya existente', 16, 1);
-		RETURN;
-	END
+    -- Verifica si el DNI ya existe y si esta inactivo
+    IF EXISTS (SELECT 1 FROM Complementario.Empleados WHERE DNI = @DNI AND EstaActivo = 0)
+    BEGIN
+        -- Si el empleado esta inactivo, actualizarlo a activo
+        UPDATE Complementario.Empleados
+        SET Nombre = @Nombre,
+            Apellido = @Apellido,
+            Direccion = @Direccion,
+            EmailPersonal = @EmailPersonal,
+            EmailEmpresa = @EmailEmpresa,
+            CUIL = @CUIL,
+            Cargo = @Cargo,
+            Turno = @Turno,
+            EstaActivo = 1
+        WHERE DNI = @DNI;
+
+        PRINT 'Empleado reactivado con éxito.';
+        RETURN;
+    END
+
+    -- Si el DNI ya esta activo, genera error
+    IF EXISTS (SELECT 1 FROM Complementario.Empleados WHERE DNI = @DNI AND EstaActivo = 1)
+    BEGIN
+        RAISERROR('DNI ya existente', 16, 1);
+        RETURN;
+    END
+
     DECLARE @IdSucursal INT;
 
+    -- Obtiene el ID sucursal
     SELECT @IdSucursal = IdSucursal
-		FROM Complementario.Sucursales
-		WHERE ReemplazarPor = @Sucursal;
+    FROM Complementario.Sucursales
+    WHERE ReemplazarPor = @Sucursal;
 
+    -- Si no se encuentra la sucursal, genera error
     IF @IdSucursal IS NULL
     BEGIN
         RAISERROR ('La sucursal especificada no existe o la ciudad no es válida.', 16, 1);
         RETURN;
     END
 
-	DECLARE @Legajo INT
-	SELECT @Legajo =  MAX(Legajo) + 1 from Complementario.Empleados 
-	   
-    INSERT INTO Complementario.Empleados 
+    -- Obtiene proximo legajo
+    DECLARE @Legajo INT
+    SELECT @Legajo = MAX(Legajo) + 1
+    FROM Complementario.Empleados;
+
+    -- Inserta nuevo empleado
+    INSERT INTO Complementario.Empleados
         (Legajo, Nombre, Apellido, DNI, Direccion, EmailPersonal, EmailEmpresa, CUIL, Cargo, IdSucursal, Turno, EstaActivo)
-    VALUES 
+    VALUES
         (@Legajo, @Nombre, @Apellido, @DNI, @Direccion, @EmailPersonal, @EmailEmpresa, @CUIL, @Cargo, @IdSucursal, @Turno, 1);
+
+    PRINT 'Empleado agregado con éxito.';
 END;
 GO
 
@@ -247,46 +276,6 @@ END;
 GO
 
 -------------SP'S Para Notas de Credito:
-
---CREATE OR ALTER PROCEDURE NotaCredito.GenerarNotaCredito
---    @IdFactura INT,
---    @IdProducto INT,
---    @Cantidad INT
---AS
---BEGIN
---    IF NOT EXISTS (
---        SELECT 1 
---        FROM Ventas.DetalleVentas dv
---        WHERE dv.IdFactura = @IdFactura
---        AND dv.IdProducto = @IdProducto
---        AND dv.Cantidad >= @Cantidad
---    )
---    BEGIN
---        RAISERROR ('No se puede procesar la devolución. Verifique la factura, el producto y la cantidad.', 16, 1);
---        RETURN;
---    END
-
---    DECLARE @PrecioUnitario DECIMAL(6, 2),
---            @IdCategoria INT;
-
---    SELECT @PrecioUnitario = dv.PrecioUnitario, 
---           @IdCategoria = dv.IdCategoria
---    FROM Ventas.DetalleVentas dv
---    WHERE dv.IdFactura = @IdFactura
---      AND dv.IdProducto = @IdProducto;
-
---    INSERT INTO Ventas.NotasDeCredito (IdProd, IdFactura, EstadoActivo, Cantidad, IdCategoria, Precio)
---    VALUES (@IdProducto, 
---            @IdFactura, 
---            1,								-- Estado activo
---            @Cantidad, 
---            @IdCategoria, 
---            @PrecioUnitario * @Cantidad); 
-
---    PRINT 'Nota de crédito generada con éxito.';
---END;
---GO
-
 CREATE OR ALTER PROCEDURE NotaCredito.GenerarNotaCredito
     @IdFactura INT,
     @IdProducto INT,

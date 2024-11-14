@@ -52,26 +52,60 @@ AS
 BEGIN
     DECLARE @IdSucursal INT;
 
+    -- Obtener el IdSucursal para la sucursal especificada
     SELECT @IdSucursal = IdSucursal
     FROM Complementario.Sucursales
     WHERE Ciudad = @Sucursal;
 
+    -- Si no se encuentra la sucursal, generar error
     IF @IdSucursal IS NULL
     BEGIN
         RAISERROR ('La sucursal especificada no existe o la ciudad no es válida.', 16, 1);
         RETURN;
     END
-	   
-    INSERT INTO Complementario.Empleados(Nombre, Apellido, DNICifrado, DireccionCifrada, EmailPersonalCifrado, EmailEmpresa,
-												CUILCifrado, Cargo, IdSucursal, Turno, EstaActivo)
+
+    -- Verificar si el DNI ya existe y está inactivo
+    IF EXISTS (SELECT 1 FROM Complementario.Empleados WHERE DNI = @DNI AND EstaActivo = 0)
+    BEGIN
+        -- Si el empleado está inactivo, actualizarlo a activo
+        UPDATE Complementario.Empleados
+        SET Nombre = @Nombre,
+            Apellido = @Apellido,
+            DNICifrado = EncryptByPassPhrase(@FraseClave, CAST(@DNI AS VARCHAR(12)), 1, NULL),  -- Cifrado de DNI
+            DireccionCifrada = EncryptByPassPhrase(@FraseClave, @Direccion, 1, NULL),            -- Cifrado de Dirección
+            EmailPersonalCifrado = EncryptByPassPhrase(@FraseClave, @EmailPersonal, 1, NULL),     -- Cifrado de Email Personal
+            EmailEmpresa = @EmailEmpresa,
+            CUILCifrado = EncryptByPassPhrase(@FraseClave, @CUIL, 1, NULL),                       -- Cifrado de CUIL
+            Cargo = @Cargo,
+            IdSucursal = @IdSucursal,
+            Turno = @Turno,
+            EstaActivo = 1
+        WHERE DNI = @DNI;
+
+        PRINT 'Empleado reactivado con éxito.';
+        RETURN;
+    END
+
+    -- Si el DNI ya está activo, generar el error
+    IF EXISTS (SELECT 1 FROM Complementario.Empleados WHERE DNI = @DNI AND EstaActivo = 1)
+    BEGIN
+        RAISERROR('DNI ya existente', 16, 1);
+        RETURN;
+    END
+
+    -- Insertar el nuevo empleado
+    INSERT INTO Complementario.Empleados (Nombre, Apellido, DNICifrado, DireccionCifrada, EmailPersonalCifrado, EmailEmpresa,
+                                          CUILCifrado, Cargo, IdSucursal, Turno, EstaActivo)
     VALUES 
         (@Nombre, @Apellido, 
-        EncryptByPassPhrase(@FraseClave, CAST(@DNI AS VARCHAR(12)), 1, NULL),		-- Cifrado de DNI
-        EncryptByPassPhrase(@FraseClave, @Direccion, 1, NULL),						-- Cifrado de Dirección
-        EncryptByPassPhrase(@FraseClave, @EmailPersonal, 1, NULL),					-- Cifrado de Email Personal
+        EncryptByPassPhrase(@FraseClave, CAST(@DNI AS VARCHAR(12)), 1, NULL),  -- Cifrado de DNI
+        EncryptByPassPhrase(@FraseClave, @Direccion, 1, NULL),                -- Cifrado de Dirección
+        EncryptByPassPhrase(@FraseClave, @EmailPersonal, 1, NULL),            -- Cifrado de Email Personal
         @EmailEmpresa, 
-        EncryptByPassPhrase(@FraseClave, @CUIL, 1, NULL),							-- Cifrado de CUIL
+        EncryptByPassPhrase(@FraseClave, @CUIL, 1, NULL),                    -- Cifrado de CUIL
         @Cargo, @IdSucursal, @Turno, 1);
+
+    PRINT 'Empleado agregado con éxito.';
 END;
 GO
 
