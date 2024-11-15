@@ -7,7 +7,7 @@
 ```git clone https://github.com/maganor/TPBDA.git ```
 ### FORMA MANUAL
 Se descarga un .zip directo desde la pagina de GitHub.
-- Click en la pestania verde, arriba de los archivos, y la ultima opcion que dice Descargar ZIP
+- Click en la pestaña verde, arriba de los archivos, y la ultima opcion que dice Descargar ZIP
 ## SISTEMA UTILIZADO
 - S.O.: Windows 11 Home
 - CPU: Processor: AMD Ryzen 5 5500U, 2100 Mhz, 6 Cores 12 Threads
@@ -56,16 +56,16 @@ Se descarga un .zip directo desde la pagina de GitHub.
 
 ## Politicas de Backup
 **Backup Completo Semanal**:
-Cada domingo al finalizar el último turno para generar un respaldo completo de los datos al cierre de cada semana, por lo tanto, se mantendría la consistencia de datos y se reduciría el tiempo de restauración en caso de un fallo mayor y no se cuenta con un respaldo tan reciente. Además, en ese horario elegido suelen generarse menos movimientos o ninguno, dado que es el momento de cierre del negocio, lo que ayudaría cuando se tienen que asignar los recursos para generar el respaldo completo, dado que solo se destinarían para dicha accion que al ser un backup full tiene un costo mayor en cuanto a recursos, tiempo y espacio a comparación de otros dado que se guarda toda la base de datos por completo.
+Cada domingo al finalizar el último turno para generar un respaldo completo de los datos al cierre de cada semana, por lo tanto, se mantendría la consistencia de datos y se reduciría el tiempo de restauración en caso de un fallo mayor y no se cuenta con un respaldo tan reciente. Además, en ese horario elegido suelen generarse menos movimientos o ninguno, dado que es el momento de cierre del negocio, lo que ayudaría cuando se tienen que asignar los recursos para generar el respaldo completo, dado que solo se destinarían para dicha acción que al ser un backup full tiene un costo mayor en cuanto a recursos, tiempo y espacio a comparación de otros dado que se guarda toda la base de datos por completo.
 
 **Backup Diferencial Diario**:
-Cada día al finalizar los turnos para optimizar y agilizar el tiempo de restauración de los respaldos y la asignación de los recursos para llevar adelante dicho respaldo. Al igual que el caso anterior, la elección del horario es por la misma razón, se realizan pocos o ningun movimiento por lo tanto agiliza el proceso y, como ya se contaría con un backup full al comenzar la semana, solo se guarda la diferencia por día que a su vez se la asume tambien como base para el respaldo del siguiente día, ahorrandose así tiempo y espacio de almacenamiento.
+Cada día al finalizar los turnos para optimizar y agilizar el tiempo de restauración de los respaldos y la asignación de los recursos para llevar adelante dicho respaldo. Al igual que el caso anterior, la elección del horario es por la misma razón, se realizan pocos o ningún movimiento por lo tanto agiliza el proceso y, como ya se contaría con un backup full al comenzar la semana, solo se guarda la diferencia por día que a su vez se la asume también como base para el respaldo del siguiente día, ahorrándose así tiempo y espacio de almacenamiento.
 
 **Backup del Log de Transacciones**:
-Todos los días a cada hora, dado que es el menos costoso en tiempo y espacio comparado con los anteriores, se podría realizar a cada hora un respaldo del log de transacciones para guardar los moviemientos y cambios que se van generando en la base de datos a cada hora para que, en caso de tener que volver atrás por alguna falla, se pueda retornar lo mas actual posible gracias al uso del ultimo backup full, diferencial y dicho respaldo del log. 
+Todos los días a cada hora, dado que es el menos costoso en tiempo y espacio comparado con los anteriores, se podría realizar a cada hora un respaldo del log de transacciones para guardar los movimientos y cambios que se van generando en la base de datos a cada hora para que, en caso de tener que volver atrás por alguna falla, se pueda retornar lo más actual posible gracias al uso del último backup full, diferencial y dicho respaldo del log.
 
 **Adicional: Replicación de tablas Facturas y DetalleVentas**: 
-Dado que la información de ventas diarias es fundamental, en caso de ser necesario y a modo de mayor protección, ademas se podría establecer una politica de restauracaión a través de las réplicas de la tablas "Facturas" y "DetalleVentas". Esto aseguraría la disponibilidad y acceso a ambas tablas que son vitales para el negocio ante fallos de hardware o perdida de datos.
+Dado que la información de ventas diarias es fundamental, en caso de ser necesario y a modo de mayor protección, además se podría establecer una política de restauración a través de las réplicas de las tablas "Facturas" y "DetalleVentas". Esto aseguraría la disponibilidad y acceso a ambas tablas que son vitales para el negocio ante fallos de hardware o perdida de datos.
 
 ## DER
 ![image](https://github.com/user-attachments/assets/3516c202-5b2e-4eaa-a379-440e093d44ef)
