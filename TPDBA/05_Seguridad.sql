@@ -26,26 +26,24 @@ CREATE ROLE Cajero AUTHORIZATION dbo
 CREATE ROLE Supervisor AUTHORIZATION dbo
 CREATE ROLE GerenteDeSucursal AUTHORIZATION dbo
 
-GRANT SELECT ON SCHEMA::Productos TO Cajero
-GRANT EXECUTE ON SCHEMA::Productos TO Cajero
-GRANT CONTROL ON SCHEMA::Productos TO Supervisor,GerenteDeSucursal;
+GRANT SELECT ON SCHEMA::Productos TO Cajero,Supervisor,GerenteDeSucursal;
+GRANT EXECUTE ON SCHEMA::Productos TO Cajero,Supervisor,GerenteDeSucursal;
 
-GRANT SELECT ON SCHEMA::Ventas TO Cajero
-GRANT EXECUTE ON SCHEMA::Ventas TO Cajero
-GRANT CONTROL ON SCHEMA::Ventas TO Supervisor,GerenteDeSucursal;
+GRANT SELECT ON SCHEMA::Ventas TO Cajero,Supervisor,GerenteDeSucursal;
+GRANT EXECUTE ON SCHEMA::Ventas TO Cajero,Supervisor,GerenteDeSucursal;
 
-GRANT SELECT ON SCHEMA::Complementario TO Cajero
-GRANT CONTROL ON SCHEMA::Complementario TO Supervisor,GerenteDeSucursal;
-GRANT CONTROL ON SCHEMA::MedioDePago TO Supervisor,GerenteDeSucursal;
-GRANT CONTROL ON SCHEMA::Ajustes TO Supervisor,GerenteDeSucursal;
+GRANT SELECT ON SCHEMA::Complementario TO Cajero,Supervisor,GerenteDeSucursal;
+GRANT EXECUTE ON SCHEMA::Complementario TO Supervisor,GerenteDeSucursal;
+GRANT EXECUTE ON SCHEMA::MedioDePago TO Supervisor,GerenteDeSucursal;
+GRANT EXECUTE ON SCHEMA::Ajustes TO Supervisor,GerenteDeSucursal;
 
-GRANT SELECT ON SCHEMA::NotaCredito TO Cajero
-GRANT CONTROL ON SCHEMA::NotaCredito TO Supervisor
+GRANT SELECT ON SCHEMA::NotaCredito TO Cajero,GerenteDeSucursal;
+GRANT EXECUTE ON SCHEMA::NotaCredito TO Supervisor;
 
-GRANT CONTROL ON SCHEMA::Reportes TO Supervisor
+GRANT EXECUTE ON SCHEMA::Reportes TO Supervisor,GerenteDeSucursal;
 
-GRANT SELECT ON SCHEMA::Sucursal TO Supervisor
-GRANT CONTROL ON SCHEMA::Sucursal TO GerenteDeSucursal;
+GRANT SELECT ON SCHEMA::Sucursal TO Supervisor,GerenteDeSucursal;
+GRANT EXECUTE ON SCHEMA::Sucursal TO GerenteDeSucursal;
 GO
 
 CREATE LOGIN CajeroTest WITH PASSWORD='CajeroTest', DEFAULT_DATABASE = Com5600G01

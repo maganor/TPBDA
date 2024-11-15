@@ -199,22 +199,27 @@ CREATE OR ALTER PROCEDURE Productos.AgregarOActualizarProductoCatalogo
 AS
 BEGIN
     SET NOCOUNT ON;
-    IF EXISTS (															-- Comprueba si ya existe el producto en el catálogo
+    IF NOT EXISTS (SELECT 1 FROM Productos.CategoriaDeProds WHERE Id = @IdCategoria)
+    BEGIN
+        RAISERROR('Esa categoria NO existe', 16, 1)
+        RETURN;
+    END
+    IF EXISTS (                                                            -- Comprueba si ya existe el producto en el catálogo
         SELECT 1
         FROM Productos.Catalogo
         WHERE Nombre = @Nombre AND IdCategoria = @IdCategoria
     )
     BEGIN
-        UPDATE Productos.Catalogo										-- Si existe, actualiza el precio
+        UPDATE Productos.Catalogo                                        -- Si existe, actualiza el precio
         SET Precio = @Precio
         WHERE Nombre = @Nombre AND IdCategoria = @IdCategoria;
     END
     ELSE
     BEGIN
-        INSERT INTO Productos.Catalogo (Nombre, Precio, IdCategoria)	-- Si no existe, inserta el nuevo producto
+        INSERT INTO Productos.Catalogo (Nombre, Precio, IdCategoria)    -- Si no existe, inserta el nuevo producto
         VALUES (@Nombre, @Precio, @IdCategoria);
     END
-	PRINT 'Se agrego/actualizo el producto ' + @nombre
+    PRINT 'Se agrego/actualizo el producto ' + @nombre
 END;
 GO
 
@@ -476,13 +481,14 @@ CREATE OR ALTER PROCEDURE Ventas.FinalizarCompra
     @IdFactura INT 
 AS
 BEGIN
-    INSERT INTO Ventas.DetalleVentas (IdFactura, IdProducto, IdCategoria, Cantidad, PrecioUnitario)
+    INSERT INTO Ventas.DetalleVentas (IdFactura, IdProducto, IdCategoria, Cantidad, PrecioUnitario, Moneda)
     SELECT
         @IdFactura,                             
         d.IdProducto,                            
         p.IdCategoria,                         
         d.Cantidad,                             
-        p.Precio
+        p.Precio,
+		'ARS' AS Moneda
     FROM ##DetalleVentas d
     JOIN Productos.Catalogo p ON d.IdProducto = p.Id;  
 

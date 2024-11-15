@@ -143,6 +143,7 @@ CREATE TABLE Productos.Catalogo(
 	IdCategoria INT,
 	PrecioRef DECIMAL(10,2),
 	UnidadRef CHAR(10),
+	Moneda CHAR(3) DEFAULT 'USD',
 	CONSTRAINT FK_Categoria FOREIGN KEY (IdCategoria) REFERENCES Productos.CategoriaDeProds(Id)
 )
 GO
@@ -174,7 +175,8 @@ CREATE TABLE Ventas.DetalleVentas(
     IdProducto INT,										
     IdCategoria INT,
     Cantidad INT,                                   
-    PrecioUnitario DECIMAL(10, 2),										
+    PrecioUnitario DECIMAL(10, 2),
+	Moneda CHAR(3),
     CONSTRAINT FK_Detalle_Factura FOREIGN KEY (IdFactura) REFERENCES Ventas.Facturas(IdFactura),
     CONSTRAINT FK_Detalle_Producto FOREIGN KEY (IdProducto) REFERENCES Productos.Catalogo(Id),
 	CONSTRAINT FK_Detalle_Categoria FOREIGN KEY (IdCategoria) REFERENCES Productos.CategoriaDeProds(Id)

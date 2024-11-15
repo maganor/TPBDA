@@ -190,8 +190,8 @@ BEGIN
 
 	PRINT 'Cargando detalles de ventas'
 	
-	INSERT INTO Ventas.DetalleVentas(IdFactura, IdProducto, Cantidad, PrecioUnitario, IdCategoria)
-	SELECT f.IdFactura,c.Id,CAST(h.Cantidad AS INT),CAST(h.PrecioUni AS DECIMAL(10, 2)) ,C.IdCategoria 
+	INSERT INTO Ventas.DetalleVentas(IdFactura, IdProducto, Cantidad, PrecioUnitario, IdCategoria, Moneda)
+	SELECT f.IdFactura,c.Id,CAST(h.Cantidad AS INT),CAST(h.PrecioUni AS DECIMAL(10, 2)) ,C.IdCategoria, 'USD' AS Moneda
 	FROM ##HistorialTemp h
 		JOIN Ventas.Facturas f on f.IdViejo = h.IdFactura
 		CROSS APPLY (
@@ -204,8 +204,10 @@ BEGIN
 	SELECT @ValorDolar = d.PrecioAR FROM Complementario.ValorDolar d
 	
 	UPDATE Ventas.DetalleVentas
-	SET PrecioUnitario = PrecioUnitario * @ValorDolar
+	SET PrecioUnitario = PrecioUnitario * @ValorDolar, Moneda = 'ARS'
+	WHERE Moneda = 'USD'
 
+	DROP TABLE ##HistorialTemp
 END;
 GO
 
@@ -568,6 +570,7 @@ BEGIN
     FROM Complementario.ValorDolar
 
     UPDATE Productos.Catalogo
-    SET Precio = Precio * @PrecioDolar;
+    SET Precio = Precio * @PrecioDolar, Moneda = 'ARS'
+	WHERE Moneda = 'USD'
 END;
 GO
