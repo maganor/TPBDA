@@ -12,22 +12,15 @@
 
 USE Com5600G01	
 
--------TESTING PARA ROLES:
-EXECUTE AS USER = 'CajeroTest'
+-------TESTING PARA NOTA DE CREDITO CON ROLES:
+
+	SELECT * FROM NotaCredito.NotasDeCredito
+
 	EXEC NotaCredito.GenerarNotaCredito		@IdProducto = 104,
 											@IdFactura = 1001,
 											@Cantidad = 1	
 
-	EXEC NotaCredito.EliminarNotaCredito @id = 1
-REVERT
-
-EXECUTE AS USER = 'SupervisorTest'
-	EXEC NotaCredito.GenerarNotaCredito		@IdProducto = 104,
-											@IdFactura = 1001,
-											@Cantidad = 1
-
-	EXEC NotaCredito.EliminarNotaCredito @id = 1
-REVERT
+	EXEC NotaCredito.EliminarNotaCredito	@id = 1
 
 -------TESTING PARA CIFRADO:
 
@@ -61,8 +54,8 @@ GO
 
 SELECT * FROM Sucursal.Empleados
 
-DECLARE @PATH VARCHAR(255) = 'C:\Users\wixde\Desktop\TP_integrador_Archivos'
-DECLARE @FullPath VARCHAR(500) = @PATH + '\Informacion_complementaria.xlsx'
+DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
+DECLARE @FullPath VARCHAR(500) = @PATH + '\Informacion_complementaria2.xlsx'
 
 EXEC Carga.CargarEmpleados					@direccion = @FullPath,
 											@FraseClave = 'AvenidaSiempreViva742'

@@ -3,6 +3,21 @@
   <Items>
     <LogicalFolder Name="Connections" Type="2" Sorted="true">
       <Items>
+        <ConnectionNode Name="DESKTOP-7M26LCC:CajeroTest">
+          <Created>2024-11-15T10:37:53.6843574-03:00</Created>
+          <Type>SQL</Type>
+          <Server>DESKTOP-7M26LCC</Server>
+          <UserName>CajeroTest</UserName>
+          <Authentication>SQL</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <TrustServerCertificate>True</TrustServerCertificate>
+          <HostNameInServerCertificate />
+          <EncryptionOption>True</EncryptionOption>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
         <ConnectionNode Name="DESKTOP-7M26LCC:DESKTOP-7M26LCC\kerse">
           <Created>2024-11-05T20:39:51.4517247-03:00</Created>
           <Type>SQL</Type>
@@ -12,6 +27,21 @@
           <InitialDB />
           <LoginTimeout>30</LoginTimeout>
           <TrustServerCertificate>False</TrustServerCertificate>
+          <EncryptionOption>True</EncryptionOption>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="DESKTOP-7M26LCC:SupervisorTest">
+          <Created>2024-11-15T10:38:28.7746101-03:00</Created>
+          <Type>SQL</Type>
+          <Server>DESKTOP-7M26LCC</Server>
+          <UserName>SupervisorTest</UserName>
+          <Authentication>SQL</Authentication>
+          <InitialDB />
+          <LoginTimeout>30</LoginTimeout>
+          <TrustServerCertificate>True</TrustServerCertificate>
+          <HostNameInServerCertificate />
           <EncryptionOption>True</EncryptionOption>
           <ExecutionTimeout>0</ExecutionTimeout>
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
