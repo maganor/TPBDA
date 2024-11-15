@@ -9,10 +9,10 @@
 Se descarga un .zip directo desde la pagina de GitHub.
 - Click en la pestania verde, arriba de los archivos, y la ultima opcion que dice Descargar ZIP
 ## SISTEMA UTILIZADO
-- S.O.: Windows 11
-- CPU: 4 Cores
+- S.O.: Windows 11 Home
+- CPU: Processor: AMD Ryzen 5 5500U, 2100 Mhz, 6 Cores 12 Threads
 - Memoria Ram: 8GB
-- Espacio utilizado por el proyecto < 100 MB
+- Espacio utilizado por el proyecto < 500 MB
 ## SQL SERVER/SMSS
 - Media Location: C:\SQL2022
 - NO utilizar Azure Extension for SQL Server
@@ -24,7 +24,7 @@ Se descarga un .zip directo desde la pagina de GitHub.
 - Shared Feature Directory: C:\Program Files\Microsoft SQL Server\
 - Shared Feature Directory: C:\Program Files(x86)\Microsoft SQL Server\
 ---
-- Named instance con el nombre COM5600G01
+- Instancia con el nombre COM5600G01
 - SQL Server Directory:  C:\Program Files\Microsoft SQL Server\MSSQL16.COM5600G01
 ---
 - Service Accounts
@@ -40,14 +40,11 @@ Se descarga un .zip directo desde la pagina de GitHub.
     - User database log directory: C:\Program Files\Microsoft SQL Server\MSSQL16.COM5600G01\Data
     - Backup directory: C:\Program Files\Microsoft SQL Server\MSSQL16.COM5600G01\Backup
 - TempDB
-    - 1 solo archivo, con un tamaño inicial de 8MB y un autogrowth de 32MB
+    - 1 solo archivo, con un tamaño inicial de 8MB y un autogrowth de 16MB
     - Data Directories: Solo C:\Program Files\Microsoft SQL Server\MSSQL16.COM5600G01\Data
     - El TempDB log, tiene los mismo tamaño que la tempDB, y el log directory tambien igual a ese unico
-- Memory
-    - Recommended
-    - Marcar la opcion de aceptar las configuraciones recomendadas tambien
-- User instances
-    - Permitido
+- Memoria
+    - MIN 500MB - MAX 4GB
 - FILESTREAM
     - Deshabilitado
 ---
