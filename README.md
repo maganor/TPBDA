@@ -68,6 +68,7 @@ Todos los días a cada hora, dado que es el menos costoso en tiempo y espacio co
 Dado que la información de ventas diarias es fundamental, en caso de ser necesario y a modo de mayor protección, ademas se podría establecer una politica de restauracaión a través de las réplicas de la tablas "Facturas" y "DetalleVentas". Esto aseguraría la disponibilidad y acceso a ambas tablas que son vitales para el negocio ante fallos de hardware o perdida de datos.
 
 ## DER
-![image](https://github.com/user-attachments/assets/34f80ef0-9632-46ce-b769-ed68facca3c3)
+![image](https://github.com/user-attachments/assets/3516c202-5b2e-4eaa-a379-440e093d44ef)
+
 
 
