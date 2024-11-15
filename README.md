@@ -9,6 +9,7 @@
 Se descarga un .zip directo desde la pagina de GitHub.
 - Click en la pestania verde, arriba de los archivos, y la ultima opcion que dice Descargar ZIP
 ## SISTEMA UTILIZADO
+- S.O.: Windows 11
 - CPU: 4 Cores
 - Memoria Ram: 8GB
 - Espacio utilizado por el proyecto < 100 MB
