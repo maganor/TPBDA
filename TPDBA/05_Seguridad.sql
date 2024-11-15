@@ -37,7 +37,7 @@ GRANT EXECUTE ON SCHEMA::Complementario TO Supervisor,GerenteDeSucursal;
 GRANT EXECUTE ON SCHEMA::MedioDePago TO Supervisor,GerenteDeSucursal;
 GRANT EXECUTE ON SCHEMA::Ajustes TO Supervisor,GerenteDeSucursal;
 
-GRANT SELECT ON SCHEMA::NotaCredito TO Cajero,GerenteDeSucursal;
+GRANT SELECT ON SCHEMA::NotaCredito TO Cajero, Supervisor, GerenteDeSucursal;
 GRANT EXECUTE ON SCHEMA::NotaCredito TO Supervisor;
 
 GRANT EXECUTE ON SCHEMA::Reportes TO Supervisor,GerenteDeSucursal;

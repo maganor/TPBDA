@@ -14,10 +14,18 @@ USE Com5600G01
 
 -------TESTING PARA ROLES:
 EXECUTE AS USER = 'CajeroTest'
+	EXEC NotaCredito.GenerarNotaCredito		@IdProducto = 104,
+											@IdFactura = 1001,
+											@Cantidad = 1	
+
 	EXEC NotaCredito.EliminarNotaCredito @id = 1
 REVERT
 
-EXECUTE AS USER = 'GerenteTest'
+EXECUTE AS USER = 'SupervisorTest'
+	EXEC NotaCredito.GenerarNotaCredito		@IdProducto = 104,
+											@IdFactura = 1001,
+											@Cantidad = 1
+
 	EXEC NotaCredito.EliminarNotaCredito @id = 1
 REVERT
 
@@ -58,6 +66,3 @@ DECLARE @FullPath VARCHAR(500) = @PATH + '\Informacion_complementaria.xlsx'
 
 EXEC Carga.CargarEmpleados					@direccion = @FullPath,
 											@FraseClave = 'AvenidaSiempreViva742'
-
-
-

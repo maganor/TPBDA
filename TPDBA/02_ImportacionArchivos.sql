@@ -256,8 +256,8 @@ BEGIN
     WHERE NOT EXISTS (SELECT 1 FROM Productos.CategoriaDeProds c 
 					  WHERE c.LineaDeProducto = i.Categoria AND c.Producto = i.Nombre);
 	PRINT 'Agregando productos importados al catalogo'
-    INSERT INTO Productos.Catalogo(Nombre, Precio, Proveedor, IdCategoria)	--Inserta en el Catalogo si no tiene el mismo nombre ni IdCategoria
-    SELECT i.Nombre,i.PrecioUnidad,i.Proveedor,cp.Id
+    INSERT INTO Productos.Catalogo(Nombre, Precio, Proveedor, IdCategoria, PrecioRef, UnidadRef)	--Inserta en el Catalogo si no tiene el mismo nombre ni IdCategoria
+    SELECT i.Nombre,i.PrecioUnidad,i.Proveedor,cp.Id, 0, '-' AS UnidadRef
     FROM #ProductosImportados i 
 		JOIN Productos.CategoriaDeProds cp ON cp.LineaDeProducto = i.Categoria AND cp.Producto = i.Nombre
     WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo c
@@ -309,8 +309,8 @@ BEGIN
 		FROM Productos.CategoriaDeProds c
 		WHERE c.LineaDeProducto = 'Accesorios Electronicos';
 	PRINT 'Insertando accesorios electronicos al catalogo'
-    INSERT INTO Productos.Catalogo(Nombre, Precio, Proveedor, IdCategoria)			--Inserta en el catalogo si no está
-    SELECT ea.Nombre,ea.PrecioUSD,'-' AS Proveedor,@IdCategoria
+    INSERT INTO Productos.Catalogo(Nombre, Precio, Proveedor, IdCategoria, PrecioRef, UnidadRef)			--Inserta en el catalogo si no está
+    SELECT ea.Nombre,ea.PrecioUSD,'-' AS Proveedor,@IdCategoria, 0, '-' AS UnidadRef
     FROM #ElectronicAccessories ea
 	WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo C 
 					  WHERE C.Nombre = ea.Nombre);

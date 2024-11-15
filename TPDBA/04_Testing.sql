@@ -291,18 +291,35 @@ SELECT * FROM NotaCredito.NotasDeCredito
 --------Test Mostrar Reporte--------
 SELECT * FROM Ventas.MostrarReporte ORDER BY IdFactura ASC
 
+--------Test Agregar/Actualizar Producto--------
+EXEC Productos.AgregarOActualizarProductoCatalogo	@Nombre = 'Cosecha tardia blanco',	--Nuevo Producto
+													@Precio = 5000,			
+													@IdCategoria = 140
+
+SELECT * FROM Productos.Catalogo WHERE nombre = 'Cosecha tardia blanco'
+GO
+
+EXEC Productos.AgregarOActualizarProductoCatalogo	@Nombre = 'Cosecha tardia blanco',
+													@Precio = 4750,			--Actualiza Precio
+													@IdCategoria = 140
+
+SELECT * FROM Productos.Catalogo WHERE nombre = 'Cosecha tardia blanco'
+GO
+
+EXEC Productos.AgregarOActualizarProductoCatalogo	@Nombre = 'Cosecha tardia blanco',
+													@Precio = 4750,			
+													@IdCategoria = 300	--Error categoria inexistente
+
 --------Test Eliminar Producto--------
-SELECT * FROM Productos.Catalogo WHERE nombre = 'Aceite de aguacate Ethnos'
+EXEC Productos.EliminarProducto		@id = 6530 -- Exitoso
 GO
 
-EXEC Productos.EliminarProducto		@id = 847 -- Exitoso
+SELECT * FROM Productos.Catalogo WHERE nombre = 'Cosecha tardia blanco'
 GO
 
-EXEC Productos.EliminarProducto		@id = 15403 -- ERROR no existe
+EXEC Productos.EliminarProducto		@id = 15403 -- Error no existe
 GO
 
-SELECT * FROM Productos.Catalogo WHERE nombre = 'Aceite de aguacate Ethnos'
-GO
 --------Test Agregar Categoria--------
 EXEC Productos.AgregarCategoria		@NombreLinea = 'Almacen',						--Exitoso
 									@NombreProd = 'galletitas_dulces'
