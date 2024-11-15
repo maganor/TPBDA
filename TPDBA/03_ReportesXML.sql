@@ -19,7 +19,8 @@
 --por sucursal, ordenado de mayor a menor.
 --Mostrar los 5 productos más vendidos en un mes, por semana
 --Mostrar los 5 productos menos vendidos en el mes.
---Mostrar total acumulado de ventas (o sea tambien mostrar el detalle) para una fecha y sucursal particulares
+--Mostrar total acumulado de ventas (o sea tambien mostrar el detalle) para una fecha y sucursal particulares
+
 ----REPORTES XML:
 
 USE Com5600G01

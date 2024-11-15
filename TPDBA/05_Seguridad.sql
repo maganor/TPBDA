@@ -12,7 +12,9 @@
 --Consignas que se cumplen:
 
 --Entrega 5:
---En el caso de que el cliente solicite la nota de crédito, solo los Supervisores tienen el permiso para generarla. Asigne los roles --correspondientes para poder cumplir con este requisito.--Por otra parte, se requiere que los datos de los empleados se encuentren encriptados, dado que los mismos contienen 
+--En el caso de que el cliente solicite la nota de crédito, solo los Supervisores tienen el permiso para generarla. Asigne los roles 
+--correspondientes para poder cumplir con este requisito.
+--Por otra parte, se requiere que los datos de los empleados se encuentren encriptados, dado que los mismos contienen 
 --información personal.
 
 ------------LOGINS, USUARIOS, ROLES Y PERMISOS:

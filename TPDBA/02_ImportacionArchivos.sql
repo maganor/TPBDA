@@ -189,20 +189,22 @@ BEGIN
 	WHERE h.IdFactura NOT IN (SELECT IdViejo FROM Ventas.Facturas)
 
 	PRINT 'Cargando detalles de ventas'
-
-	DECLARE @ValorDolar DECIMAL(6,2)
-	SELECT @ValorDolar = d.PrecioAR FROM Complementario.ValorDolar d
 	
 	INSERT INTO Ventas.DetalleVentas(IdFactura, IdProducto, Cantidad, PrecioUnitario, IdCategoria)
-	SELECT f.IdFactura,c.Id,CAST(h.Cantidad AS INT),CAST(h.PrecioUni AS DECIMAL(10, 2))  * @ValorDolar ,C.IdCategoria 
+	SELECT f.IdFactura,c.Id,CAST(h.Cantidad AS INT),CAST(h.PrecioUni AS DECIMAL(10, 2)) ,C.IdCategoria 
 	FROM ##HistorialTemp h
 		JOIN Ventas.Facturas f on f.IdViejo = h.IdFactura
 		CROSS APPLY (
 				SELECT TOP 1 * FROM Productos.Catalogo C 
-				WHERE C.Nombre = h.Producto AND CAST(h.PrecioUni AS DECIMAL(10, 2)) * @ValorDolar = C.Precio
+				WHERE C.Nombre = h.Producto AND CAST(h.PrecioUni AS DECIMAL(10, 2))= C.Precio
 		) c
-	
 	WHERE f.IdFactura NOT IN (SELECT IdFactura FROM Ventas.DetalleVentas)
+
+	DECLARE @ValorDolar DECIMAL(6,2)
+	SELECT @ValorDolar = d.PrecioAR FROM Complementario.ValorDolar d
+	
+	UPDATE Ventas.DetalleVentas
+	SET PrecioUnitario = PrecioUnitario * @ValorDolar
 
 END;
 GO

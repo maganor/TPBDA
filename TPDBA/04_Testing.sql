@@ -232,9 +232,9 @@ BEGIN TRY
         @TipoFactura = 'A', 
         @IdMedioPago = 1;
     IF @Error <> 0		-- Verifica si ocurrió un error en CargarFacturas
-    BEGIN
+	BEGIN
         THROW 50000, 'ERROR', 1	
-    END;
+	END
 	
 	--------Test Productos que SI Estan--------
     EXEC Ventas.AgregarProducto @IdProducto = 104;  
@@ -289,13 +289,16 @@ EXEC NotaCredito.EliminarNotaCredito @Id = 1;
 SELECT * FROM NotaCredito.NotasDeCredito
 
 --------Test Mostrar Reporte--------
-SELECT * FROM Ventas.MostrarReporte
+SELECT * FROM Ventas.MostrarReporte ORDER BY IdFactura ASC
 
 --------Test Eliminar Producto--------
 SELECT * FROM Productos.Catalogo WHERE nombre = 'Aceite de aguacate Ethnos'
 GO
 
-EXEC Productos.EliminarProducto		@id = 847
+EXEC Productos.EliminarProducto		@id = 847 -- Exitoso
+GO
+
+EXEC Productos.EliminarProducto		@id = 15403 -- ERROR no existe
 GO
 
 SELECT * FROM Productos.Catalogo WHERE nombre = 'Aceite de aguacate Ethnos'

@@ -222,6 +222,12 @@ CREATE OR ALTER PROCEDURE Productos.EliminarProducto
     @Id INT
 AS
 BEGIN
+	IF NOT EXISTS (SELECT 1 FROM Productos.Catalogo WHERE Id = @id)
+	BEGIN
+        RAISERROR ('No existe ese producto', 16, 1);
+        RETURN;
+    END
+
     DELETE FROM Productos.Catalogo
     WHERE Id = @Id
 
@@ -307,6 +313,11 @@ CREATE OR ALTER PROCEDURE Sucursal.EliminarSucursal
 	@id int
 AS
 BEGIN
+	IF NOT EXISTS (SELECT 1 FROM Sucursal.Sucursales WHERE IdSucursal = @id)
+	BEGIN
+        RAISERROR ('No existe esa sucursal', 16, 1);
+        RETURN;
+    END
 	DELETE FROM Sucursal.Sucursales
 	WHERE IdSucursal = @id
 END;
