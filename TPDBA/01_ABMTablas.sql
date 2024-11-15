@@ -217,7 +217,7 @@ BEGIN
     ELSE
     BEGIN
         INSERT INTO Productos.Catalogo (Nombre, Precio, IdCategoria, Proveedor, Moneda, PrecioRef, UnidadRef)    -- Si no existe, inserta el nuevo producto
-        VALUES (@Nombre, @Precio, @IdCategoria, '-', 'ARS', '-', '-');
+        VALUES (@Nombre, @Precio, @IdCategoria, '-', 'ARS', 0, '-');
     END
     PRINT 'Se agrego/actualizo el producto ' + @nombre
 END;

@@ -113,6 +113,8 @@ EXEC Sucursal.AgregarEmpleado			@Nombre = 'Howard',								--Error por DNI dupli
 										@Turno = 'TM'
 GO
 
+SELECT * FROM Sucursal.Empleados
+GO
 --------Test Actualizar Empleado--------
 EXEC Sucursal.ActualizarEmpleado		@Legajo = '257035',								--Exitoso
 										@Direccion = 'enrique segoviano 1944',
@@ -130,13 +132,16 @@ EXEC Sucursal.ActualizarEmpleado		@Legajo = '257100',								--Error por no enco
 										@Turno = 'Jornada completa'
 GO
 
+SELECT * FROM Sucursal.Empleados
+GO
+
 --------Test Eliminar Empleado--------
 EXEC Sucursal.EliminarEmpleado @Legajo = '257035'										--Exitoso
 GO
 
 EXEC Sucursal.EliminarEmpleado @Legajo = '257200'										--Error por no encontrar el legajo
 GO
---------Mostrar Empleados--------
+
 SELECT * FROM Sucursal.Empleados
 GO
 
@@ -149,6 +154,9 @@ EXEC MedioDePago.AgregarMedioDePago		@nombreING = 'Credit card',						--Error po
 										@nombreESP = 'Tarjeta de credito'
 GO
 
+SELECT * FROM Complementario.MediosDePago
+GO
+
 --------Test Eliminar Medio de Pago--------
 EXEC MedioDePago.EliminarMedioDePago	@id = '4'										--Exitoso
 GO
@@ -156,7 +164,6 @@ GO
 EXEC MedioDePago.EliminarMedioDePago	@id = '10'										--Error por no encontrar el ID del Medio de pago
 GO
 
---------Mostrar Medios de Pago--------
 SELECT * FROM Complementario.MediosDePago
 GO
 
@@ -173,6 +180,9 @@ EXEC Ventas.AgregarCliente				@Nombre = 'Celia Fernandez',					--Error	por DNI d
 								
 GO
 
+SELECT * FROM Ventas.Clientes
+GO
+
 --------Tests Modificar Clientes--------
 EXEC Ventas.ModificarCliente			@IdCliente = 5,									--Exitoso
 										@TipoClienteNuevo = 'VIP';						--(Con idea de agregar mas tipos de cliente a futuro)										
@@ -182,6 +192,9 @@ EXEC Ventas.ModificarCliente			@IdCliente = 11,								--Error por no encontrar 
 										@TipoClienteNuevo = 'VIP';  										
 GO
 
+SELECT * FROM Ventas.Clientes
+GO
+
 --------Test Eliminar Cliente--------
 EXEC Ventas.EliminarCliente			@IdCliente = 5;										--Exitoso   
 GO
@@ -189,7 +202,6 @@ GO
 EXEC Ventas.EliminarCliente			@IdCliente = 15;									--Error por no encontrar el ID del cliente 
 GO
 
---------Mostrar Clientes--------
 SELECT * FROM Ventas.Clientes
 GO
 
@@ -208,6 +220,9 @@ EXEC Sucursal.AgregarSucursal			@Ciudad = 'Yangon',								--Error por ya existi
 										@Telefono = '5555-5551'									
 GO
 
+SELECT * FROM Sucursal.Sucursales
+GO
+
 --------Test Eliminar Sucursal--------
 EXEC Sucursal.EliminarSucursal			@id = '4'										--Exitoso
 GO
@@ -215,7 +230,6 @@ GO
 EXEC Sucursal.EliminarSucursal			@id = '25'										--Error porque no existe dicha sucursal
 GO
 
---------Mostrar Sucursales--------
 SELECT * FROM Sucursal.Sucursales
 GO
 
@@ -329,7 +343,8 @@ EXEC Productos.AgregarCategoria		@NombreLinea = 'Almacen',						--Error por ya e
 									@NombreProd = 'aceitunas_y_encurtidos'
 GO
 
-SELECT * FROM Productos.CategoriaDeProds
+SELECT * FROM Productos.CategoriaDeProds WHERE Producto = 'galletitas_dulces'
+
 --------Test Eliminar Categoria--------
 EXEC Productos.EliminarCategoria	@NombreLinea = 'Almacen',						--Exitoso
 									@NombreProd = 'galletitas_dulces'
@@ -341,7 +356,7 @@ EXEC Productos.EliminarCategoria	@NombreLinea = 'Almacen',						--Error	porque n
 
 GO
 
-SELECT * FROM Productos.CategoriaDeProds
+SELECT * FROM Productos.CategoriaDeProds WHERE Producto = 'galletitas_dulces'
 
 ----------Ejecución de los Reportes XML---------------
 DECLARE @xml XML;

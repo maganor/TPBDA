@@ -42,6 +42,7 @@ EXEC Sucursal.AgregarEmpleado				@Nombre = 'Marcelo',
 GO
 
 SELECT * FROM Sucursal.Empleados
+GO
 
 EXEC Sucursal.ActualizarEmpleado			@Legajo = '257036',
 											@Direccion = 'enrique segoviano 1944',
@@ -53,9 +54,13 @@ EXEC Sucursal.ActualizarEmpleado			@Legajo = '257036',
 GO	
 
 SELECT * FROM Sucursal.Empleados
+GO
 
 DECLARE @PATH VARCHAR(255) = 'C:\Users\kerse\Desktop\TP_integrador_Archivos'
 DECLARE @FullPath VARCHAR(500) = @PATH + '\Informacion_complementaria2.xlsx'
 
 EXEC Carga.CargarEmpleados					@direccion = @FullPath,
 											@FraseClave = 'AvenidaSiempreViva742'
+
+SELECT * FROM Sucursal.Empleados
+GO
