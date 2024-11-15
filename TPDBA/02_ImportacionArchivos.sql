@@ -125,13 +125,6 @@ BEGIN
     FROM ##CatalogoTemp ct
     WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo c 
                       WHERE c.Nombre = ct.Nombre AND c.IdCategoria = ct.IdCategoria)
-
-	PRINT 'Actualizando precios de catalogo'
-	UPDATE Productos.Catalogo
-	SET c.Precio = ct.Precio
-	FROM Productos.Catalogo	c
-	JOIN ##CatalogoTemp ct on c.Nombre = ct.Nombre AND c.Precio <> ct.Precio
-
     DROP TABLE ##CatalogoTemp
 
 END;
@@ -201,12 +194,12 @@ BEGIN
 	SELECT @ValorDolar = d.PrecioAR FROM Complementario.ValorDolar d
 	
 	INSERT INTO Ventas.DetalleVentas(IdFactura, IdProducto, Cantidad, PrecioUnitario, IdCategoria)
-	SELECT f.IdFactura,c.Id,CAST(h.Cantidad AS INT),CAST(h.PrecioUni * @ValorDolar AS DECIMAL(10, 2)),C.IdCategoria 
+	SELECT f.IdFactura,c.Id,CAST(h.Cantidad AS INT),CAST(h.PrecioUni AS DECIMAL(10, 2))  * @ValorDolar ,C.IdCategoria 
 	FROM ##HistorialTemp h
 		JOIN Ventas.Facturas f on f.IdViejo = h.IdFactura
 		CROSS APPLY (
 				SELECT TOP 1 * FROM Productos.Catalogo C 
-				WHERE C.Nombre = h.Producto AND CAST(h.PrecioUni * @ValorDolar AS DECIMAL(10, 2)) = C.Precio
+				WHERE C.Nombre = h.Producto AND CAST(h.PrecioUni AS DECIMAL(10, 2)) * @ValorDolar = C.Precio
 		) c
 	
 	WHERE f.IdFactura NOT IN (SELECT IdFactura FROM Ventas.DetalleVentas)
@@ -265,13 +258,6 @@ BEGIN
 		JOIN Productos.CategoriaDeProds cp ON cp.LineaDeProducto = i.Categoria AND cp.Producto = i.Nombre
     WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo c
 					  WHERE c.Nombre = i.Nombre AND c.IdCategoria = cp.Id);
-
-	PRINT 'Actualizando precios productos importados'
-	UPDATE Productos.Catalogo
-	SET Precio = p.PrecioUnidad
-	FROM Productos.Catalogo	c
-	JOIN #ProductosImportados p on c.Nombre = p.Nombre AND c.Precio <> p.PrecioUnidad
-
     DROP TABLE #ProductosImportados;
 
 END;
@@ -324,13 +310,6 @@ BEGIN
     FROM #ElectronicAccessories ea
 	WHERE NOT EXISTS (SELECT 1 FROM Productos.Catalogo C 
 					  WHERE C.Nombre = ea.Nombre);
-
-	PRINT 'Actualizando precios Accesorios Electronicos'
-	UPDATE Productos.Catalogo
-	SET Precio = ea.PrecioUSD
-	FROM Productos.Catalogo	c
-	JOIN #ElectronicAccessories ea on c.Nombre = ea.Nombre AND c.Precio <> ea.PrecioUSD
-
 	DROP TABLE #ElectronicAccessories;
 
 END;

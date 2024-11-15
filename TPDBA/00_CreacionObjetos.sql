@@ -174,7 +174,7 @@ CREATE TABLE Ventas.DetalleVentas(
     IdProducto INT,										
     IdCategoria INT,
     Cantidad INT,                                   
-    PrecioUnitario DECIMAL(6, 2),										
+    PrecioUnitario DECIMAL(10, 2),										
     CONSTRAINT FK_Detalle_Factura FOREIGN KEY (IdFactura) REFERENCES Ventas.Facturas(IdFactura),
     CONSTRAINT FK_Detalle_Producto FOREIGN KEY (IdProducto) REFERENCES Productos.Catalogo(Id),
 	CONSTRAINT FK_Detalle_Categoria FOREIGN KEY (IdCategoria) REFERENCES Productos.CategoriaDeProds(Id)
@@ -240,9 +240,7 @@ AS
 		JOIN Productos.CategoriaDeProds CP ON DV.IdCategoria = CP.Id   
 		JOIN Productos.Catalogo P ON DV.IdProducto = P.Id      
 		JOIN Complementario.MediosDePago MP ON F.IdMedioPago = MP.IdMDP
-		
 	WHERE DV.Cantidad > 0
-	ORDER BY F.IdFactura ASC
 GO
 
 --Creacion de Indices para las futuras ejecuciones de los SP:

@@ -115,6 +115,11 @@ BEGIN
     SELECT @IdSucursal = IdSucursal
 	FROM Sucursal.Sucursales
 	WHERE ReemplazarPor = @Sucursal;
+	IF NOT EXISTS (SELECT 1 FROM Sucursal.Empleados e WHERE e.Legajo = @Legajo)
+	BEGIN
+        RAISERROR ('No existe ese empleado', 16, 1);
+        RETURN;
+    END
 
     IF @IdSucursal IS NULL
     BEGIN
@@ -137,6 +142,12 @@ CREATE OR ALTER PROCEDURE Sucursal.EliminarEmpleado
 	@Legajo INT
 AS 
 BEGIN
+	IF NOT EXISTS (SELECT 1 FROM Sucursal.Empleados e WHERE e.Legajo = @Legajo)
+	BEGIN
+        RAISERROR ('No existe ese empleado', 16, 1);
+        RETURN;
+    END
+
 	UPDATE Sucursal.Empleados
 	SET EstaActivo = 0
 	WHERE Legajo = @Legajo
@@ -242,6 +253,12 @@ CREATE OR ALTER PROCEDURE MedioDePago.EliminarMedioDePago
 	@id INT
 AS
 BEGIN
+	IF NOT EXISTS (SELECT 1 FROM Complementario.MediosDePago WHERE IdMDP = @id)
+	BEGIN
+        RAISERROR ('No existe ese medio de pago', 16, 1);
+        RETURN;
+    END
+
 	DELETE FROM Complementario.MediosDePago
 	WHERE IdMDP = @id
 END;
